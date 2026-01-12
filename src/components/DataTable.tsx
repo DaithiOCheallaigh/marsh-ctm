@@ -2,17 +2,7 @@ import React, { useState } from 'react';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-
-export interface WorkItem {
-  id: string;
-  workType: string;
-  clientName: string;
-  dateCreated: string;
-  dueDate: string;
-  assignee: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'Completed';
-}
+import { WorkItem } from '@/context/WorkItemsContext';
 
 interface SortConfig {
   column: string | null;

@@ -2,37 +2,21 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchBar } from './SearchBar';
 import { TabNavigation } from './TabNavigation';
-import { DataTable, WorkItem } from './DataTable';
+import { DataTable } from './DataTable';
 import { TablePagination } from './TablePagination';
 import { Clock, Plus, FileText } from 'lucide-react';
-
-const mockData: WorkItem[] = [
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Global Insurance Co', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh New York (HQ)', priority: 'Medium', status: 'Pending' },
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Acme Inc', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh London', priority: 'Medium', status: 'Pending' },
-  { id: '1234567890', workType: 'New Joiner', clientName: 'Michael Chen', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'High', status: 'Completed' },
-  { id: '1234567890', workType: 'Offboarding', clientName: 'Tech Start Inc', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Dubai', priority: 'Medium', status: 'Pending' },
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Regional Healthcare', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Cleveland', priority: 'High', status: 'Completed' },
-  { id: '1234567890', workType: 'New Joiner', clientName: 'Sarah Anderson', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'Low', status: 'Pending' },
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Guy Carpenter', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Luxembourg', priority: 'Medium', status: 'Pending' },
-  { id: '1234567890', workType: 'Leaver', clientName: 'Nikki Mullins', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'High', status: 'Pending' },
-  { id: '1234567890', workType: 'Offboarding', clientName: 'Bora', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Amsterdam', priority: 'Medium', status: 'Pending' },
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Moss Inc', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Chennai', priority: 'High', status: 'Completed' },
-  { id: '1234567890', workType: 'New Joiner', clientName: 'Barry Kilburn', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'Low', status: 'Pending' },
-  { id: '1234567890', workType: 'New Joiner', clientName: 'Farah Sunid', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'Low', status: 'Pending' },
-  { id: '1234567890', workType: 'Leaver', clientName: 'Macken Norbury', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'Medium', status: 'Pending' },
-  { id: '1234567890', workType: 'Offboarding', clientName: 'Run Smart LLC', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh California', priority: 'High', status: 'Completed' },
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Sundale Roofing Inc', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Dallas', priority: 'High', status: 'Completed' }
-];
+import { useWorkItems } from '@/context/WorkItemsContext';
 
 export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "" }) => {
   const navigate = useNavigate();
+  const { workItems } = useWorkItems();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [resultsPerPage, setResultsPerPage] = useState(15);
 
   const filteredData = useMemo(() => {
-    let filtered = mockData;
+    let filtered = workItems;
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
@@ -45,13 +29,13 @@ export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "
     if (activeTab === 'pending') filtered = filtered.filter(item => item.status === 'Pending');
     else if (activeTab === 'completed') filtered = filtered.filter(item => item.status === 'Completed');
     return filtered;
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, workItems]);
 
   const tabs = useMemo(() => [
-    { id: 'all', label: 'All', count: mockData.length },
-    { id: 'pending', label: 'Pending', count: mockData.filter(i => i.status === 'Pending').length },
-    { id: 'completed', label: 'Completed', count: mockData.filter(i => i.status === 'Completed').length }
-  ], []);
+    { id: 'all', label: 'All', count: workItems.length },
+    { id: 'pending', label: 'Pending', count: workItems.filter(i => i.status === 'Pending').length },
+    { id: 'completed', label: 'Completed', count: workItems.filter(i => i.status === 'Completed').length }
+  ], [workItems]);
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / resultsPerPage));
   const paginatedData = filteredData.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage);
