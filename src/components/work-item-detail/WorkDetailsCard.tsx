@@ -39,7 +39,7 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
             {/* Row 1 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Description</p>
-              <p className="text-accent text-sm font-medium">{description}</p>
+              <p className="text-primary text-sm font-medium">{description}</p>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">CN Number</p>
