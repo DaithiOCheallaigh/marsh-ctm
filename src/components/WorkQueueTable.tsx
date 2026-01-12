@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SearchBar } from './SearchBar';
 import { TabNavigation } from './TabNavigation';
 import { DataTable, WorkItem } from './DataTable';
@@ -24,6 +25,7 @@ const mockData: WorkItem[] = [
 ];
 
 export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "" }) => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,6 +76,7 @@ export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "
           
           {/* Create Button */}
           <button 
+            onClick={() => navigate('/create-work-item')}
             className="
               flex items-center gap-2
               bg-[hsl(220,100%,24%)] 
