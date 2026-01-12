@@ -228,23 +228,12 @@ const CreateWorkItem = () => {
                 <span className="text-muted-foreground">&gt;</span>
                 <span className="text-primary font-medium">Create Work Item</span>
               </nav>
-              <div className="flex items-center gap-3">
-                {/* Created timestamp */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
-                  <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
-                  <span className="text-[hsl(0,0%,25%)] text-xs font-medium">
-                    Created: {formatTimestamp(createdAt)}
-                  </span>
-                </div>
-                {/* Saved timestamp - only show if saved */}
-                {lastSavedAt && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(136,70%,90%)] rounded-lg">
-                    <Clock className="w-4 h-4 text-[hsl(120,100%,27%)]" />
-                    <span className="text-[hsl(120,100%,27%)] text-xs font-medium">
-                      Saved: {formatTimestamp(lastSavedAt)}
-                    </span>
-                  </div>
-                )}
+              <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
+                <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
+                <span className="text-[hsl(0,0%,25%)] text-xs font-medium">
+                  Created: {formatTimestamp(createdAt)}
+                  {lastSavedAt && ` | Saved: ${formatTimestamp(lastSavedAt)}`}
+                </span>
               </div>
             </div>
 
