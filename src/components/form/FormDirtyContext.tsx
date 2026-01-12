@@ -13,10 +13,10 @@ export const useFormDirtyContext = () => {
   return useContext(FormDirtyContext);
 };
 
-// Helper to get field state classes
+// Helper to get field state classes - subtle styling
 export const getFieldStateClasses = (isDirty: boolean) => {
   if (isDirty) {
-    return "bg-field-dirty-bg border-field-dirty-border border-2 shadow-sm";
+    return "bg-field-dirty-bg border-field-dirty-border border";
   }
   return "bg-field-pristine-bg border-field-pristine-border";
 };

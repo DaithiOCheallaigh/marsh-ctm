@@ -135,11 +135,41 @@ const CreateWorkItem = () => {
     return assignee?.name || "Unassigned";
   };
 
+  const { workItems } = useWorkItems();
+
+  const checkForDuplicate = () => {
+    const workTypeLabels: Record<string, string> = {
+      "onboarding": "Onboarding",
+      "new-joiner": "New Joiner",
+      "leaver": "Leaver",
+      "offboarding": "Offboarding",
+    };
+    
+    const clientName = getClientName();
+    const workTypeLabel = workTypeLabels[workType] || workType;
+    
+    return workItems.some(item => 
+      item.workType.toLowerCase() === workTypeLabel.toLowerCase() &&
+      item.clientName.toLowerCase() === clientName.toLowerCase() &&
+      item.status === 'Pending'
+    );
+  };
+
   const handleSubmit = () => {
     if (!workType || !assignTo || !dueDate) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicate work items
+    if (checkForDuplicate()) {
+      toast({
+        title: "Duplicate Work Item",
+        description: "A pending work item with the same type and client/colleague already exists.",
         variant: "destructive",
       });
       return;
@@ -339,7 +369,7 @@ const CreateWorkItem = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-center gap-4 mt-8 mb-8">
+            <div className="flex justify-end gap-4 mt-8 mb-8">
               <Button
                 type="button"
                 variant="outline"
