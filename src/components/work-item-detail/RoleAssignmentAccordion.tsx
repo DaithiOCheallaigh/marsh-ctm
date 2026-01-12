@@ -27,13 +27,14 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
+  capacityRequired?: number;
 }
 
 interface RoleAssignmentAccordionProps {
   roleTitle: string;
   rolesCount: { current: number; total: number };
   chairs: RoleAssignment[];
-  onAssign: (chairIndex: number, member: TeamMember, notes: string) => void;
+  onAssign: (chairIndex: number, member: TeamMember, notes: string, capacityRequired: number) => void;
   onUnassign: (chairIndex: number) => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -55,11 +56,12 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [assignmentNotes, setAssignmentNotes] = useState('');
+  const [capacityRequired, setCapacityRequired] = useState(20); // Default 20%
   const [displayCount, setDisplayCount] = useState(3);
   const [showTable, setShowTable] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [warningType, setWarningType] = useState<'capacity' | 'location' | null>(null);
-  const [pendingAssignment, setPendingAssignment] = useState<{ chairIndex: number; member: TeamMember; notes: string } | null>(null);
+  const [pendingAssignment, setPendingAssignment] = useState<{ chairIndex: number; member: TeamMember; notes: string; capacity: number } | null>(null);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const [unassignChairIndex, setUnassignChairIndex] = useState<number | null>(null);
 
@@ -72,6 +74,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       setSearchQuery('');
       setSelectedMember(null);
       setAssignmentNotes('');
+      setCapacityRequired(20);
       setDisplayCount(3);
       setShowTable(false);
     }
@@ -114,7 +117,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     // Check for capacity warning
     if (!selectedMember.hasCapacity) {
       setWarningType('capacity');
-      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
+      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes, capacity: capacityRequired });
       setShowWarningDialog(true);
       return;
     }
@@ -122,19 +125,19 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     // Check for location mismatch warning
     if (!selectedMember.locationMatch) {
       setWarningType('location');
-      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
+      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes, capacity: capacityRequired });
       setShowWarningDialog(true);
       return;
     }
 
     // No warnings, proceed with assignment
-    onAssign(chairIndex, selectedMember, assignmentNotes);
+    onAssign(chairIndex, selectedMember, assignmentNotes, capacityRequired);
     resetSelection();
   };
 
   const handleConfirmWarning = () => {
     if (pendingAssignment) {
-      onAssign(pendingAssignment.chairIndex, pendingAssignment.member, pendingAssignment.notes);
+      onAssign(pendingAssignment.chairIndex, pendingAssignment.member, pendingAssignment.notes, pendingAssignment.capacity);
       resetSelection();
     }
     setShowWarningDialog(false);
@@ -158,6 +161,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const resetSelection = () => {
     setSelectedMember(null);
     setAssignmentNotes('');
+    setCapacityRequired(20);
     setShowTable(false);
     setDisplayCount(3);
   };
@@ -220,8 +224,18 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                     </button>
                   </div>
                   <div className="bg-card rounded-lg p-4 border border-[hsl(var(--wq-border))]">
-                    <p className="text-accent font-semibold text-sm">{chair.assignedMember.name}</p>
-                    <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{chair.assignedMember.role}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-accent font-semibold text-sm">{chair.assignedMember.name}</p>
+                        <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{chair.assignedMember.role}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[hsl(var(--wq-text-secondary))] text-xs">Capacity:</span>
+                        <span className="px-2 py-1 bg-[hsl(var(--wq-bg-muted))] rounded text-primary text-sm font-medium">
+                          {chair.capacityRequired || 20}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   {chair.assignmentNotes && (
                     <div className="mt-3 bg-card rounded-lg p-3 border border-[hsl(var(--wq-border))]">
@@ -414,6 +428,24 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                       </span>
                     </div>
                   )}
+
+                  {/* Capacity Required */}
+                  <div className="mt-4 flex items-center gap-4">
+                    <p className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium">
+                      Capacity Required
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={capacityRequired}
+                        onChange={(e) => setCapacityRequired(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                        className="w-16 px-2 py-1.5 bg-[hsl(var(--wq-bg-muted))] border-none rounded text-primary text-sm font-medium text-center focus:outline-none focus:ring-2 focus:ring-accent/30"
+                      />
+                      <span className="text-[hsl(var(--wq-text-secondary))] text-sm">%</span>
+                    </div>
+                  </div>
 
                   {/* Assignment Notes */}
                   <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-4">
