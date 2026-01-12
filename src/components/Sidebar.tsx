@@ -17,7 +17,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
   return (
     <aside 
       className={`
-        fixed left-9 top-24
+        fixed left-6 top-[100px]
         w-[264px] 
         bg-[hsl(220,100%,24%)] 
         rounded-xl 
