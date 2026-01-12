@@ -84,7 +84,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             {member.locationMatch ? (
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[hsl(var(--wq-status-completed-text))]" />
-                <span className="text-accent text-xs">Location match</span>
+                <span className="text-[hsl(var(--wq-status-completed-text))] text-xs">Location match</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
@@ -95,7 +95,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             {member.expertiseMatch ? (
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[hsl(var(--wq-status-completed-text))]" />
-                <span className="text-accent text-xs">Expertise match</span>
+                <span className="text-[hsl(var(--wq-status-completed-text))] text-xs">Expertise match</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
@@ -106,7 +106,7 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             {member.hasCapacity ? (
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[hsl(var(--wq-status-completed-text))]" />
-                <span className="text-accent text-xs">Has capacity</span>
+                <span className="text-[hsl(var(--wq-status-completed-text))] text-xs">Has capacity</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
