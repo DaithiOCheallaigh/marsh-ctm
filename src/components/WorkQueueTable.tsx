@@ -3,9 +3,10 @@ import { SearchBar } from './SearchBar';
 import { TabNavigation } from './TabNavigation';
 import { DataTable, WorkItem } from './DataTable';
 import { TablePagination } from './TablePagination';
+import { Clock, Plus, FileText } from 'lucide-react';
 
 const mockData: WorkItem[] = [
-  { id: '1234567890', workType: 'Onboarding', clientName: 'Global insurance Co', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh New York (HQ)', priority: 'Medium', status: 'Pending' },
+  { id: '1234567890', workType: 'Onboarding', clientName: 'Global Insurance Co', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh New York (HQ)', priority: 'Medium', status: 'Pending' },
   { id: '1234567890', workType: 'Onboarding', clientName: 'Acme Inc', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh London', priority: 'Medium', status: 'Pending' },
   { id: '1234567890', workType: 'New Joiner', clientName: 'Michael Chen', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Colin Masterson', priority: 'High', status: 'Completed' },
   { id: '1234567890', workType: 'Offboarding', clientName: 'Tech Start Inc', dateCreated: '08 Sep 2025', dueDate: '30 Jan 2026', assignee: 'Marsh Dubai', priority: 'Medium', status: 'Pending' },
@@ -26,20 +27,17 @@ export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const resultsPerPage = 15;
-
-  const tabs = [
-    { id: 'all', label: 'All', count: 4 },
-    { id: 'pending', label: 'Pending', count: 23 },
-    { id: 'completed', label: 'Completed', count: 18 }
-  ];
+  const [resultsPerPage, setResultsPerPage] = useState(15);
 
   const filteredData = useMemo(() => {
     let filtered = mockData;
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item =>
-        item.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.workType.toLowerCase().includes(searchQuery.toLowerCase())
+        item.clientName.toLowerCase().includes(query) ||
+        item.workType.toLowerCase().includes(query) ||
+        item.assignee.toLowerCase().includes(query) ||
+        item.id.includes(query)
       );
     }
     if (activeTab === 'pending') filtered = filtered.filter(item => item.status === 'Pending');
@@ -47,49 +45,73 @@ export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "
     return filtered;
   }, [searchQuery, activeTab]);
 
-  const totalPages = Math.ceil(filteredData.length / resultsPerPage) || 1;
+  const tabs = useMemo(() => [
+    { id: 'all', label: 'All', count: mockData.length },
+    { id: 'pending', label: 'Pending', count: mockData.filter(i => i.status === 'Pending').length },
+    { id: 'completed', label: 'Completed', count: mockData.filter(i => i.status === 'Completed').length }
+  ], []);
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / resultsPerPage));
+  const paginatedData = filteredData.slice((currentPage - 1) * resultsPerPage, currentPage * resultsPerPage);
 
   return (
     <div className={className}>
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-[7px]">
-          <svg width="20" height="32" viewBox="0 0 20 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-8">
-            <path d="M15.333 8H4.66634V9.33333H15.333V8ZM4.66634 24H15.333V22.6667H4.66634V24ZM15.333 10.6667H4.66634C3.93301 10.6667 3.33301 11.2667 3.33301 12V20C3.33301 20.7333 3.93301 21.3333 4.66634 21.3333H15.333C16.0663 21.3333 16.6663 20.7333 16.6663 20V12C16.6663 11.2667 16.0663 10.6667 15.333 10.6667ZM9.99967 12.5C10.8263 12.5 11.4997 13.1733 11.4997 14C11.4997 14.8267 10.8263 15.5 9.99967 15.5C9.17301 15.5 8.49967 14.8267 8.49967 14C8.49967 13.1733 9.17301 12.5 9.99967 12.5ZM13.333 19.3333H6.66634V18.3333C6.66634 17.22 8.88634 16.6667 9.99967 16.6667C11.113 16.6667 13.333 17.22 13.333 18.3333V19.3333Z" fill="#009DE0"/>
-          </svg>
-          <h1 className="text-[#002C77] text-base font-bold leading-5">Work Queue</h1>
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[hsl(197,100%,44%,0.1)] flex items-center justify-center">
+            <FileText className="w-5 h-5 text-[hsl(197,100%,44%)]" />
+          </div>
+          <h2 className="text-[hsl(220,100%,24%)] text-lg font-bold">Work Queue</h2>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex w-[148px] h-7 justify-center items-center gap-[9px] bg-[#E7E7E7] px-2 rounded-lg">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3 h-3">
-              <path d="M0.844 8.70641C1.40803 9.84676 2.3228 10.7762 3.454 11.3584C4.57709 11.9351 5.85759 12.1298 7.10133 11.9131C8.34894 11.6937 9.49196 11.0763 10.3593 10.1531C11.2348 9.22118 11.7921 8.03571 11.9513 6.76707C12.1131 5.49556 11.8695 4.20543 11.2553 3.08041C10.6469 1.96395 9.69597 1.07241 8.54267 0.537073C7.39713 0.00651669 6.10976 -0.135796 4.876 0.13174C3.64267 0.399073 2.632 1.00707 1.796 1.96841C1.69533 2.07507 1.306 2.50574 0.982667 3.15574M3 3.33307L0.594 3.81307L0 1.33307M6 3.99974V6.66641L8 7.99974" stroke="#404040" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span className="text-neutral-700 text-[10px] font-normal">26 Feb 2024 13:42 EST</span>
+          {/* Last Updated */}
+          <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
+            <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
+            <span className="text-[hsl(0,0%,25%)] text-xs font-medium">26 Feb 2024 13:42 EST</span>
           </div>
           
-          <button className="flex w-[148px] h-8 justify-center items-center gap-2 bg-[#002C77] px-4 py-2 rounded-lg hover:bg-[#001a4d]">
-            <span className="text-white text-center text-xs font-medium">Create Work Item</span>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-2.5">
-              <path d="M9.28571 5.71429H5.71429V9.28571C5.71429 9.47515 5.63903 9.65684 5.50508 9.79079C5.37112 9.92475 5.18944 10 5 10C4.81056 10 4.62888 9.92475 4.49492 9.79079C4.36097 9.65684 4.28571 9.47515 4.28571 9.28571V5.71429H0.714286C0.524845 5.71429 0.343164 5.63903 0.20921 5.50508C0.075255 5.37112 0 5.18944 0 5C0 4.81056 0.075255 4.62888 0.20921 4.49492C0.343164 4.36097 0.524845 4.28571 0.714286 4.28571H4.28571V0.714286C4.28571 0.524845 4.36097 0.343164 4.49492 0.209209C4.62888 0.0752547 4.81056 0 5 0C5.18944 0 5.37112 0.0752547 5.50508 0.209209C5.63903 0.343164 5.71429 0.524845 5.71429 0.714286V4.28571H9.28571C9.47515 4.28571 9.65684 4.36097 9.79079 4.49492C9.92475 4.62888 10 4.81056 10 5C10 5.18944 9.92475 5.37112 9.79079 5.50508C9.65684 5.63903 9.47515 5.71429 9.28571 5.71429Z" fill="white"/>
-            </svg>
+          {/* Create Button */}
+          <button 
+            className="
+              flex items-center gap-2
+              bg-[hsl(220,100%,24%)] 
+              text-white text-sm font-medium
+              px-5 py-2.5
+              rounded-lg
+              shadow-sm
+              hover:bg-[hsl(220,100%,18%)] hover:shadow-md
+              active:scale-[0.98]
+              transition-all duration-200
+              focus:outline-none focus:ring-2 focus:ring-[hsl(220,100%,24%)] focus:ring-offset-2
+            "
+          >
+            <span>Create Work Item</span>
+            <Plus className="w-4 h-4" />
           </button>
         </div>
       </div>
       
-      <div className="w-full h-px bg-[#002C77] opacity-50 mb-4" />
+      {/* Divider */}
+      <div className="w-full h-px bg-[hsl(220,100%,24%)] opacity-20 mb-6" />
       
-      <div className="flex justify-between items-center mb-4">
+      {/* Search and Filters */}
+      <div className="flex justify-between items-center mb-6">
         <SearchBar onSearch={setSearchQuery} />
-        <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={(id) => { setActiveTab(id); setCurrentPage(1); }} />
       </div>
       
-      <DataTable data={filteredData} />
+      {/* Table */}
+      <DataTable data={paginatedData} />
+      
+      {/* Pagination */}
       <TablePagination
         currentPage={currentPage}
         totalPages={totalPages}
         resultsPerPage={resultsPerPage}
         onPageChange={setCurrentPage}
-        onResultsPerPageChange={() => {}}
+        onResultsPerPageChange={(count) => { setResultsPerPage(count); setCurrentPage(1); }}
       />
     </div>
   );
