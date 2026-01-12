@@ -143,46 +143,43 @@ const WorkItemDetail = () => {
       <div className="flex flex-1 px-6 pb-6 gap-6">
         <Sidebar />
         <main className="flex-1 ml-[280px] overflow-auto">
-          {/* Breadcrumb and Header */}
-          <div className="flex items-center justify-between mb-4">
-            <nav
-              className="flex items-center gap-2 text-sm"
-              aria-label="Breadcrumb"
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-sm mb-2" aria-label="Breadcrumb">
+            <Link
+              to="/"
+              className="text-[hsl(var(--wq-text-secondary))] hover:text-primary transition-colors"
             >
-              <Link
-                to="/"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                Work Queue
-              </Link>
-              <span className="text-muted-foreground">&gt;</span>
-              <span className="text-primary font-medium">Work Details</span>
-            </nav>
+              Work Queue
+            </Link>
+            <span className="text-[hsl(var(--wq-text-secondary))]">&gt;</span>
+            <span className="text-primary font-semibold">Work Details</span>
+          </nav>
+
+          {/* Title bar with inline metadata */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <h1 className="text-lg font-bold text-primary">
+                Work ID - {workItem.id} | {workItem.clientName}
+              </h1>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Work Type:</span>
+                <WorkTypeBadge workType={workItem.workType} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Priority:</span>
+                <PriorityBadge priority={workItem.priority} />
+              </div>
+            </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(var(--wq-bg-muted))] rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--wq-bg-muted))] rounded-full">
                 <Clock className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
-                <span className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium">
+                <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
                   {lastSavedAt
-                    ? `Last saved: ${formatTimestamp(lastSavedAt)}`
-                    : formatTimestamp(new Date())}
+                    ? `${format(lastSavedAt, "dd MMM yyyy HH:mm")} EST`
+                    : `${format(new Date(), "dd MMM yyyy HH:mm")} EST`}
                 </span>
               </div>
               <StatusIndicator status="On Track" />
-            </div>
-          </div>
-
-          {/* Title bar */}
-          <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-xl font-bold text-primary">
-              Work ID - {workItem.id} | {workItem.clientName}
-            </h1>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Work Type:</span>
-              <WorkTypeBadge workType={workItem.workType} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Priority:</span>
-              <PriorityBadge priority={workItem.priority} />
             </div>
           </div>
 
@@ -217,19 +214,19 @@ const WorkItemDetail = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 mt-8 mb-8">
+          <div className="flex justify-end gap-3 mt-8 mb-8">
             <Button
               type="button"
               variant="outline"
               onClick={handleSaveForLater}
-              className="px-8 border-primary text-primary hover:bg-primary/5"
+              className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
             >
               Save For Later
             </Button>
             <Button
               type="button"
               onClick={handleConfirmAssignments}
-              className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
             >
               Confirm Assignments
             </Button>

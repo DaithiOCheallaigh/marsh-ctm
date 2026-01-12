@@ -72,13 +72,13 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       >
         <h4 className="text-primary font-bold text-sm">{roleTitle}</h4>
         <div className="flex items-center gap-3">
-          <span className="text-accent text-sm font-medium">
+          <span className="text-accent text-sm">
             {rolesCount.current}/{rolesCount.total} Roles Assigned
           </span>
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            <ChevronUp className="w-5 h-5 text-[hsl(var(--wq-text-secondary))]" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            <ChevronDown className="w-5 h-5 text-[hsl(var(--wq-text-secondary))]" />
           )}
         </div>
       </button>
@@ -86,40 +86,44 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       {isExpanded && (
         <div className="border-t border-[hsl(var(--wq-border))]">
           {chairs.map((chair, chairIndex) => (
-            <div key={chairIndex} className="p-4 border-b border-[hsl(var(--wq-border))] last:border-b-0">
+            <div key={chairIndex} className="p-5">
               {chair.assignedMember ? (
                 // Show assigned member
-                <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+                <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
                   <p className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium mb-3">[{chair.chairLabel}]</p>
                   <div className="bg-card rounded-lg p-4 border border-[hsl(var(--wq-border))]">
                     <p className="text-accent font-semibold text-sm">{chair.assignedMember.name}</p>
-                    <p className="text-muted-foreground text-xs">{chair.assignedMember.role}</p>
+                    <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{chair.assignedMember.role}</p>
                   </div>
                   {chair.assignmentNotes && (
                     <div className="mt-3 bg-card rounded-lg p-3 border border-[hsl(var(--wq-border))]">
                       <p className="text-accent text-xs font-medium mb-1">Assignment Notes</p>
-                      <p className="text-muted-foreground text-sm">{chair.assignmentNotes}</p>
+                      <p className="text-[hsl(var(--wq-text-secondary))] text-sm">{chair.assignmentNotes}</p>
                     </div>
                   )}
                 </div>
               ) : (
                 // Show selection UI
-                <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
+                <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
+                  {/* Header row with chair label, search, and reset */}
                   <div className="flex items-center gap-4 mb-4">
-                    <p className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium">[{chair.chairLabel}] | Select Team Member</p>
+                    <span className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium whitespace-nowrap">
+                      [{chair.chairLabel}] | Select Team Member
+                    </span>
                     <div className="flex-1 relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-destructive" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
                       <input
                         type="text"
                         placeholder="Search Team Member"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-destructive/50 rounded-lg text-sm placeholder:text-destructive focus:outline-none focus:ring-2 focus:ring-accent bg-card"
+                        className="w-full pl-10 pr-4 py-2.5 border border-accent/40 rounded-lg text-sm placeholder:text-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent bg-card"
                       />
                     </div>
                     <button 
                       onClick={handleReset}
-                      className="p-2 bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+                      className="p-2.5 bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+                      title="Reset"
                     >
                       <RotateCcw className="w-4 h-4 text-primary-foreground" />
                     </button>
@@ -179,63 +183,82 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                       </Table>
                     </div>
                   ) : (
-                    <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
-                      {displayedMembers.map((member, index) => (
-                        <TeamMemberCard
-                          key={member.id}
-                          member={member}
-                          isSelected={selectedMember?.id === member.id}
-                          onSelect={setSelectedMember}
-                          showBestMatch={index === 0 && member.matchScore === 100}
-                        />
-                      ))}
+                    <>
+                      {/* Selected member card */}
+                      {selectedMember && (
+                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden mb-3">
+                          <TeamMemberCard
+                            member={selectedMember}
+                            isSelected={true}
+                            onSelect={setSelectedMember}
+                            showBestMatch={selectedMember.matchScore === 100}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Other members when no selection */}
+                      {!selectedMember && (
+                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
+                          {displayedMembers.map((member, index) => (
+                            <TeamMemberCard
+                              key={member.id}
+                              member={member}
+                              isSelected={selectedMember?.id === member.id}
+                              onSelect={setSelectedMember}
+                              showBestMatch={index === 0 && member.matchScore === 100}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Show more / Show less */}
+                  {!selectedMember && (
+                    <div className="flex items-center justify-between mt-3">
+                      {!showTable && displayCount < filteredMembers.length && (
+                        <button
+                          onClick={handleShowMore}
+                          className="text-primary text-sm font-medium hover:underline"
+                        >
+                          Show More
+                        </button>
+                      )}
+                      {showTable && (
+                        <button
+                          onClick={() => setShowTable(false)}
+                          className="text-primary text-sm font-medium hover:underline"
+                        >
+                          Show Less
+                        </button>
+                      )}
+                      <span className="text-[hsl(var(--wq-text-secondary))] text-xs ml-auto">
+                        Displaying: {showTable ? filteredMembers.length : displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
+                      </span>
                     </div>
                   )}
 
-                  {/* Show more */}
-                  <div className="flex items-center justify-between mt-3">
-                    {!showTable && displayCount < filteredMembers.length && (
-                      <button
-                        onClick={handleShowMore}
-                        className="text-primary text-sm font-medium hover:underline"
-                      >
-                        Show More
-                      </button>
-                    )}
-                    {showTable && (
-                      <button
-                        onClick={() => setShowTable(false)}
-                        className="text-primary text-sm font-medium hover:underline"
-                      >
-                        Show Less
-                      </button>
-                    )}
-                    <span className="text-muted-foreground text-xs ml-auto">
-                      Displaying: {showTable ? filteredMembers.length : displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
-                    </span>
-                  </div>
-
                   {/* Assignment Notes */}
-                  <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-3">
-                    <p className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium mb-2">
-                      Assignment Notes <span className="text-muted-foreground">(Optional)</span>
+                  <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-4">
+                    <p className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium mb-2">
+                      Assignment Notes <span className="text-[hsl(var(--wq-text-muted))]">(Optional)</span>
                     </p>
                     <textarea
                       placeholder="Add text"
                       value={assignmentNotes}
                       onChange={(e) => setAssignmentNotes(e.target.value)}
-                      className="w-full p-2 text-sm border-none resize-none focus:outline-none placeholder:text-muted-foreground bg-transparent"
+                      className="w-full p-2 text-sm border-none resize-none focus:outline-none placeholder:text-[hsl(var(--wq-text-muted))] bg-transparent"
                       rows={2}
                     />
                   </div>
 
                   {/* Assign button */}
-                  <div className="flex justify-end mt-3">
+                  <div className="flex justify-end mt-4">
                     <Button
                       variant="outline"
                       onClick={() => handleAssign(chairIndex)}
                       disabled={!selectedMember}
-                      className="px-6 border-accent text-accent hover:bg-accent/10 disabled:opacity-50"
+                      className="px-8 border-accent text-accent hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Assign
                     </Button>
