@@ -1,6 +1,7 @@
 import React from 'react';
-import { Building2, FileCheck, AlertOctagon, Settings, Home, ArrowUp } from 'lucide-react';
+import { Building2, FileCheck, AlertOctagon, Settings, ArrowUp } from 'lucide-react';
 import marshLogo from '@/assets/marsh-logo-white.png';
+import homeIcon from '@/assets/home-icon.png';
 
 interface SidebarProps {
   activeItem?: string;
@@ -82,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
           transition-colors duration-200
           focus:outline-none focus:ring-2 focus:ring-white/30
         ">
-          <Home className="w-4 h-4 text-[hsl(200,100%,70%)] flex-shrink-0" strokeWidth={1.5} />
+          <img src={homeIcon} alt="Home" className="w-4 h-4 flex-shrink-0" />
           <span className="text-[hsl(200,100%,70%)] text-sm font-medium">Back to Home</span>
         </button>
         
