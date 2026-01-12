@@ -5,7 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Search, ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react";
+import { ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react";
+import ClientSearchInput from "@/components/ClientSearchInput";
 
 interface TeamRole {
   id: string;
@@ -109,15 +110,11 @@ const OnboardingFields = ({
         <Label className="text-right text-sm font-medium text-text-secondary">
           Client Name or CN Number<span className="text-[hsl(0,100%,50%)]">*</span>
         </Label>
-        <div className="relative max-w-md">
-          <Input
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Search or Add Client"
-            className="pr-10 border-border-primary focus:border-accent focus:ring-accent"
-          />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        </div>
+        <ClientSearchInput
+          value={clientName}
+          onChange={setClientName}
+          placeholder="Search by client name or CN number"
+        />
       </div>
 
       {/* Team Role & Configuration */}
