@@ -1,12 +1,12 @@
 import { format } from "date-fns";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ClientSearchInput from "@/components/ClientSearchInput";
 
 interface OffboardingFieldsProps {
   clientName: string;
@@ -43,15 +43,11 @@ const OffboardingFields = ({
         <Label className="text-right text-sm font-medium text-text-secondary">
           Client Name or CN Number<span className="text-[hsl(0,100%,50%)]">*</span>
         </Label>
-        <div className="relative max-w-md">
-          <Input
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Search client"
-            className="pr-10 border-border-primary focus:border-accent focus:ring-accent"
-          />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        </div>
+        <ClientSearchInput
+          value={clientName}
+          onChange={setClientName}
+          placeholder="Search by client name or CN number"
+        />
       </div>
 
       {/* Reason for Offboarding */}
