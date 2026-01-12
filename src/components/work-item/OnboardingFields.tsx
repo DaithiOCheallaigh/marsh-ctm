@@ -128,7 +128,7 @@ const OnboardingFields = ({
         </CollapsibleTrigger>
         <CollapsibleContent className="px-4 pb-4 space-y-4">
           {/* Description Notes */}
-          <div className="bg-[hsl(210,40%,98%)] rounded-lg p-4 space-y-2">
+          <div className="bg-[#009DE0]/10 rounded-lg p-4 space-y-2 border border-[#009DE0]/30">
             <Label className="text-sm font-medium text-text-secondary">
               Description Notes (Optional)
             </Label>
