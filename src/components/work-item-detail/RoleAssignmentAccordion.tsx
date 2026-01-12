@@ -392,7 +392,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
 
                   {/* Show more / Show less */}
                   {!selectedMember && filteredMembers.length > 0 && (
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="flex flex-col items-center mt-3 gap-2">
                       {!showTable && displayCount < filteredMembers.length && (
                         <button
                           onClick={handleShowMore}
@@ -409,7 +409,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                           Show Less
                         </button>
                       )}
-                      <span className="text-[hsl(var(--wq-text-secondary))] text-xs ml-auto">
+                      <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
                         Displaying: {showTable ? filteredMembers.length : displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
                       </span>
                     </div>
