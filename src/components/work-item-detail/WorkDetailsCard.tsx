@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { WorkItem } from '@/context/WorkItemsContext';
 
 interface WorkDetailsCardProps {
@@ -33,7 +34,12 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
         )}
       </button>
       
-      {isExpanded && (
+      <div 
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+        )}
+      >
         <div className="px-6 py-5 border-t border-[hsl(var(--wq-border))]">
           <div className="grid grid-cols-3 gap-x-12 gap-y-5">
             {/* Row 1 */}
@@ -67,7 +73,7 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
