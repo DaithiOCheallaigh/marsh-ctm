@@ -18,7 +18,6 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
-  capacityRequired?: number; // Default 20%
 }
 
 interface RoleConfig {
@@ -107,8 +106,7 @@ const WorkItemDetail = () => {
     roleIndex: number,
     chairIndex: number,
     member: TeamMember,
-    notes: string,
-    capacityRequired: number
+    notes: string
   ) => {
     // Check for duplicate assignment
     const duplicateCheck = isMemberAssignedElsewhere(member, roleIndex);
@@ -127,7 +125,7 @@ const WorkItemDetail = () => {
         ...updated[roleIndex],
         chairs: updated[roleIndex].chairs.map((chair, idx) =>
           idx === chairIndex
-            ? { ...chair, assignedMember: member, assignmentNotes: notes, capacityRequired }
+            ? { ...chair, assignedMember: member, assignmentNotes: notes }
             : chair
         ),
       };
@@ -139,7 +137,7 @@ const WorkItemDetail = () => {
 
     toast({
       title: "Member Assigned",
-      description: `${member.name} has been assigned to ${roles[roleIndex].title} (${capacityRequired}% capacity).`,
+      description: `${member.name} has been assigned to ${roles[roleIndex].title}.`,
     });
   };
 
@@ -270,8 +268,8 @@ const WorkItemDetail = () => {
                     total: role.totalRoles,
                   }}
                   chairs={role.chairs}
-                  onAssign={(chairIndex, member, notes, capacityRequired) =>
-                    handleAssign(roleIndex, chairIndex, member, notes, capacityRequired)
+                  onAssign={(chairIndex, member, notes) =>
+                    handleAssign(roleIndex, chairIndex, member, notes)
                   }
                   onUnassign={(chairIndex) => handleUnassign(roleIndex, chairIndex)}
                   isExpanded={expandedRoleIndex === roleIndex}
