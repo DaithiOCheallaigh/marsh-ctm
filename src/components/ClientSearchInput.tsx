@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Search, Plus } from "lucide-react";
 import { searchClients, Client } from "@/data/clients";
 import { cn } from "@/lib/utils";
+import { useFormDirtyContext, getFieldStateClasses } from "@/components/form/FormDirtyContext";
 
 interface ClientSearchInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  fieldName?: string;
 }
 
 const ClientSearchInput = ({
@@ -16,7 +17,10 @@ const ClientSearchInput = ({
   onChange,
   placeholder = "Search by client name or CN number",
   className,
+  fieldName,
 }: ClientSearchInputProps) => {
+  const dirtyContext = useFormDirtyContext();
+  const isDirty = fieldName && dirtyContext ? dirtyContext.isDirty(fieldName) : false;
   const [isOpen, setIsOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<Client[]>([]);
   const [inputValue, setInputValue] = useState(value);
@@ -69,7 +73,7 @@ const ClientSearchInput = ({
 
   return (
     <div ref={containerRef} className={cn("relative max-w-md", className)}>
-      <Input
+      <input
         value={inputValue}
         onChange={handleInputChange}
         onFocus={() => {
@@ -80,7 +84,10 @@ const ClientSearchInput = ({
           }
         }}
         placeholder={placeholder}
-        className="pr-10 border-border-primary focus:border-accent focus:ring-accent"
+        className={cn(
+          "flex h-10 w-full rounded-md px-3 py-2 pr-10 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-all duration-200",
+          getFieldStateClasses(isDirty)
+        )}
       />
       <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 

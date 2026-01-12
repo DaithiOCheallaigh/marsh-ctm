@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "border-primary": "hsl(var(--wq-border))",
+        "text-secondary": "hsl(var(--wq-text-secondary))",
+        field: {
+          pristine: {
+            bg: "hsl(var(--wq-field-pristine-bg))",
+            border: "hsl(var(--wq-field-pristine-border))",
+          },
+          dirty: {
+            bg: "hsl(var(--wq-field-dirty-bg))",
+            border: "hsl(var(--wq-field-dirty-border))",
+          },
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

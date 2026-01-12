@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Clock, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -17,6 +16,15 @@ import LeaverFields from "@/components/work-item/LeaverFields";
 import NewJoinerFields from "@/components/work-item/NewJoinerFields";
 import OffboardingFields from "@/components/work-item/OffboardingFields";
 import { useWorkItems } from "@/context/WorkItemsContext";
+import { FormDirtyContext } from "@/components/form/FormDirtyContext";
+import { 
+  FormSelect, 
+  FormSelectContent, 
+  FormSelectItem, 
+  FormSelectTrigger, 
+  FormSelectValue 
+} from "@/components/form/FormSelect";
+import { getFieldStateClasses } from "@/components/form/FormDirtyContext";
 
 type WorkType = "" | "onboarding" | "new-joiner" | "leaver" | "offboarding";
 type Priority = "high" | "medium" | "low";
@@ -41,6 +49,18 @@ const CreateWorkItem = () => {
   const { toast } = useToast();
   const { addWorkItem } = useWorkItems();
   const currentDateTime = format(new Date(), "dd MMM yyyy HH:mm") + " EST";
+
+  // Dirty state tracking
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+
+  const markDirty = useCallback((field: string) => {
+    setDirtyFields((prev) => new Set(prev).add(field));
+  }, []);
+
+  const isDirty = useCallback(
+    (field: string) => dirtyFields.has(field),
+    [dirtyFields]
+  );
 
   // Base form state
   const [workType, setWorkType] = useState<WorkType>("");
@@ -73,6 +93,27 @@ const CreateWorkItem = () => {
   const [offboardingClientName, setOffboardingClientName] = useState("");
   const [offboardingReason, setOffboardingReason] = useState("");
   const [finalAssignmentDate, setFinalAssignmentDate] = useState<Date | undefined>();
+
+  // Wrapper functions to track dirty state
+  const handleWorkTypeChange = (value: WorkType) => {
+    setWorkType(value);
+    markDirty("workType");
+  };
+
+  const handlePriorityChange = (value: Priority) => {
+    setPriority(value);
+    markDirty("priority");
+  };
+
+  const handleAssignToChange = (value: string) => {
+    setAssignTo(value);
+    markDirty("assignTo");
+  };
+
+  const handleDueDateChange = (date: Date | undefined) => {
+    setDueDate(date);
+    markDirty("dueDate");
+  };
 
   const getClientName = () => {
     switch (workType) {
@@ -134,177 +175,191 @@ const CreateWorkItem = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="px-6 pt-6">
-        <Header />
-      </div>
-      <div className="flex flex-1 px-6 pb-6 gap-6">
-        <Sidebar />
-        <main className="flex-1 ml-[280px] overflow-auto">
-          {/* Breadcrumb and timestamp */}
-          <div className="flex items-center justify-between mb-6">
-            <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
-              <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
-                Work Queue
-              </Link>
-              <span className="text-muted-foreground">&gt;</span>
-              <span className="text-primary font-medium">Create Work Item</span>
-            </nav>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white px-3 py-1.5 rounded-full border border-border-primary">
-              <Clock className="h-4 w-4" />
-              {currentDateTime}
-            </div>
-          </div>
-
-          {/* Main Form Card */}
-          <div className="bg-white rounded-lg border border-border-primary p-6 mb-6">
-            <h2 className="text-xl font-bold text-primary mb-6">Create Work Item</h2>
-
-            <div className="space-y-6">
-              {/* Work Type */}
-              <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                <Label className="text-right text-sm font-medium text-text-secondary">
-                  Work Type<span className="text-[hsl(0,100%,50%)]">*</span>
-                </Label>
-                <Select value={workType} onValueChange={(value: WorkType) => setWorkType(value)}>
-                  <SelectTrigger className="max-w-md border-border-primary">
-                    <SelectValue placeholder="Select Work Type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    <SelectItem value="onboarding">Onboarding</SelectItem>
-                    <SelectItem value="new-joiner">New Joiner</SelectItem>
-                    <SelectItem value="leaver">Leaver</SelectItem>
-                    <SelectItem value="offboarding">Offboarding</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Priority */}
-              <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                <Label className="text-right text-sm font-medium text-text-secondary">
-                  Priority<span className="text-[hsl(0,100%,50%)]">*</span>
-                </Label>
-                <PrioritySelector value={priority} onChange={setPriority} />
-              </div>
-
-              {/* Assign To */}
-              <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                <Label className="text-right text-sm font-medium text-text-secondary">
-                  Assign To<span className="text-[hsl(0,100%,50%)]">*</span>
-                </Label>
-                <Select value={assignTo} onValueChange={setAssignTo}>
-                  <SelectTrigger className="max-w-md border-border-primary">
-                    <SelectValue placeholder="Select Person or Team" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    {assignees.map((assignee) => (
-                      <SelectItem key={assignee.id} value={assignee.id}>
-                        {assignee.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Due Date */}
-              <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                <Label className="text-right text-sm font-medium text-text-secondary">
-                  Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "max-w-md justify-start text-left font-normal border-border-primary",
-                        !dueDate && "text-muted-foreground"
-                      )}
-                    >
-                      {dueDate ? format(dueDate, "MM/dd/yyyy") : "Select date"}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dueDate}
-                      onSelect={setDueDate}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+    <FormDirtyContext.Provider value={{ isDirty, markDirty }}>
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="px-6 pt-6">
+          <Header />
+        </div>
+        <div className="flex flex-1 px-6 pb-6 gap-6">
+          <Sidebar />
+          <main className="flex-1 ml-[280px] overflow-auto">
+            {/* Breadcrumb and timestamp */}
+            <div className="flex items-center justify-between mb-6">
+              <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+                <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
+                  Work Queue
+                </Link>
+                <span className="text-muted-foreground">&gt;</span>
+                <span className="text-primary font-medium">Create Work Item</span>
+              </nav>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white px-3 py-1.5 rounded-full border border-border-primary">
+                <Clock className="h-4 w-4" />
+                {currentDateTime}
               </div>
             </div>
-          </div>
 
-          {/* Conditional Fields Based on Work Type */}
-          {workType === "onboarding" && (
-            <OnboardingFields
-              clientName={onboardingClientName}
-              setClientName={setOnboardingClientName}
-              description={onboardingDescription}
-              setDescription={setOnboardingDescription}
-              teamConfigurations={teamConfigurations}
-              setTeamConfigurations={setTeamConfigurations}
-            />
-          )}
+            {/* Main Form Card */}
+            <div className="bg-white rounded-lg border border-border-primary p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-primary">Create Work Item</h2>
+                {dirtyFields.size > 0 && (
+                  <span className="text-xs px-2 py-1 bg-field-dirty-border/10 text-field-dirty-border rounded-full font-medium">
+                    Unsaved changes
+                  </span>
+                )}
+              </div>
 
-          {workType === "leaver" && (
-            <LeaverFields
-              leaverName={leaverName}
-              setLeaverName={setLeaverName}
-              leavingDate={leavingDate}
-              setLeavingDate={setLeavingDate}
-            />
-          )}
+              <div className="space-y-6">
+                {/* Work Type */}
+                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                  <Label className="text-right text-sm font-medium text-text-secondary">
+                    Work Type<span className="text-[hsl(0,100%,50%)]">*</span>
+                  </Label>
+                  <FormSelect value={workType} onValueChange={handleWorkTypeChange}>
+                    <FormSelectTrigger className="max-w-md" fieldName="workType">
+                      <FormSelectValue placeholder="Select Work Type" />
+                    </FormSelectTrigger>
+                    <FormSelectContent>
+                      <FormSelectItem value="onboarding">Onboarding</FormSelectItem>
+                      <FormSelectItem value="new-joiner">New Joiner</FormSelectItem>
+                      <FormSelectItem value="leaver">Leaver</FormSelectItem>
+                      <FormSelectItem value="offboarding">Offboarding</FormSelectItem>
+                    </FormSelectContent>
+                  </FormSelect>
+                </div>
 
-          {workType === "new-joiner" && (
-            <NewJoinerFields
-              colleagueName={colleagueName}
-              setColleagueName={setColleagueName}
-              teamAssignment={teamAssignment}
-              setTeamAssignment={setTeamAssignment}
-              clientLoadCapacity={clientLoadCapacity}
-              setClientLoadCapacity={setClientLoadCapacity}
-              startDate={startDate}
-              setStartDate={setStartDate}
-            />
-          )}
+                {/* Priority */}
+                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                  <Label className="text-right text-sm font-medium text-text-secondary">
+                    Priority<span className="text-[hsl(0,100%,50%)]">*</span>
+                  </Label>
+                  <PrioritySelector 
+                    value={priority} 
+                    onChange={handlePriorityChange}
+                    isDirty={isDirty("priority")}
+                  />
+                </div>
 
-          {workType === "offboarding" && (
-            <OffboardingFields
-              clientName={offboardingClientName}
-              setClientName={setOffboardingClientName}
-              reason={offboardingReason}
-              setReason={setOffboardingReason}
-              finalAssignmentDate={finalAssignmentDate}
-              setFinalAssignmentDate={setFinalAssignmentDate}
-            />
-          )}
+                {/* Assign To */}
+                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                  <Label className="text-right text-sm font-medium text-text-secondary">
+                    Assign To<span className="text-[hsl(0,100%,50%)]">*</span>
+                  </Label>
+                  <FormSelect value={assignTo} onValueChange={handleAssignToChange}>
+                    <FormSelectTrigger className="max-w-md" fieldName="assignTo">
+                      <FormSelectValue placeholder="Select Person or Team" />
+                    </FormSelectTrigger>
+                    <FormSelectContent>
+                      {assignees.map((assignee) => (
+                        <FormSelectItem key={assignee.id} value={assignee.id}>
+                          {assignee.name}
+                        </FormSelectItem>
+                      ))}
+                    </FormSelectContent>
+                  </FormSelect>
+                </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-4 mt-8 mb-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleSaveForLater}
-              className="px-8 border-primary text-primary hover:bg-primary/5"
-            >
-              Save For Later
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              className="px-8 bg-primary hover:bg-primary/90 text-white"
-            >
-              Create Work Item
-            </Button>
-          </div>
-        </main>
+                {/* Due Date */}
+                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                  <Label className="text-right text-sm font-medium text-text-secondary">
+                    Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "max-w-md justify-start text-left font-normal transition-all duration-200",
+                          getFieldStateClasses(isDirty("dueDate")),
+                          !dueDate && "text-muted-foreground"
+                        )}
+                      >
+                        {dueDate ? format(dueDate, "MM/dd/yyyy") : "Select date"}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dueDate}
+                        onSelect={handleDueDateChange}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+
+            {/* Conditional Fields Based on Work Type */}
+            {workType === "onboarding" && (
+              <OnboardingFields
+                clientName={onboardingClientName}
+                setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
+                description={onboardingDescription}
+                setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
+                teamConfigurations={teamConfigurations}
+                setTeamConfigurations={(val) => { setTeamConfigurations(val); markDirty("teamConfigurations"); }}
+              />
+            )}
+
+            {workType === "leaver" && (
+              <LeaverFields
+                leaverName={leaverName}
+                setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
+                leavingDate={leavingDate}
+                setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
+              />
+            )}
+
+            {workType === "new-joiner" && (
+              <NewJoinerFields
+                colleagueName={colleagueName}
+                setColleagueName={(val) => { setColleagueName(val); markDirty("colleagueName"); }}
+                teamAssignment={teamAssignment}
+                setTeamAssignment={(val) => { setTeamAssignment(val); markDirty("teamAssignment"); }}
+                clientLoadCapacity={clientLoadCapacity}
+                setClientLoadCapacity={(val) => { setClientLoadCapacity(val); markDirty("clientLoadCapacity"); }}
+                startDate={startDate}
+                setStartDate={(val) => { setStartDate(val); markDirty("startDate"); }}
+              />
+            )}
+
+            {workType === "offboarding" && (
+              <OffboardingFields
+                clientName={offboardingClientName}
+                setClientName={(val) => { setOffboardingClientName(val); markDirty("offboardingClientName"); }}
+                reason={offboardingReason}
+                setReason={(val) => { setOffboardingReason(val); markDirty("offboardingReason"); }}
+                finalAssignmentDate={finalAssignmentDate}
+                setFinalAssignmentDate={(val) => { setFinalAssignmentDate(val); markDirty("finalAssignmentDate"); }}
+              />
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4 mt-8 mb-8">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveForLater}
+                className="px-8 border-primary text-primary hover:bg-primary/5"
+              >
+                Save For Later
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                className="px-8 bg-primary hover:bg-primary/90 text-white"
+              >
+                Create Work Item
+              </Button>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </FormDirtyContext.Provider>
   );
 };
 
