@@ -25,6 +25,12 @@
     /* Borders */
     --wq-border: 0 0% 89%;             /* #E2E2E2 */
     --wq-border-alt: 216 16% 84%;      /* #D0D5DD */
+    
+    /* Form Field States */
+    --wq-field-pristine-bg: 210 20% 98%;       /* #F9FAFB - subtle gray background */
+    --wq-field-pristine-border: 0 0% 80%;      /* #CCCCCC - muted gray border */
+    --wq-field-dirty-bg: 0 0% 100%;            /* #FFFFFF - white background */
+    --wq-field-dirty-border: 220 100% 20%;     /* #003366 - navy blue border */
     --wq-border-light: 0 0% 80%;       /* #CDCDCD */
     
     /* Status Colors - Pending */

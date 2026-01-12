@@ -1,15 +1,20 @@
 import { cn } from "@/lib/utils";
+import { getFieldStateClasses } from "@/components/form/FormDirtyContext";
 
 type Priority = "high" | "medium" | "low";
 
 interface PrioritySelectorProps {
   value: Priority;
   onChange: (priority: Priority) => void;
+  isDirty?: boolean;
 }
 
-const PrioritySelector = ({ value, onChange }: PrioritySelectorProps) => {
+const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelectorProps) => {
   return (
-    <div className="flex gap-2">
+    <div className={cn(
+      "flex gap-2 p-1 rounded-lg transition-all duration-200",
+      isDirty && "ring-2 ring-field-dirty-border ring-offset-2"
+    )}>
       <button
         type="button"
         onClick={() => onChange("high")}

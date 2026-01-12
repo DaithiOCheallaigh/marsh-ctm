@@ -1,12 +1,18 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronUp, ChevronDown, Trash2, Plus } from "lucide-react";
 import ClientSearchInput from "@/components/ClientSearchInput";
+import { useFormDirtyContext, getFieldStateClasses } from "@/components/form/FormDirtyContext";
+import { 
+  FormSelect, 
+  FormSelectContent, 
+  FormSelectItem, 
+  FormSelectTrigger, 
+  FormSelectValue 
+} from "@/components/form/FormSelect";
+import { cn } from "@/lib/utils";
 
 interface TeamRole {
   id: string;
@@ -43,6 +49,11 @@ const OnboardingFields = ({
   setTeamConfigurations,
 }: OnboardingFieldsProps) => {
   const [isOpen, setIsOpen] = useState(true);
+  const dirtyContext = useFormDirtyContext();
+  
+  const isFieldDirty = (fieldName: string) => {
+    return dirtyContext ? dirtyContext.isDirty(fieldName) : false;
+  };
 
   const addTeamConfiguration = () => {
     const newConfig: TeamRole = {
@@ -114,6 +125,7 @@ const OnboardingFields = ({
           value={clientName}
           onChange={setClientName}
           placeholder="Search by client name or CN number"
+          fieldName="onboardingClientName"
         />
       </div>
 
@@ -131,11 +143,14 @@ const OnboardingFields = ({
             </Label>
             <div className="space-y-1">
               <Label className="text-sm font-semibold text-primary">Task Description</Label>
-              <Textarea
+              <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add text"
-                className="min-h-[60px] border-border-primary resize-none"
+                className={cn(
+                  "flex min-h-[60px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all duration-200",
+                  getFieldStateClasses(isFieldDirty("onboardingDescription"))
+                )}
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground text-right">
@@ -167,27 +182,27 @@ const OnboardingFields = ({
                   <Label className="text-sm font-medium text-text-secondary">
                     Team Type<span className="text-[hsl(0,100%,50%)]">*</span>
                   </Label>
-                  <Select
+                  <FormSelect
                     value={config.teamType}
                     onValueChange={(value) => updateTeamConfiguration(config.id, "teamType", value)}
                   >
-                    <SelectTrigger className="border-border-primary">
-                      <SelectValue placeholder="Select Team Type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
+                    <FormSelectTrigger fieldName="teamConfigurations">
+                      <FormSelectValue placeholder="Select Team Type" />
+                    </FormSelectTrigger>
+                    <FormSelectContent>
                       {teamTypes.map((team) => (
-                        <SelectItem key={team} value={team}>
+                        <FormSelectItem key={team} value={team}>
                           {team}
-                        </SelectItem>
+                        </FormSelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </FormSelectContent>
+                  </FormSelect>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-text-secondary">
                     Number of Roles<span className="text-[hsl(0,100%,50%)]">*</span>
                   </Label>
-                  <Input
+                  <input
                     type="number"
                     min={1}
                     max={20}
@@ -195,7 +210,10 @@ const OnboardingFields = ({
                     onChange={(e) =>
                       updateTeamConfiguration(config.id, "numberOfRoles", parseInt(e.target.value) || 1)
                     }
-                    className="border-border-primary"
+                    className={cn(
+                      "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                      getFieldStateClasses(isFieldDirty("teamConfigurations"))
+                    )}
                   />
                 </div>
               </div>
@@ -207,11 +225,14 @@ const OnboardingFields = ({
                     <Label className="w-16 text-sm font-medium text-text-secondary">
                       Role {roleIndex + 1}<span className="text-[hsl(0,100%,50%)]">*</span>
                     </Label>
-                    <Input
+                    <input
                       value={role}
                       onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
                       placeholder={`Chair ${roleIndex + 1}`}
-                      className="flex-1 border-border-primary"
+                      className={cn(
+                        "flex h-10 flex-1 rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                        getFieldStateClasses(isFieldDirty("teamConfigurations"))
+                      )}
                     />
                     {config.roles.length > 1 && (
                       <Button
