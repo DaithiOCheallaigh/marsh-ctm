@@ -149,7 +149,7 @@ const OnboardingFields = ({
 
           {/* Team Configurations */}
           {teamConfigurations.map((config, configIndex) => (
-            <div key={config.id} className="bg-[hsl(197,100%,97%)] rounded-lg p-4 space-y-4 border border-[hsl(197,50%,90%)]">
+            <div key={config.id} className="bg-[#009DE0]/10 rounded-lg p-4 space-y-4 border border-[#009DE0]/30">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-primary">Team Configuration</span>
                 {teamConfigurations.length > 1 && (
