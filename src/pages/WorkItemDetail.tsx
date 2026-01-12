@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -34,6 +34,7 @@ const WorkItemDetail = () => {
 
   const [workItem, setWorkItem] = useState<WorkItem | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [expandedRoleIndex, setExpandedRoleIndex] = useState<number | null>(0);
 
   // Role assignments state
   const [roles, setRoles] = useState<RoleConfig[]>([
@@ -71,8 +72,35 @@ const WorkItemDetail = () => {
     }
   }, [id, workItems, navigate]);
 
-  const formatTimestamp = (date: Date) =>
-    format(date, "dd MMM yyyy HH:mm") + " EST";
+  // Get all currently assigned members across all roles
+  const getAllAssignedMembers = useCallback((): TeamMember[] => {
+    return roles.flatMap((role) =>
+      role.chairs
+        .filter((chair) => chair.assignedMember)
+        .map((chair) => chair.assignedMember!)
+    );
+  }, [roles]);
+
+  // Check if a member is already assigned to another role
+  const isMemberAssignedElsewhere = useCallback(
+    (member: TeamMember, currentRoleIndex: number): { isAssigned: boolean; roleName?: string } => {
+      for (let i = 0; i < roles.length; i++) {
+        if (i === currentRoleIndex) continue;
+        const foundChair = roles[i].chairs.find(
+          (chair) => chair.assignedMember?.id === member.id
+        );
+        if (foundChair) {
+          return { isAssigned: true, roleName: roles[i].title };
+        }
+      }
+      return { isAssigned: false };
+    },
+    [roles]
+  );
+
+  const handleExpandRole = (roleIndex: number) => {
+    setExpandedRoleIndex((prev) => (prev === roleIndex ? null : roleIndex));
+  };
 
   const handleAssign = (
     roleIndex: number,
@@ -80,6 +108,17 @@ const WorkItemDetail = () => {
     member: TeamMember,
     notes: string
   ) => {
+    // Check for duplicate assignment
+    const duplicateCheck = isMemberAssignedElsewhere(member, roleIndex);
+    if (duplicateCheck.isAssigned) {
+      toast({
+        title: "Warning: Duplicate Assignment",
+        description: `${member.name} is already assigned to ${duplicateCheck.roleName}. Please remove them from that role first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setRoles((prev) => {
       const updated = [...prev];
       updated[roleIndex] = {
@@ -93,9 +132,34 @@ const WorkItemDetail = () => {
       return updated;
     });
 
+    // Collapse the current accordion after assignment
+    setExpandedRoleIndex(null);
+
     toast({
       title: "Member Assigned",
       description: `${member.name} has been assigned to ${roles[roleIndex].title}.`,
+    });
+  };
+
+  const handleUnassign = (roleIndex: number, chairIndex: number) => {
+    const memberName = roles[roleIndex].chairs[chairIndex].assignedMember?.name;
+    
+    setRoles((prev) => {
+      const updated = [...prev];
+      updated[roleIndex] = {
+        ...updated[roleIndex],
+        chairs: updated[roleIndex].chairs.map((chair, idx) =>
+          idx === chairIndex
+            ? { ...chair, assignedMember: undefined, assignmentNotes: undefined }
+            : chair
+        ),
+      };
+      return updated;
+    });
+
+    toast({
+      title: "Member Unassigned",
+      description: `${memberName} has been removed from ${roles[roleIndex].title}.`,
     });
   };
 
@@ -207,7 +271,11 @@ const WorkItemDetail = () => {
                   onAssign={(chairIndex, member, notes) =>
                     handleAssign(roleIndex, chairIndex, member, notes)
                   }
-                  defaultExpanded={roleIndex === 0}
+                  onUnassign={(chairIndex) => handleUnassign(roleIndex, chairIndex)}
+                  isExpanded={expandedRoleIndex === roleIndex}
+                  onToggleExpand={() => handleExpandRole(roleIndex)}
+                  roleIndex={roleIndex}
+                  checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, roleIndex)}
                 />
               ))}
             </div>
