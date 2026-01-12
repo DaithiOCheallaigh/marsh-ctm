@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBadge } from './StatusBadge';
+import { PriorityBadge } from './PriorityBadge';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 export interface WorkItem {
   id: string;
@@ -12,6 +14,11 @@ export interface WorkItem {
   status: 'Pending' | 'Completed';
 }
 
+interface SortConfig {
+  column: string | null;
+  direction: 'asc' | 'desc';
+}
+
 interface DataTableProps {
   data: WorkItem[];
   onSort?: (column: string, direction: 'asc' | 'desc') => void;
@@ -19,72 +26,108 @@ interface DataTableProps {
 }
 
 export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = "" }) => {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ column: null, direction: 'asc' });
+
   const handleSort = (column: string) => {
+    const newDirection = sortConfig.column === column && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    setSortConfig({ column, direction: newDirection });
     if (onSort) {
-      onSort(column, 'asc');
+      onSort(column, newDirection);
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High': return 'text-[#B30000]';
-      case 'Medium': return 'text-[#FF7A00]';
-      case 'Low': return 'text-black';
-      default: return 'text-[#002C77]';
-    }
+  const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => {
+    const isActive = sortConfig.column === column;
+    return (
+      <button 
+        onClick={() => handleSort(column)}
+        className="
+          flex items-center gap-1.5 
+          hover:text-[hsl(197,100%,44%)] 
+          transition-colors cursor-pointer
+          group
+        "
+        aria-label={`Sort by ${column}`}
+      >
+        <span>{children}</span>
+        <span className="flex flex-col gap-0.5 opacity-50 group-hover:opacity-100">
+          <ChevronUp className={`w-3 h-3 -mb-1 ${isActive && sortConfig.direction === 'asc' ? 'text-[hsl(197,100%,44%)]' : ''}`} />
+          <ChevronDown className={`w-3 h-3 -mt-1 ${isActive && sortConfig.direction === 'desc' ? 'text-[hsl(197,100%,44%)]' : ''}`} />
+        </span>
+      </button>
+    );
   };
-
-  const SortIcon = () => (
-    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-2.5 h-3">
-      <path d="M4.99347 0L0 4.66667H9.98694L4.99347 0ZM4.99347 12L9.98694 7.33333H0L4.99347 12Z" fill="#949494"/>
-    </svg>
-  );
 
   return (
     <div className={`relative w-full overflow-x-auto ${className}`}>
-      <div className="bg-white border border-[#C4C4C4] rounded-lg min-w-[1000px]">
-        <table className="w-full">
+      <div className="bg-white border border-[hsl(0,0%,89%)] rounded-lg shadow-sm min-w-[1000px]">
+        <table className="w-full" role="table" aria-label="Work queue items">
           <thead>
-            <tr className="bg-[#F4F8FF] rounded-t-lg">
-              <th className="text-neutral-700 text-sm font-bold text-left px-5 py-3 w-[147px]">Work ID</th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[160px]">
-                <button onClick={() => handleSort('workType')} className="flex items-center gap-1 hover:text-[#009DE0]">
-                  Work Type <SortIcon />
-                </button>
+            <tr className="bg-[hsl(216,100%,97%)] border-b border-[hsl(0,0%,89%)]">
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-4 py-4 w-[140px]" scope="col">
+                Work ID
               </th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[168px]">Client/Colleague Name</th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[101px]">
-                <button onClick={() => handleSort('dateCreated')} className="flex items-center gap-1 hover:text-[#009DE0]">
-                  Date Created <SortIcon />
-                </button>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[130px]" scope="col">
+                <SortableHeader column="workType">Work Type</SortableHeader>
               </th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[79px]">
-                <button onClick={() => handleSort('dueDate')} className="flex items-center gap-1 hover:text-[#009DE0]">
-                  Due Date <SortIcon />
-                </button>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[180px]" scope="col">
+                Client/Colleague
               </th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[121px]">Assignee</th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[128px]">Priority</th>
-              <th className="text-neutral-700 text-sm font-bold text-left px-2 py-3 w-[128px]">Status</th>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[120px]" scope="col">
+                <SortableHeader column="dateCreated">Date Created</SortableHeader>
+              </th>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[110px]" scope="col">
+                <SortableHeader column="dueDate">Due Date</SortableHeader>
+              </th>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[160px]" scope="col">
+                Assignee
+              </th>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[100px]" scope="col">
+                Priority
+              </th>
+              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[110px]" scope="col">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map((item, index) => (
-              <React.Fragment key={`${item.id}-${index}`}>
-                <tr className="h-10">
-                  <td className="text-[#002C77] text-xs font-medium tracking-[-0.24px] px-5 py-2">[{item.id}]</td>
-                  <td className="text-[#002C77] text-xs font-medium tracking-[-0.24px] px-2 py-2">{item.workType}</td>
-                  <td className="text-[#002C77] text-xs font-normal tracking-[-0.24px] px-2 py-2">{item.clientName}</td>
-                  <td className="text-[#002C77] text-xs font-medium tracking-[-0.24px] px-2 py-2">[{item.dateCreated}]</td>
-                  <td className="text-[#002C77] text-xs font-medium tracking-[-0.24px] px-2 py-2">[{item.dueDate}]</td>
-                  <td className="text-[#002C77] text-xs font-medium tracking-[-0.24px] px-2 py-2">{item.assignee}</td>
-                  <td className={`text-xs font-medium tracking-[-0.24px] px-2 py-2 ${getPriorityColor(item.priority)}`}>{item.priority}</td>
-                  <td className="px-2 py-2"><StatusBadge status={item.status} /></td>
-                </tr>
-                {index < data.length - 1 && (
-                  <tr><td colSpan={8} className="h-px bg-[#CDCDCD] opacity-25" /></tr>
-                )}
-              </React.Fragment>
+              <tr 
+                key={`${item.id}-${index}`}
+                className={`
+                  border-b border-[hsl(0,0%,89%)] last:border-b-0
+                  hover:bg-[hsl(210,20%,98%)]
+                  transition-colors duration-150
+                  cursor-pointer
+                `}
+                tabIndex={0}
+                role="row"
+              >
+                <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-4 py-4">
+                  [{item.id}]
+                </td>
+                <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-3 py-4">
+                  {item.workType}
+                </td>
+                <td className="text-[hsl(0,0%,25%)] text-sm font-normal px-3 py-4 truncate max-w-[180px]">
+                  {item.clientName}
+                </td>
+                <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-3 py-4">
+                  {item.dateCreated}
+                </td>
+                <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-3 py-4">
+                  {item.dueDate}
+                </td>
+                <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-3 py-4 truncate max-w-[160px]">
+                  {item.assignee}
+                </td>
+                <td className="px-3 py-4">
+                  <PriorityBadge priority={item.priority} />
+                </td>
+                <td className="px-3 py-4">
+                  <StatusBadge status={item.status} />
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>

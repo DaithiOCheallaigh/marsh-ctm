@@ -5,15 +5,18 @@ import { WorkQueueTable } from '@/components/WorkQueueTable';
 
 const Index = () => {
   return (
-    <div className="flex w-full min-h-screen bg-[#F8F8F8]">
+    <div className="flex w-full min-h-screen bg-[hsl(0,0%,97%)]">
+      {/* Google Font */}
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap"
       />
       
+      {/* Sidebar */}
       <Sidebar />
       
-      <main className="w-[calc(100%-331px)] ml-[331px] pl-0 pr-9 pt-4 pb-9">
+      {/* Main Content */}
+      <main className="w-[calc(100%-316px)] ml-[316px] px-8 pt-6 pb-10">
         <Header userName="[First Name]" />
         <WorkQueueTable />
       </main>
