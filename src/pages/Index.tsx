@@ -1,12 +1,22 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from 'react';
+import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
+import { WorkQueueTable } from '@/components/WorkQueueTable';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="flex w-full min-h-screen bg-[#F8F8F8]">
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap"
+      />
+      
+      <Sidebar />
+      
+      <main className="w-[calc(100%-331px)] ml-[331px] pl-0 pr-9 pt-4 pb-9">
+        <Header userName="[First Name]" />
+        <WorkQueueTable />
+      </main>
     </div>
   );
 };
