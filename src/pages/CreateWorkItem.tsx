@@ -47,8 +47,13 @@ const assignees = [
 const CreateWorkItem = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addWorkItem } = useWorkItems();
-  const currentDateTime = format(new Date(), "dd MMM yyyy HH:mm") + " EST";
+  const { addWorkItem, workItems } = useWorkItems();
+  
+  // Timestamps
+  const [createdAt] = useState(() => new Date());
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  
+  const formatTimestamp = (date: Date) => format(date, "dd MMM yyyy HH:mm") + " EST";
 
   // Dirty state tracking
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
@@ -135,8 +140,8 @@ const CreateWorkItem = () => {
     return assignee?.name || "Unassigned";
   };
 
-  const { workItems } = useWorkItems();
-
+  // Remove duplicate destructuring - workItems already available from above
+  
   const checkForDuplicate = () => {
     const workTypeLabels: Record<string, string> = {
       "onboarding": "Onboarding",
@@ -198,6 +203,7 @@ const CreateWorkItem = () => {
   };
 
   const handleSaveForLater = () => {
+    setLastSavedAt(new Date());
     toast({
       title: "Draft Saved",
       description: "Your work item has been saved as a draft.",
@@ -222,9 +228,23 @@ const CreateWorkItem = () => {
                 <span className="text-muted-foreground">&gt;</span>
                 <span className="text-primary font-medium">Create Work Item</span>
               </nav>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white px-3 py-1.5 rounded-full border border-border-primary">
-                <Clock className="h-4 w-4" />
-                {currentDateTime}
+              <div className="flex items-center gap-3">
+                {/* Created timestamp */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
+                  <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
+                  <span className="text-[hsl(0,0%,25%)] text-xs font-medium">
+                    Created: {formatTimestamp(createdAt)}
+                  </span>
+                </div>
+                {/* Saved timestamp - only show if saved */}
+                {lastSavedAt && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(136,70%,90%)] rounded-lg">
+                    <Clock className="w-4 h-4 text-[hsl(120,100%,27%)]" />
+                    <span className="text-[hsl(120,100%,27%)] text-xs font-medium">
+                      Saved: {formatTimestamp(lastSavedAt)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
