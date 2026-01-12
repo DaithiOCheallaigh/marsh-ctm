@@ -43,27 +43,27 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">CN Number</p>
-              <p className="text-accent text-sm font-medium">{cnNumber}</p>
+              <p className="text-primary text-sm font-medium">{cnNumber}</p>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Team Name</p>
-              <p className="text-accent text-sm font-medium">{teamName}</p>
+              <p className="text-primary text-sm font-medium">{teamName}</p>
             </div>
             
             {/* Row 2 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Date Created</p>
-              <p className="text-accent text-sm font-medium">{workItem.dateCreated}</p>
+              <p className="text-primary text-sm font-medium">{workItem.dateCreated}</p>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Roles Assigned</p>
-              <p className="text-accent text-sm font-medium">
+              <p className="text-primary text-sm font-medium">
                 {rolesAssigned.current}/{rolesAssigned.total}
               </p>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Due Date</p>
-              <p className="text-accent text-sm font-medium">{workItem.dueDate}</p>
+              <p className="text-primary text-sm font-medium">{workItem.dueDate}</p>
             </div>
           </div>
         </div>
