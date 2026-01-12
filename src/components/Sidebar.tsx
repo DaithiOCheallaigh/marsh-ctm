@@ -1,5 +1,6 @@
 import React from 'react';
 import { Building2, FileCheck, AlertOctagon, Settings, Home, ArrowUp } from 'lucide-react';
+import marshLogo from '@/assets/marsh-logo-white.png';
 
 interface SidebarProps {
   activeItem?: string;
@@ -104,12 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
 
       {/* Marsh Logo */}
       <div className="flex justify-center py-2">
-        <svg width="100" height="24" viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Marsh logo">
-          {/* Logo icon */}
-          <path d="M14.5 4.5L10.5 8.5V4.5H6.5V19.5H10.5V11.5L14.5 15.5L18.5 11.5V19.5H22.5V4.5H18.5L14.5 8.5L10.5 4.5" stroke="white" strokeWidth="1.5" fill="none"/>
-          {/* Marsh text */}
-          <text x="32" y="16" fill="white" fontFamily="Arial, sans-serif" fontSize="14" fontWeight="bold">Marsh</text>
-        </svg>
+        <img src={marshLogo} alt="Marsh logo" className="h-6 w-auto" />
       </div>
     </aside>
   );
