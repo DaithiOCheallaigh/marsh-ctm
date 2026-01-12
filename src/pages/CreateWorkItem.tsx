@@ -231,8 +231,7 @@ const CreateWorkItem = () => {
               <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
                 <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
                 <span className="text-[hsl(0,0%,25%)] text-xs font-medium">
-                  Created: {formatTimestamp(createdAt)}
-                  {lastSavedAt && ` | Saved: ${formatTimestamp(lastSavedAt)}`}
+                  {lastSavedAt ? `Last saved: ${formatTimestamp(lastSavedAt)}` : `Created: ${formatTimestamp(createdAt)}`}
                 </span>
               </div>
             </div>
