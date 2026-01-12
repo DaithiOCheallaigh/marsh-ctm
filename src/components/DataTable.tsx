@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
 import { ChevronUp, ChevronDown } from 'lucide-react';
@@ -29,6 +30,7 @@ const statusOrder: Record<string, number> = {
 };
 
 export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = "" }) => {
+  const navigate = useNavigate();
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: null, direction: 'asc' });
 
   const sortedData = useMemo(() => {
@@ -145,6 +147,12 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 `}
                 tabIndex={0}
                 role="row"
+                onClick={() => navigate(`/work-item/${item.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    navigate(`/work-item/${item.id}`);
+                  }
+                }}
               >
                 <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-4 py-4">
                   [{item.id}]
