@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StatusBadge } from './StatusBadge';
 import { PriorityBadge } from './PriorityBadge';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { WorkItem } from '@/context/WorkItemsContext';
 
 interface SortConfig {
-  column: string | null;
+  column: keyof WorkItem | null;
   direction: 'asc' | 'desc';
 }
 
@@ -15,10 +15,63 @@ interface DataTableProps {
   className?: string;
 }
 
+const priorityOrder: Record<string, number> = {
+  'Critical': 4,
+  'High': 3,
+  'Medium': 2,
+  'Low': 1,
+};
+
+const statusOrder: Record<string, number> = {
+  'Pending': 1,
+  'In Progress': 2,
+  'Completed': 3,
+};
+
 export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = "" }) => {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: null, direction: 'asc' });
 
-  const handleSort = (column: string) => {
+  const sortedData = useMemo(() => {
+    if (!sortConfig.column) return data;
+
+    return [...data].sort((a, b) => {
+      const column = sortConfig.column as keyof WorkItem;
+      let aValue = a[column];
+      let bValue = b[column];
+
+      // Handle priority sorting
+      if (column === 'priority') {
+        const aOrder = priorityOrder[aValue as string] || 0;
+        const bOrder = priorityOrder[bValue as string] || 0;
+        return sortConfig.direction === 'asc' ? aOrder - bOrder : bOrder - aOrder;
+      }
+
+      // Handle status sorting
+      if (column === 'status') {
+        const aOrder = statusOrder[aValue as string] || 0;
+        const bOrder = statusOrder[bValue as string] || 0;
+        return sortConfig.direction === 'asc' ? aOrder - bOrder : bOrder - aOrder;
+      }
+
+      // Handle date sorting
+      if (column === 'dateCreated' || column === 'dueDate') {
+        const aDate = new Date(aValue as string).getTime();
+        const bDate = new Date(bValue as string).getTime();
+        return sortConfig.direction === 'asc' ? aDate - bDate : bDate - aDate;
+      }
+
+      // Handle string sorting
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      return 0;
+    });
+  }, [data, sortConfig]);
+
+  const handleSort = (column: keyof WorkItem) => {
     const newDirection = sortConfig.column === column && sortConfig.direction === 'asc' ? 'desc' : 'asc';
     setSortConfig({ column, direction: newDirection });
     if (onSort) {
@@ -26,7 +79,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
     }
   };
 
-  const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => {
+  const SortableHeader = ({ column, children }: { column: keyof WorkItem; children: React.ReactNode }) => {
     const isActive = sortConfig.column === column;
     return (
       <button 
@@ -54,34 +107,34 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
         <table className="w-full" role="table" aria-label="Work queue items">
           <thead>
             <tr className="bg-[hsl(216,100%,97%)] border-b border-[hsl(0,0%,89%)]">
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-4 py-4 w-[140px]" scope="col">
-                Work ID
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-4 py-4 w-[140px]" scope="col">
+                <SortableHeader column="id">Work ID</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[130px]" scope="col">
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[130px]" scope="col">
                 <SortableHeader column="workType">Work Type</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[180px]" scope="col">
-                Client/Colleague
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[180px]" scope="col">
+                <SortableHeader column="clientName">Client/Colleague</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[120px]" scope="col">
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[120px]" scope="col">
                 <SortableHeader column="dateCreated">Date Created</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[110px]" scope="col">
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[110px]" scope="col">
                 <SortableHeader column="dueDate">Due Date</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[160px]" scope="col">
-                Assignee
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[160px]" scope="col">
+                <SortableHeader column="assignee">Assignee</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[100px]" scope="col">
-                Priority
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[100px]" scope="col">
+                <SortableHeader column="priority">Priority</SortableHeader>
               </th>
-              <th className="text-[hsl(0,0%,45%)] text-xs font-bold uppercase tracking-[0.5px] text-left px-3 py-4 w-[110px]" scope="col">
-                Status
+              <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[110px]" scope="col">
+                <SortableHeader column="status">Status</SortableHeader>
               </th>
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
+            {sortedData.map((item, index) => (
               <tr 
                 key={`${item.id}-${index}`}
                 className={`
