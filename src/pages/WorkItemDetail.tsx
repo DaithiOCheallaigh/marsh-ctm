@@ -136,7 +136,7 @@ const WorkItemDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-[hsl(var(--wq-bg-page))] flex flex-col">
       <div className="px-6 pt-6">
         <Header />
       </div>
@@ -159,9 +159,9 @@ const WorkItemDetail = () => {
               <span className="text-primary font-medium">Work Details</span>
             </nav>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
-                <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
-                <span className="text-[hsl(0,0%,25%)] text-xs font-medium">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(var(--wq-bg-muted))] rounded-lg">
+                <Clock className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                <span className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium">
                   {lastSavedAt
                     ? `Last saved: ${formatTimestamp(lastSavedAt)}`
                     : formatTimestamp(new Date())}
@@ -173,15 +173,15 @@ const WorkItemDetail = () => {
 
           {/* Title bar */}
           <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-xl font-bold text-[hsl(220,100%,24%)]">
+            <h1 className="text-xl font-bold text-primary">
               Work ID - {workItem.id} | {workItem.clientName}
             </h1>
             <div className="flex items-center gap-2">
-              <span className="text-[hsl(0,0%,45%)] text-sm">Work Type:</span>
+              <span className="text-muted-foreground text-sm">Work Type:</span>
               <WorkTypeBadge workType={workItem.workType} />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[hsl(0,0%,45%)] text-sm">Priority:</span>
+              <span className="text-muted-foreground text-sm">Priority:</span>
               <PriorityBadge priority={workItem.priority} />
             </div>
           </div>
@@ -194,7 +194,7 @@ const WorkItemDetail = () => {
 
           {/* My Assignments Section */}
           <div className="mt-6">
-            <h3 className="text-[hsl(220,100%,24%)] font-bold text-base mb-4">
+            <h3 className="text-primary font-bold text-base mb-4">
               My Assignments
             </h3>
             <div className="space-y-4">
@@ -229,7 +229,7 @@ const WorkItemDetail = () => {
             <Button
               type="button"
               onClick={handleConfirmAssignments}
-              className="px-8 bg-primary hover:bg-primary/90 text-white"
+              className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Confirm Assignments
             </Button>
