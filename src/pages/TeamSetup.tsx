@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, ChevronRight, Users } from 'lucide-react';
+import { Search, Plus, ChevronRight, Users, Clock } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
@@ -38,54 +38,63 @@ export default function TeamSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--wq-bg-page))]">
-      <div className="p-6">
+    <div className="flex flex-col w-full min-h-screen bg-[hsl(0,0%,97%)]">
+      {/* Header - Full Width */}
+      <div className="w-full px-6 pt-6">
         <Header userName="[First Name]" />
+      </div>
+      
+      {/* Content Area with Sidebar */}
+      <div className="flex flex-1">
+        <Sidebar activeItem="team-setup" />
         
-        <div className="flex gap-6">
-          <Sidebar activeItem="team-setup" />
-          
-          <main className="flex-1 ml-[288px]">
-            {/* Page Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <Users className="w-6 h-6 text-[hsl(var(--wq-accent))]" />
-                <h1 className="text-2xl font-bold text-[hsl(var(--wq-primary))]">
-                  Team Setup
-                </h1>
+        <main className="flex-1 ml-[300px] px-8 pt-6 pb-10">
+          {/* Page Header */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[hsl(197,100%,44%,0.1)] flex items-center justify-center">
+                <Users className="w-5 h-5 text-[hsl(197,100%,44%)]" />
               </div>
-              <div className="flex items-center gap-4">
-                <TeamTimestamp />
-                <Button
-                  onClick={handleAddTeam}
-                  className="
-                    bg-[hsl(var(--wq-primary))] text-white
-                    hover:bg-[hsl(var(--wq-primary-dark))]
-                    flex items-center gap-2
-                  "
-                >
-                  Add Team
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+              <h2 className="text-[hsl(220,100%,24%)] text-lg font-bold">Team Setup</h2>
             </div>
-
-            {/* Search Bar */}
-            <div className="relative mb-6 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--wq-accent))]" />
-              <Input
-                type="text"
-                placeholder="Search Team Members"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
+                <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
+                <span className="text-[hsl(0,0%,25%)] text-xs font-medium">26 Feb 2024 13:42 EST</span>
+              </div>
+              <Button
+                onClick={handleAddTeam}
                 className="
-                  pl-10 pr-4 py-2.5
-                  border-[hsl(var(--wq-accent))] 
-                  focus:border-[hsl(var(--wq-accent))]
-                  focus:ring-[hsl(var(--wq-accent))]
-                  rounded-lg
+                  bg-[hsl(220,100%,24%)] text-white
+                  hover:bg-[hsl(220,100%,18%)]
+                  flex items-center gap-2
                 "
-              />
+              >
+                Add Team
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Divider */}
+          <div className="w-full h-px bg-[hsl(220,100%,24%)] opacity-20 mb-6" />
+
+          {/* Search Bar */}
+          <div className="relative mb-6 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--wq-accent))]" />
+            <Input
+              type="text"
+              placeholder="Search Team Members"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="
+                pl-10 pr-4 py-2.5
+                border-[hsl(var(--wq-accent))] 
+                focus:border-[hsl(var(--wq-accent))]
+                focus:ring-[hsl(var(--wq-accent))]
+                rounded-lg
+              "
+            />
             </div>
 
             {/* Teams Table */}
@@ -228,8 +237,7 @@ export default function TeamSetup() {
                 </div>
               </div>
             </div>
-          </main>
-        </div>
+        </main>
       </div>
     </div>
   );

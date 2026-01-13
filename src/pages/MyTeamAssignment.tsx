@@ -35,27 +35,38 @@ const MyTeamAssignment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(210,20%,98%)]">
-      <Header />
-      <Sidebar activeItem="team-assignment" />
+    <div className="flex flex-col w-full min-h-screen bg-[hsl(0,0%,97%)]">
+      {/* Header - Full Width */}
+      <div className="w-full px-6 pt-6">
+        <Header userName="[First Name]" />
+      </div>
       
-      <main className="pl-[300px] pt-[100px] pr-6 pb-8">
-        <div className="max-w-[1200px]">
+      {/* Content Area with Sidebar */}
+      <div className="flex flex-1">
+        <Sidebar activeItem="team-assignment" />
+        
+        <main className="flex-1 ml-[300px] px-8 pt-6 pb-10">
           {/* Header Section */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold text-[hsl(220,100%,24%)]">
-              My Team Assignment
-            </h1>
+          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-[hsl(220,100%,24%)] text-white px-4 py-2 rounded-lg text-sm">
-                <Clock className="w-4 h-4" />
-                <span>26 Feb 2024 13:42 EST</span>
+              <div className="w-10 h-10 rounded-lg bg-[hsl(197,100%,44%,0.1)] flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-[hsl(197,100%,44%)]" />
+              </div>
+              <h2 className="text-[hsl(220,100%,24%)] text-lg font-bold">My Team Assignment</h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
+                <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
+                <span className="text-[hsl(0,0%,25%)] text-xs font-medium">26 Feb 2024 13:42 EST</span>
               </div>
               <Button className="bg-[hsl(220,100%,24%)] hover:bg-[hsl(220,100%,20%)] text-white">
                 <UserPlus className="w-4 h-4" />
               </Button>
             </div>
           </div>
+          
+          {/* Divider */}
+          <div className="w-full h-px bg-[hsl(220,100%,24%)] opacity-20 mb-6" />
 
           {/* Search Bar */}
           <div className="relative mb-6 max-w-md">
@@ -189,8 +200,8 @@ const MyTeamAssignment: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
