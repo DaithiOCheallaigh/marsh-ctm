@@ -118,21 +118,48 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
               <div className="flex flex-wrap gap-2">
                 {workItem.attachments.map((attachment) => {
                   const IconComponent = getFileIcon(attachment.type);
+                  const canPreview = attachment.type.startsWith('image/') || attachment.type === 'application/pdf';
+                  
+                  const handleClick = () => {
+                    if (attachment.dataUrl) {
+                      if (canPreview) {
+                        // Open in new tab for preview
+                        window.open(attachment.dataUrl, '_blank');
+                      } else {
+                        // Trigger download
+                        const link = document.createElement('a');
+                        link.href = attachment.dataUrl;
+                        link.download = attachment.name;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }
+                    }
+                  };
+                  
                   return (
-                    <div
+                    <button
                       key={attachment.id}
-                      className="flex items-center gap-2 px-3 py-2 bg-[hsl(var(--wq-bg-muted))] rounded-md border border-[hsl(var(--wq-border))]"
+                      onClick={handleClick}
+                      disabled={!attachment.dataUrl}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 bg-[hsl(var(--wq-bg-muted))] rounded-md border border-[hsl(var(--wq-border))] transition-all",
+                        attachment.dataUrl 
+                          ? "hover:bg-[hsl(var(--wq-bg-hover))] hover:border-[hsl(var(--wq-accent))] cursor-pointer" 
+                          : "cursor-not-allowed opacity-60"
+                      )}
+                      title={attachment.dataUrl ? (canPreview ? "Click to preview" : "Click to download") : "File not available"}
                     >
                       <IconComponent className="w-4 h-4 text-[hsl(var(--wq-accent))]" />
-                      <div className="flex flex-col">
+                      <div className="flex flex-col text-left">
                         <span className="text-sm font-medium text-primary truncate max-w-[150px]">
                           {attachment.name}
                         </span>
                         <span className="text-xs text-[hsl(var(--wq-text-secondary))]">
-                          {formatFileSize(attachment.size)}
+                          {formatFileSize(attachment.size)} {canPreview ? "• Preview" : "• Download"}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

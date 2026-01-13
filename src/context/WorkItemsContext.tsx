@@ -10,6 +10,7 @@ export interface Attachment {
   name: string;
   size: number;
   type: string;
+  dataUrl?: string; // Base64 data URL for download/preview
 }
 
 export interface WorkItem {
