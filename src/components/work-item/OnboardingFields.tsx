@@ -39,10 +39,13 @@ export interface OnboardingAttachment {
 }
 
 interface WorkItemBasic {
+  id: string;
+  workType: string;
   clientName: string;
   cnNumber?: string;
   status: string;
-  workType: string;
+  dueDate?: string;
+  assignee?: string;
 }
 
 interface OnboardingFieldsProps {
@@ -285,19 +288,25 @@ const OnboardingFields = ({
 
   // Check if client already has a pending work item
   const getDuplicateWorkItem = (client: Client | null, name: string) => {
-    if (!client && !name) return null;
-    
-    return existingWorkItems.find(item => {
-      if (item.status !== 'Pending') return false;
+    const normalizeName = (raw: string) => raw.replace(/\s*\([^)]*\)\s*$/, "").trim().toLowerCase();
+
+    const inputName = normalizeName(client?.name || name || "");
+    if (!client && !inputName) return null;
+
+    return existingWorkItems.find((item) => {
+      if (item.status !== "Pending") return false;
       if (item.workType.toLowerCase() !== currentWorkType.toLowerCase()) return false;
-      
-      // Check by CN number if client is selected
-      if (client?.cnNumber && item.cnNumber) {
-        return item.cnNumber.toLowerCase() === client.cnNumber.toLowerCase();
-      }
-      
-      // Check by client name
-      return item.clientName.toLowerCase() === name.toLowerCase();
+
+      const itemName = normalizeName(item.clientName);
+
+      const matchesByCn = Boolean(
+        client?.cnNumber && item.cnNumber && item.cnNumber.toLowerCase() === client.cnNumber.toLowerCase()
+      );
+
+      // Prefer name match as well (CN numbers can differ between sources)
+      const matchesByName = Boolean(inputName && itemName === inputName);
+
+      return matchesByCn || matchesByName;
     });
   };
 
@@ -425,11 +434,23 @@ const OnboardingFields = ({
                     Account Owner: {selectedClient.accountOwner}
                   </p>
                   {duplicateWorkItem && (
-                    <div className="mt-2 pt-2 border-t border-destructive/20">
+                    <div className="mt-2 pt-2 border-t border-destructive/20 space-y-1">
                       <p className="text-xs font-medium text-destructive">
-                        ⚠ A pending {currentWorkType} work item already exists for this client.
+                        A pending {currentWorkType} work item already exists for this client.
                       </p>
-                      <p className="text-xs text-destructive/70 mt-0.5">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-destructive/80">
+                        <span>Work item ID</span>
+                        <span className="font-medium text-destructive">{duplicateWorkItem.id}</span>
+                        <span>Due date</span>
+                        <span className="font-medium text-destructive">
+                          {duplicateWorkItem.dueDate || "—"}
+                        </span>
+                        <span>Assignee</span>
+                        <span className="font-medium text-destructive">
+                          {duplicateWorkItem.assignee || "—"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-destructive/70">
                         Please complete or cancel the existing work item before creating a new one.
                       </p>
                     </div>
