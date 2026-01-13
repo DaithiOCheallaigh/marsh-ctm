@@ -484,7 +484,7 @@ const OnboardingFields = ({
                         onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
                         placeholder={`Chair ${roleIndex + 1} Title`}
                         className={cn(
-                          "flex h-10 flex-1 rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                          "flex h-10 flex-1 rounded-md px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground placeholder:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
                           getFieldStateClasses(isFieldDirty("teamConfigurations"))
                         )}
                       />
