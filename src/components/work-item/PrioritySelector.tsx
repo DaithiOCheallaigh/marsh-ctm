@@ -11,18 +11,15 @@ interface PrioritySelectorProps {
 
 const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelectorProps) => {
   return (
-    <div className={cn(
-      "flex gap-2 p-1 rounded-lg transition-all duration-200",
-      isDirty && "ring-2 ring-field-dirty-border ring-offset-2"
-    )}>
+    <div className="flex gap-3">
       <button
         type="button"
         onClick={() => onChange("high")}
         className={cn(
-          "px-6 py-2 rounded-lg text-sm font-medium transition-all border focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "px-6 py-2 rounded-lg text-sm font-medium transition-all border-2 focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           value === "high"
-            ? "bg-[hsl(0,100%,95%)] text-[hsl(0,100%,35%)] border-[hsl(0,100%,80%)]"
-            : "bg-[hsl(0,100%,97%)] text-[hsl(0,70%,50%)] border-[hsl(0,50%,90%)] hover:bg-[hsl(0,100%,95%)]"
+            ? "bg-[hsl(0,85%,60%)] text-white border-[hsl(0,85%,50%)] shadow-sm"
+            : "bg-[hsl(0,20%,96%)] text-[hsl(0,10%,60%)] border-[hsl(0,10%,88%)] hover:bg-[hsl(0,30%,92%)] hover:border-[hsl(0,30%,80%)]"
         )}
       >
         High
@@ -31,10 +28,10 @@ const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelector
         type="button"
         onClick={() => onChange("medium")}
         className={cn(
-          "px-6 py-2 rounded-lg text-sm font-medium transition-all border focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "px-6 py-2 rounded-lg text-sm font-medium transition-all border-2 focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           value === "medium"
-            ? "bg-[hsl(30,100%,95%)] text-[hsl(30,100%,40%)] border-[hsl(30,100%,70%)]"
-            : "bg-[hsl(30,100%,97%)] text-[hsl(30,70%,50%)] border-[hsl(30,50%,85%)] hover:bg-[hsl(30,100%,95%)]"
+            ? "bg-[hsl(35,90%,55%)] text-white border-[hsl(35,90%,45%)] shadow-sm"
+            : "bg-[hsl(35,20%,96%)] text-[hsl(35,10%,55%)] border-[hsl(35,10%,88%)] hover:bg-[hsl(35,30%,92%)] hover:border-[hsl(35,30%,80%)]"
         )}
       >
         Medium
@@ -43,10 +40,10 @@ const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelector
         type="button"
         onClick={() => onChange("low")}
         className={cn(
-          "px-6 py-2 rounded-lg text-sm font-medium transition-all border focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "px-6 py-2 rounded-lg text-sm font-medium transition-all border-2 focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           value === "low"
-            ? "bg-[hsl(0,0%,92%)] text-[hsl(0,0%,36%)] border-[hsl(0,0%,80%)]"
-            : "bg-[hsl(0,0%,96%)] text-[hsl(0,0%,50%)] border-[hsl(0,0%,88%)] hover:bg-[hsl(0,0%,92%)]"
+            ? "bg-[hsl(210,15%,50%)] text-white border-[hsl(210,15%,40%)] shadow-sm"
+            : "bg-[hsl(210,5%,96%)] text-[hsl(210,5%,55%)] border-[hsl(210,5%,88%)] hover:bg-[hsl(210,10%,92%)] hover:border-[hsl(210,10%,80%)]"
         )}
       >
         Low
