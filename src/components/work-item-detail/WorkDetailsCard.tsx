@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Paperclip, FileText, Image, File } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WorkItem } from '@/context/WorkItemsContext';
 
@@ -7,6 +7,18 @@ interface WorkDetailsCardProps {
   workItem: WorkItem;
   rolesAssigned?: { current: number; total: number };
 }
+
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
+
+const getFileIcon = (type: string) => {
+  if (type.startsWith('image/')) return Image;
+  if (type.includes('pdf') || type.includes('document')) return FileText;
+  return File;
+};
 
 export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
   workItem,
@@ -93,6 +105,39 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
               <p className="text-primary text-sm font-medium">{workItem.assignee}</p>
             </div>
           </div>
+
+          {/* Attachments Section */}
+          {workItem.attachments && workItem.attachments.length > 0 && (
+            <div className="mt-5 pt-5 border-t border-[hsl(var(--wq-border))]">
+              <div className="flex items-center gap-2 mb-3">
+                <Paperclip className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                <p className="text-[hsl(var(--wq-text-secondary))] text-xs">
+                  Attachments ({workItem.attachments.length})
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {workItem.attachments.map((attachment) => {
+                  const IconComponent = getFileIcon(attachment.type);
+                  return (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center gap-2 px-3 py-2 bg-[hsl(var(--wq-bg-muted))] rounded-md border border-[hsl(var(--wq-border))]"
+                    >
+                      <IconComponent className="w-4 h-4 text-[hsl(var(--wq-accent))]" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-primary truncate max-w-[150px]">
+                          {attachment.name}
+                        </span>
+                        <span className="text-xs text-[hsl(var(--wq-text-secondary))]">
+                          {formatFileSize(attachment.size)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
