@@ -124,12 +124,12 @@ export default function TeamSetup() {
                         "
                       >
                         <td className="px-6 py-4">
-                          <span className="text-[hsl(var(--wq-accent))] font-medium">
+                          <span className="text-[hsl(var(--wq-primary))] font-medium">
                             {team.name}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-[hsl(var(--wq-accent))]">
+                          <span className="text-[hsl(var(--wq-primary))]">
                             {team.teamBase}
                           </span>
                         </td>
@@ -146,7 +146,7 @@ export default function TeamSetup() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-[hsl(var(--wq-accent))] font-medium">
+                          <span className="text-[hsl(var(--wq-primary))] font-medium">
                             {team.roles.length}
                           </span>
                         </td>
