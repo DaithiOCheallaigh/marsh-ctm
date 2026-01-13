@@ -477,30 +477,39 @@ const OnboardingFields = ({
                 {/* Dynamic Roles/Chairs */}
                 <div className="space-y-3">
                   <Label className="text-sm font-medium text-text-secondary">Role Titles</Label>
-                  {config.roles.map((role, roleIndex) => (
-                    <div key={roleIndex} className="flex items-center gap-3">
-                      <input
-                        value={role}
-                        onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
-                        placeholder={`Chair ${roleIndex + 1} Title`}
-                        className={cn(
-                          "flex h-10 flex-1 rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
-                          getFieldStateClasses(isFieldDirty("teamConfigurations"))
+                  <div className="space-y-2 bg-[hsl(var(--wq-bg-muted))] p-4 rounded-lg border border-[hsl(var(--wq-border))]">
+                    {config.roles.map((role, roleIndex) => (
+                      <div key={roleIndex} className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-semibold shrink-0">
+                          {roleIndex + 1}
+                        </div>
+                        <input
+                          value={role}
+                          onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
+                          placeholder={`Enter role title for Chair ${roleIndex + 1}`}
+                          className={cn(
+                            "flex h-10 flex-1 rounded-md px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 bg-white border border-[hsl(var(--wq-border))]",
+                            "placeholder:text-[hsl(var(--wq-text-secondary))] placeholder:italic",
+                            role && role !== `Chair ${roleIndex + 1}` 
+                              ? "text-primary font-medium border-primary/30" 
+                              : "text-muted-foreground",
+                            getFieldStateClasses(isFieldDirty("teamConfigurations"))
+                          )}
+                        />
+                        {config.roles.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeRole(config.id, roleIndex)}
+                            className="text-muted-foreground hover:text-destructive shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
-                      />
-                      {config.roles.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeRole(config.id, roleIndex)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
