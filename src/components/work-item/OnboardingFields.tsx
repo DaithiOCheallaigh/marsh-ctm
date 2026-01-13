@@ -30,6 +30,14 @@ interface TeamRole {
   roles: string[];
 }
 
+export interface OnboardingAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  file: File;
+}
+
 interface OnboardingFieldsProps {
   clientName: string;
   setClientName: (value: string) => void;
@@ -41,6 +49,8 @@ interface OnboardingFieldsProps {
   setSelectedClient?: (client: Client | null) => void;
   showTeamConfig?: boolean;
   showClientSearch?: boolean;
+  attachments?: OnboardingAttachment[];
+  setAttachments?: (attachments: OnboardingAttachment[]) => void;
 }
 
 // B2B Insurance Industry Teams
@@ -81,14 +91,17 @@ interface DescriptionNotesWithAttachmentsProps {
   description: string;
   setDescription: (value: string) => void;
   isFieldDirty: (fieldName: string) => boolean;
+  attachments: OnboardingAttachment[];
+  setAttachments: (attachments: OnboardingAttachment[]) => void;
 }
 
 const DescriptionNotesWithAttachments = ({
   description,
   setDescription,
   isFieldDirty,
+  attachments,
+  setAttachments,
 }: DescriptionNotesWithAttachmentsProps) => {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,14 +127,14 @@ const DescriptionNotesWithAttachments = ({
   };
 
   const addFiles = (files: File[]) => {
-    const newAttachments: Attachment[] = files.map((file) => ({
+    const newAttachments: OnboardingAttachment[] = files.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: file.name,
       size: file.size,
       type: file.type,
       file,
     }));
-    setAttachments((prev) => [...prev, ...newAttachments]);
+    setAttachments([...attachments, ...newAttachments]);
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +145,7 @@ const DescriptionNotesWithAttachments = ({
   };
 
   const removeAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((att) => att.id !== id));
+    setAttachments(attachments.filter((att) => att.id !== id));
   };
 
   const handleAttachClick = () => {
@@ -249,6 +262,8 @@ const OnboardingFields = ({
   setSelectedClient,
   showTeamConfig = true,
   showClientSearch = true,
+  attachments = [],
+  setAttachments,
 }: OnboardingFieldsProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const dirtyContext = useFormDirtyContext();
@@ -376,6 +391,8 @@ const OnboardingFields = ({
               description={description}
               setDescription={setDescription}
               isFieldDirty={isFieldDirty}
+              attachments={attachments}
+              setAttachments={setAttachments || (() => {})}
             />
           </div>
         </>
