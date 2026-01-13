@@ -427,12 +427,6 @@ const OnboardingFields = ({
                   )}>
                     CN: {selectedClient.cnNumber} | {selectedClient.industry} | {selectedClient.location}
                   </p>
-                  <p className={cn(
-                    "text-xs",
-                    duplicateWorkItem ? "text-destructive/80" : "text-[hsl(var(--wq-text-secondary))]"
-                  )}>
-                    Account Owner: {selectedClient.accountOwner}
-                  </p>
                   {duplicateWorkItem && (
                     <div className="mt-2 pt-2 border-t border-destructive/20 space-y-1">
                       <p className="text-xs font-medium text-destructive">
