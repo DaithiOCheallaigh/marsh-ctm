@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Clock } from "lucide-react";
+import { Clock, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
@@ -8,11 +8,21 @@ import { Header } from "@/components/Header";
 import { useWorkItems, WorkItem } from "@/context/WorkItemsContext";
 import { useToast } from "@/hooks/use-toast";
 import { WorkTypeBadge } from "@/components/work-item-detail/WorkTypeBadge";
-import { StatusIndicator } from "@/components/work-item-detail/StatusIndicator";
+import { StatusIndicator, getStatusFromDueDate } from "@/components/work-item-detail/StatusIndicator";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
 import { RoleAssignmentAccordion } from "@/components/work-item-detail/RoleAssignmentAccordion";
 import { TeamMember } from "@/data/teamMembers";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RoleAssignment {
   chairLabel: string;
@@ -30,47 +40,76 @@ const WorkItemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { workItems } = useWorkItems();
+  const { workItems, completeWorkItem } = useWorkItems();
 
   const [workItem, setWorkItem] = useState<WorkItem | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [expandedRoleIndex, setExpandedRoleIndex] = useState<number | null>(0);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+
+  // Build roles from work item teams
+  const buildRolesFromWorkItem = useCallback((item: WorkItem): RoleConfig[] => {
+    if (!item.teams || item.teams.length === 0) {
+      // Default roles for work items without teams
+      return [
+        {
+          title: "Account Executive",
+          chairs: [{ chairLabel: "Primary Chair 1" }],
+          totalRoles: 1,
+        },
+        {
+          title: "Project Manager",
+          chairs: [{ chairLabel: "Primary Chair 1" }],
+          totalRoles: 1,
+        },
+        {
+          title: "Risk Consultant",
+          chairs: [
+            { chairLabel: "Primary Chair 1" },
+            { chairLabel: "Primary Chair 2" },
+          ],
+          totalRoles: 2,
+        },
+      ];
+    }
+
+    // Build roles from teams configuration
+    const roles: RoleConfig[] = [];
+    item.teams.forEach((team) => {
+      team.roles.forEach((roleName) => {
+        roles.push({
+          title: `${roleName} (${team.teamName})`,
+          chairs: [{ chairLabel: "Primary Chair 1" }],
+          totalRoles: 1,
+        });
+      });
+    });
+    return roles;
+  }, []);
 
   // Role assignments state
-  const [roles, setRoles] = useState<RoleConfig[]>([
-    {
-      title: "Account Executive",
-      chairs: [{ chairLabel: "Primary Chair 1" }],
-      totalRoles: 1,
-    },
-    {
-      title: "Project Manager",
-      chairs: [{ chairLabel: "Primary Chair 1" }],
-      totalRoles: 1,
-    },
-    {
-      title: "Technical Lead",
-      chairs: [{ chairLabel: "Primary Chair 1" }],
-      totalRoles: 1,
-    },
-    {
-      title: "Risk Consultant",
-      chairs: [
-        { chairLabel: "Primary Chair 1" },
-        { chairLabel: "Primary Chair 2" },
-      ],
-      totalRoles: 2,
-    },
-  ]);
+  const [roles, setRoles] = useState<RoleConfig[]>([]);
 
   useEffect(() => {
     const found = workItems.find((item) => item.id === id);
     if (found) {
       setWorkItem(found);
+      if (roles.length === 0) {
+        setRoles(buildRolesFromWorkItem(found));
+      }
     } else {
       navigate("/");
     }
-  }, [id, workItems, navigate]);
+  }, [id, workItems, navigate, buildRolesFromWorkItem, roles.length]);
+
+  // Calculate status based on due date
+  const calculatedStatus = useMemo(() => {
+    if (!workItem) return 'On Track';
+    return getStatusFromDueDate(workItem.dueDate, workItem.status);
+  }, [workItem]);
+
+  // Check if work item is read-only (completed)
+  const isReadOnly = workItem?.status === 'Completed' || workItem?.isReadOnly;
 
   // Get all currently assigned members across all roles
   const getAllAssignedMembers = useCallback((): TeamMember[] => {
@@ -99,6 +138,7 @@ const WorkItemDetail = () => {
   );
 
   const handleExpandRole = (roleIndex: number) => {
+    if (isReadOnly) return;
     setExpandedRoleIndex((prev) => (prev === roleIndex ? null : roleIndex));
   };
 
@@ -108,6 +148,8 @@ const WorkItemDetail = () => {
     member: TeamMember,
     notes: string
   ) => {
+    if (isReadOnly) return;
+
     // Check for duplicate assignment
     const duplicateCheck = isMemberAssignedElsewhere(member, roleIndex);
     if (duplicateCheck.isAssigned) {
@@ -142,6 +184,8 @@ const WorkItemDetail = () => {
   };
 
   const handleUnassign = (roleIndex: number, chairIndex: number) => {
+    if (isReadOnly) return;
+    
     const memberName = roles[roleIndex].chairs[chairIndex].assignedMember?.name;
     
     setRoles((prev) => {
@@ -176,6 +220,7 @@ const WorkItemDetail = () => {
   };
 
   const handleSaveForLater = () => {
+    if (isReadOnly) return;
     setLastSavedAt(new Date());
     toast({
       title: "Draft Saved",
@@ -183,12 +228,32 @@ const WorkItemDetail = () => {
     });
   };
 
-  const handleConfirmAssignments = () => {
-    toast({
-      title: "Assignments Confirmed",
-      description: "All role assignments have been confirmed.",
-    });
-    navigate("/");
+  const handleCompleteWorkItem = () => {
+    const totalAssigned = getTotalAssigned();
+    const totalRoles = getTotalRoles();
+    
+    if (totalAssigned < totalRoles) {
+      toast({
+        title: "Cannot Complete",
+        description: `Please assign all ${totalRoles} roles before completing. Currently ${totalAssigned} of ${totalRoles} assigned.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowCompleteDialog(true);
+  };
+
+  const confirmComplete = () => {
+    if (workItem) {
+      completeWorkItem(workItem.id);
+      toast({
+        title: "Work Item Completed",
+        description: "This work item is now complete and read-only.",
+      });
+      setShowCompleteDialog(false);
+      navigate("/");
+    }
   };
 
   if (!workItem) {
@@ -200,108 +265,154 @@ const WorkItemDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--wq-bg-page))] flex flex-col">
-      <div className="px-6 pt-6">
-        <Header />
-      </div>
-      <div className="flex flex-1 px-6 pb-6 gap-6">
-        <Sidebar />
-        <main className="flex-1 ml-[280px] overflow-auto">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-sm mb-2" aria-label="Breadcrumb">
-            <Link
-              to="/"
-              className="text-[hsl(var(--wq-text-secondary))] hover:text-primary transition-colors"
-            >
-              Work Queue
-            </Link>
-            <span className="text-[hsl(var(--wq-text-secondary))]">&gt;</span>
-            <span className="text-primary font-semibold">Work Details</span>
-          </nav>
+    <>
+      <div className="min-h-screen bg-[hsl(var(--wq-bg-page))] flex flex-col">
+        <div className="px-6 pt-6">
+          <Header />
+        </div>
+        <div className="flex flex-1 px-6 pb-6 gap-6">
+          <Sidebar />
+          <main className="flex-1 ml-[280px] overflow-auto">
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-1.5 text-sm mb-2" aria-label="Breadcrumb">
+              <Link
+                to="/"
+                className="text-[hsl(var(--wq-text-secondary))] hover:text-primary transition-colors"
+              >
+                Work Queue
+              </Link>
+              <span className="text-[hsl(var(--wq-text-secondary))]">&gt;</span>
+              <span className="text-primary font-semibold">Work Details</span>
+            </nav>
 
-          {/* Title bar with inline metadata */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <h1 className="text-lg font-bold text-primary">
-                Work ID - {workItem.id} | {workItem.clientName}
-              </h1>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Work Type:</span>
-                <WorkTypeBadge workType={workItem.workType} />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Priority:</span>
-                <PriorityBadge priority={workItem.priority} />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--wq-bg-muted))] rounded-full">
-                <Clock className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
-                <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
-                  {lastSavedAt
-                    ? `${format(lastSavedAt, "dd MMM yyyy HH:mm")} EST`
-                    : `${format(new Date(), "dd MMM yyyy HH:mm")} EST`}
+            {/* Read-only banner */}
+            {isReadOnly && (
+              <div className="mb-4 p-3 bg-[hsl(var(--wq-bg-muted))] border border-[hsl(var(--wq-border))] rounded-lg flex items-center gap-2">
+                <Lock className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
+                  This work item is completed and read-only. No further edits are allowed.
                 </span>
               </div>
-              <StatusIndicator status="On Track" />
+            )}
+
+            {/* Title bar with inline metadata */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <h1 className="text-lg font-bold text-primary">
+                  Work ID - {workItem.id} | {workItem.clientName}
+                </h1>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Work Type:</span>
+                  <WorkTypeBadge workType={workItem.workType} />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Priority:</span>
+                  <PriorityBadge priority={workItem.priority} />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--wq-bg-muted))] rounded-full">
+                  <Clock className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                  <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
+                    {lastSavedAt
+                      ? `${format(lastSavedAt, "dd MMM yyyy HH:mm")} EST`
+                      : `${format(new Date(), "dd MMM yyyy HH:mm")} EST`}
+                  </span>
+                </div>
+                <StatusIndicator status={calculatedStatus} />
+              </div>
             </div>
-          </div>
 
-          {/* Work Details Card */}
-          <WorkDetailsCard
-            workItem={workItem}
-            rolesAssigned={{ current: getTotalAssigned(), total: getTotalRoles() }}
-          />
+            {/* Work Details Card */}
+            <WorkDetailsCard
+              workItem={workItem}
+              rolesAssigned={{ current: getTotalAssigned(), total: getTotalRoles() }}
+            />
 
-          {/* My Assignments Section */}
-          <div className="mt-6">
-            <h3 className="text-primary font-bold text-base mb-4">
-              My Assignments
-            </h3>
-            <div className="space-y-4">
-              {roles.map((role, roleIndex) => (
-                <RoleAssignmentAccordion
-                  key={role.title}
-                  roleTitle={role.title}
-                  rolesCount={{
-                    current: role.chairs.filter((c) => c.assignedMember).length,
-                    total: role.totalRoles,
-                  }}
-                  chairs={role.chairs}
-                  onAssign={(chairIndex, member, notes) =>
-                    handleAssign(roleIndex, chairIndex, member, notes)
-                  }
-                  onUnassign={(chairIndex) => handleUnassign(roleIndex, chairIndex)}
-                  isExpanded={expandedRoleIndex === roleIndex}
-                  onToggleExpand={() => handleExpandRole(roleIndex)}
-                  roleIndex={roleIndex}
-                  checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, roleIndex)}
-                />
-              ))}
+            {/* My Assignments Section */}
+            <div className="mt-6">
+              <h3 className="text-primary font-bold text-base mb-4">
+                My Assignments
+              </h3>
+              <div className="space-y-4">
+                {roles.map((role, roleIndex) => (
+                  <RoleAssignmentAccordion
+                    key={role.title}
+                    roleTitle={role.title}
+                    rolesCount={{
+                      current: role.chairs.filter((c) => c.assignedMember).length,
+                      total: role.totalRoles,
+                    }}
+                    chairs={role.chairs}
+                    onAssign={(chairIndex, member, notes) =>
+                      handleAssign(roleIndex, chairIndex, member, notes)
+                    }
+                    onUnassign={(chairIndex) => handleUnassign(roleIndex, chairIndex)}
+                    isExpanded={expandedRoleIndex === roleIndex && !isReadOnly}
+                    onToggleExpand={() => handleExpandRole(roleIndex)}
+                    roleIndex={roleIndex}
+                    checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, roleIndex)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 mt-8 mb-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleSaveForLater}
-              className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
-            >
-              Save For Later
-            </Button>
-            <Button
-              type="button"
-              onClick={handleConfirmAssignments}
-              className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-            >
-              Confirm Assignments
-            </Button>
-          </div>
-        </main>
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 mt-8 mb-8">
+              {!isReadOnly && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSaveForLater}
+                    className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
+                  >
+                    Save For Later
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCompleteWorkItem}
+                    className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    disabled={getTotalAssigned() < getTotalRoles()}
+                  >
+                    Complete Work Item
+                  </Button>
+                </>
+              )}
+              {isReadOnly && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/")}
+                  className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
+                >
+                  Back to Work Queue
+                </Button>
+              )}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+
+      {/* Complete Confirmation Dialog */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Work Item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to complete this work item? This action cannot be undone. 
+              The work item will become read-only and no further edits will be allowed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmComplete}>
+              Complete Work Item
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

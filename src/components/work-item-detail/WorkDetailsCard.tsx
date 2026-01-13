@@ -5,20 +5,17 @@ import { WorkItem } from '@/context/WorkItemsContext';
 
 interface WorkDetailsCardProps {
   workItem: WorkItem;
-  description?: string;
-  cnNumber?: string;
-  teamName?: string;
   rolesAssigned?: { current: number; total: number };
 }
 
 export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
   workItem,
-  description = "New client requires team assignment for upcoming project",
-  cnNumber = "CN12345678",
-  teamName = "Marsh North America",
   rolesAssigned = { current: 0, total: 5 },
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Get team names from work item
+  const teamNames = workItem.teams?.map(t => t.teamName).join(', ') || 'Not Assigned';
 
   return (
     <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
@@ -45,31 +42,55 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
             {/* Row 1 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Description</p>
-              <p className="text-primary text-sm font-medium">{description}</p>
+              <p className="text-primary text-sm font-medium">
+                {workItem.description || "New client requires team assignment for upcoming project"}
+              </p>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">CN Number</p>
-              <p className="text-primary text-sm font-medium">{cnNumber}</p>
+              <p className="text-primary text-sm font-medium">{workItem.cnNumber || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Team Name</p>
-              <p className="text-primary text-sm font-medium">{teamName}</p>
+              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Account Owner</p>
+              <p className="text-primary text-sm font-medium">{workItem.accountOwner || 'Unassigned'}</p>
             </div>
             
             {/* Row 2 */}
             <div>
+              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Location</p>
+              <p className="text-primary text-sm font-medium">{workItem.location || 'Not Specified'}</p>
+            </div>
+            <div>
+              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Team Names</p>
+              <p className="text-primary text-sm font-medium">{teamNames}</p>
+            </div>
+            <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Date Created</p>
               <p className="text-primary text-sm font-medium">{workItem.dateCreated}</p>
             </div>
+
+            {/* Row 3 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Roles Assigned</p>
-              <p className="text-primary text-sm font-medium">
-                {rolesAssigned.current}/{rolesAssigned.total}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-primary text-sm font-medium">
+                  {rolesAssigned.current}/{rolesAssigned.total}
+                </p>
+                <div className="flex-1 max-w-[100px] h-2 bg-[hsl(var(--wq-bg-muted))] rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[hsl(var(--wq-status-completed-text))] rounded-full transition-all duration-300"
+                    style={{ width: `${(rolesAssigned.current / rolesAssigned.total) * 100}%` }}
+                  />
+                </div>
+              </div>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Due Date</p>
               <p className="text-primary text-sm font-medium">{workItem.dueDate}</p>
+            </div>
+            <div>
+              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Assigned To</p>
+              <p className="text-primary text-sm font-medium">{workItem.assignee}</p>
             </div>
           </div>
         </div>

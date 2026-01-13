@@ -13,6 +13,7 @@ import {
   FormSelectValue 
 } from "@/components/form/FormSelect";
 import { cn } from "@/lib/utils";
+import { Client } from "@/data/clients";
 
 interface Attachment {
   id: string;
@@ -36,16 +37,30 @@ interface OnboardingFieldsProps {
   setDescription: (value: string) => void;
   teamConfigurations: TeamRole[];
   setTeamConfigurations: (configs: TeamRole[]) => void;
+  selectedClient?: Client | null;
+  setSelectedClient?: (client: Client | null) => void;
+  showTeamConfig?: boolean;
+  showClientSearch?: boolean;
 }
 
+// B2B Insurance Industry Teams
 const teamTypes = [
-  "Accounts",
-  "Claims",
-  "Cyber Security",
-  "Management",
-  "Risk",
-  "Operations",
-  "Finance",
+  "Property Risk",
+  "General Liability",
+  "Professional Liability",
+  "D&O (Directors & Officers)",
+  "E&O (Errors & Omissions)",
+  "Cyber Risk",
+  "Marine & Cargo",
+  "Aviation",
+  "Energy",
+  "Construction",
+  "Healthcare",
+  "Financial Institutions",
+  "Environmental",
+  "Workers Compensation",
+  "Surety Bonds",
+  "Fleet & Auto",
 ];
 
 const formatFileSize = (bytes: number): string => {
@@ -134,15 +149,15 @@ const DescriptionNotesWithAttachments = ({
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add text"
+          placeholder="Enter details about this onboarding request..."
           className={cn(
-            "flex min-h-[60px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all duration-200",
+            "flex min-h-[80px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all duration-200",
             getFieldStateClasses(isFieldDirty("onboardingDescription"))
           )}
-          maxLength={500}
+          maxLength={1000}
         />
         <p className="text-xs text-muted-foreground text-right">
-          {description.length}/500
+          {description.length}/1000
         </p>
       </div>
 
@@ -180,6 +195,9 @@ const DescriptionNotesWithAttachments = ({
             )} />
             <p className="text-sm text-muted-foreground">
               {isDragging ? "Drop files here" : "Drag & drop files or click to browse"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Supports PDF, Word, Excel, and image files
             </p>
           </div>
         </div>
@@ -227,6 +245,10 @@ const OnboardingFields = ({
   setDescription,
   teamConfigurations,
   setTeamConfigurations,
+  selectedClient,
+  setSelectedClient,
+  showTeamConfig = true,
+  showClientSearch = true,
 }: OnboardingFieldsProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const dirtyContext = useFormDirtyContext();
@@ -235,7 +257,16 @@ const OnboardingFields = ({
     return dirtyContext ? dirtyContext.isDirty(fieldName) : false;
   };
 
+  const handleClientSelect = (client: Client | null, name: string) => {
+    setClientName(name);
+    if (setSelectedClient) {
+      setSelectedClient(client);
+    }
+  };
+
   const addTeamConfiguration = () => {
+    // Check if team is already added
+    const existingTeams = teamConfigurations.map(tc => tc.teamType);
     const newConfig: TeamRole = {
       id: Date.now().toString(),
       teamType: "",
@@ -250,6 +281,16 @@ const OnboardingFields = ({
   };
 
   const updateTeamConfiguration = (id: string, field: keyof TeamRole, value: any) => {
+    // Check for duplicate team
+    if (field === "teamType") {
+      const isDuplicate = teamConfigurations.some(
+        (config) => config.id !== id && config.teamType === value
+      );
+      if (isDuplicate) {
+        return; // Don't allow duplicate teams
+      }
+    }
+
     setTeamConfigurations(
       teamConfigurations.map((config) => {
         if (config.id === id) {
@@ -294,139 +335,172 @@ const OnboardingFields = ({
 
   return (
     <div className="bg-white rounded-lg border border-border-primary p-6 space-y-6">
-      <h3 className="text-lg font-semibold text-primary">Onboarding Details</h3>
+      <h3 className="text-lg font-semibold text-primary">
+        {showClientSearch ? "Client Selection" : "Team Configuration"}
+      </h3>
 
       {/* Client Name Search */}
-      <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-        <Label className="text-right text-sm font-medium text-text-secondary">
-          Client Name or CN Number<span className="text-[hsl(0,100%,50%)]">*</span>
-        </Label>
-        <ClientSearchInput
-          value={clientName}
-          onChange={setClientName}
-          placeholder="Search by client name or CN number"
-          fieldName="onboardingClientName"
-        />
-      </div>
+      {showClientSearch && (
+        <>
+          <div className="grid grid-cols-[180px_1fr] items-start gap-4">
+            <Label className="text-right text-sm font-medium text-text-secondary pt-2">
+              Client Name or CN Number<span className="text-[hsl(0,100%,50%)]">*</span>
+            </Label>
+            <div className="space-y-2">
+              <ClientSearchInput
+                value={clientName}
+                onChange={(name, client) => handleClientSelect(client || null, name)}
+                placeholder="Search by client name or CN number"
+                fieldName="onboardingClientName"
+              />
+              {selectedClient && (
+                <div className="p-3 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                  <p className="text-sm font-medium text-primary">{selectedClient.name}</p>
+                  <p className="text-xs text-[hsl(var(--wq-text-secondary))]">
+                    CN: {selectedClient.cnNumber} | {selectedClient.industry} | {selectedClient.location}
+                  </p>
+                  <p className="text-xs text-[hsl(var(--wq-text-secondary))]">
+                    Account Owner: {selectedClient.accountOwner}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Description Notes with Attachments */}
+          <div className="grid grid-cols-[180px_1fr] items-start gap-4">
+            <Label className="text-right text-sm font-medium text-text-secondary pt-2">
+              Description
+            </Label>
+            <DescriptionNotesWithAttachments
+              description={description}
+              setDescription={setDescription}
+              isFieldDirty={isFieldDirty}
+            />
+          </div>
+        </>
+      )}
 
       {/* Team Role & Configuration */}
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border-primary rounded-lg">
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
-          <span className="font-semibold text-primary">Team Role & Configuration</span>
-          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </CollapsibleTrigger>
-        <CollapsibleContent className="px-4 pb-4 space-y-4">
-          {/* Description Notes */}
-          <DescriptionNotesWithAttachments
-            description={description}
-            setDescription={setDescription}
-            isFieldDirty={isFieldDirty}
-          />
-
-          {/* Team Configurations */}
-          {teamConfigurations.map((config, configIndex) => (
-            <div key={config.id} className="bg-[#009DE0]/10 rounded-lg p-4 space-y-4 border border-[#009DE0]/30">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-primary">Team Configuration</span>
-                {teamConfigurations.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeTeamConfiguration(config.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-text-secondary">
-                    Team Type<span className="text-[hsl(0,100%,50%)]">*</span>
-                  </Label>
-                  <FormSelect
-                    value={config.teamType}
-                    onValueChange={(value) => updateTeamConfiguration(config.id, "teamType", value)}
-                  >
-                    <FormSelectTrigger fieldName="teamConfigurations">
-                      <FormSelectValue placeholder="Select Team Type" />
-                    </FormSelectTrigger>
-                    <FormSelectContent>
-                      {teamTypes.map((team) => (
-                        <FormSelectItem key={team} value={team}>
-                          {team}
-                        </FormSelectItem>
-                      ))}
-                    </FormSelectContent>
-                  </FormSelect>
+      {showTeamConfig && (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border-primary rounded-lg">
+          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
+            <span className="font-semibold text-primary">Team Role & Chair Configuration</span>
+            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </CollapsibleTrigger>
+          <CollapsibleContent className="px-4 pb-4 space-y-4">
+            {/* Team Configurations */}
+            {teamConfigurations.map((config, configIndex) => (
+              <div key={config.id} className="bg-[#009DE0]/10 rounded-lg p-4 space-y-4 border border-[#009DE0]/30">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-primary">Team {configIndex + 1}</span>
+                  {teamConfigurations.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeTeamConfiguration(config.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-text-secondary">
-                    Number of Roles<span className="text-[hsl(0,100%,50%)]">*</span>
-                  </Label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={config.numberOfRoles}
-                    onChange={(e) =>
-                      updateTeamConfiguration(config.id, "numberOfRoles", parseInt(e.target.value) || 1)
-                    }
-                    className={cn(
-                      "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
-                      getFieldStateClasses(isFieldDirty("teamConfigurations"))
-                    )}
-                  />
-                </div>
-              </div>
 
-              {/* Dynamic Roles */}
-              <div className="space-y-3">
-                {config.roles.map((role, roleIndex) => (
-                  <div key={roleIndex} className="flex items-center gap-3">
-                    <Label className="w-16 text-sm font-medium text-text-secondary">
-                      Role {roleIndex + 1}<span className="text-[hsl(0,100%,50%)]">*</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-text-secondary">
+                      Team Type<span className="text-[hsl(0,100%,50%)]">*</span>
+                    </Label>
+                    <FormSelect
+                      value={config.teamType}
+                      onValueChange={(value) => updateTeamConfiguration(config.id, "teamType", value)}
+                    >
+                      <FormSelectTrigger fieldName="teamConfigurations">
+                        <FormSelectValue placeholder="Select Team Type" />
+                      </FormSelectTrigger>
+                      <FormSelectContent>
+                        {teamTypes.map((team) => {
+                          const isUsed = teamConfigurations.some(
+                            tc => tc.id !== config.id && tc.teamType === team
+                          );
+                          return (
+                            <FormSelectItem 
+                              key={team} 
+                              value={team}
+                              disabled={isUsed}
+                            >
+                              {team} {isUsed && "(Already added)"}
+                            </FormSelectItem>
+                          );
+                        })}
+                      </FormSelectContent>
+                    </FormSelect>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-text-secondary">
+                      Number of Chairs<span className="text-[hsl(0,100%,50%)]">*</span>
                     </Label>
                     <input
-                      value={role}
-                      onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
-                      placeholder={`Chair ${roleIndex + 1}`}
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={config.numberOfRoles}
+                      onChange={(e) =>
+                        updateTeamConfiguration(config.id, "numberOfRoles", parseInt(e.target.value) || 1)
+                      }
                       className={cn(
-                        "flex h-10 flex-1 rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                        "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
                         getFieldStateClasses(isFieldDirty("teamConfigurations"))
                       )}
                     />
-                    {config.roles.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeRole(config.id, roleIndex)}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                </div>
 
-          {/* Add Row Button */}
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={addTeamConfiguration}
-            className="w-full text-primary font-semibold hover:bg-primary/5"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Row
-          </Button>
-        </CollapsibleContent>
-      </Collapsible>
+                {/* Dynamic Roles/Chairs */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-text-secondary">Role Titles</Label>
+                  {config.roles.map((role, roleIndex) => (
+                    <div key={roleIndex} className="flex items-center gap-3">
+                      <input
+                        value={role}
+                        onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
+                        placeholder={`Chair ${roleIndex + 1} Title`}
+                        className={cn(
+                          "flex h-10 flex-1 rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                          getFieldStateClasses(isFieldDirty("teamConfigurations"))
+                        )}
+                      />
+                      {config.roles.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeRole(config.id, roleIndex)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Add Another Team Button */}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={addTeamConfiguration}
+              className="w-full text-primary font-semibold hover:bg-primary/5"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Another Team
+            </Button>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
   );
 };
