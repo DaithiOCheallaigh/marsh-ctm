@@ -59,6 +59,29 @@ const initialWorkItems: WorkItem[] = [
     teams: [
       { teamName: 'Property Risk', roles: ['Senior Account Manager', 'Risk Engineer'] },
       { teamName: 'General Liability', roles: ['Claims Specialist'] }
+    ],
+    attachments: [
+      {
+        id: 'att-001',
+        name: 'Westfield_Risk_Assessment.pdf',
+        size: 2458624,
+        type: 'application/pdf',
+        dataUrl: 'data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSAgNSAwIFIKPj4KPj4KL0NvbnRlbnRzIDQgMCBSCj4+CmVuZG9iago0IDAgb2JqCjw8Ci9MZW5ndGggNDQKPj4Kc3RyZWFtCkJUCi9GMSA0OCBUZgo1MCA2MDAgVGQKKFdlc3RmaWVsZCBSaXNrIEFzc2Vzc21lbnQpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHlwZTEKL0Jhc2VGb250IC9IZWx2ZXRpY2EKPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxNDcgMDAwMDAgbiAKMDAwMDAwMDI3OSAwMDAwMCBuIAowMDAwMDAwMzc0IDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNDUxCiUlRU9G'
+      },
+      {
+        id: 'att-002',
+        name: 'Facility_Locations_Map.png',
+        size: 1245678,
+        type: 'image/png',
+        dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+      },
+      {
+        id: 'att-003',
+        name: 'Insurance_Requirements.docx',
+        size: 856432,
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        dataUrl: 'data:application/octet-stream;base64,UEsDBBQAAAAIAA=='
+      }
     ]
   },
   { 
