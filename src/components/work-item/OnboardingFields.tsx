@@ -38,6 +38,13 @@ export interface OnboardingAttachment {
   file: File;
 }
 
+interface WorkItemBasic {
+  clientName: string;
+  cnNumber?: string;
+  status: string;
+  workType: string;
+}
+
 interface OnboardingFieldsProps {
   clientName: string;
   setClientName: (value: string) => void;
@@ -51,6 +58,8 @@ interface OnboardingFieldsProps {
   showClientSearch?: boolean;
   attachments?: OnboardingAttachment[];
   setAttachments?: (attachments: OnboardingAttachment[]) => void;
+  existingWorkItems?: WorkItemBasic[];
+  currentWorkType?: string;
 }
 
 // B2B Insurance Industry Teams
@@ -264,6 +273,8 @@ const OnboardingFields = ({
   showClientSearch = true,
   attachments = [],
   setAttachments,
+  existingWorkItems = [],
+  currentWorkType = "Onboarding",
 }: OnboardingFieldsProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const dirtyContext = useFormDirtyContext();
@@ -271,6 +282,26 @@ const OnboardingFields = ({
   const isFieldDirty = (fieldName: string) => {
     return dirtyContext ? dirtyContext.isDirty(fieldName) : false;
   };
+
+  // Check if client already has a pending work item
+  const getDuplicateWorkItem = (client: Client | null, name: string) => {
+    if (!client && !name) return null;
+    
+    return existingWorkItems.find(item => {
+      if (item.status !== 'Pending') return false;
+      if (item.workType.toLowerCase() !== currentWorkType.toLowerCase()) return false;
+      
+      // Check by CN number if client is selected
+      if (client?.cnNumber && item.cnNumber) {
+        return item.cnNumber.toLowerCase() === client.cnNumber.toLowerCase();
+      }
+      
+      // Check by client name
+      return item.clientName.toLowerCase() === name.toLowerCase();
+    });
+  };
+
+  const duplicateWorkItem = getDuplicateWorkItem(selectedClient || null, clientName);
 
   const handleClientSelect = (client: Client | null, name: string) => {
     setClientName(name);
@@ -368,7 +399,17 @@ const OnboardingFields = ({
                 placeholder="Search by client name or CN number"
                 fieldName="onboardingClientName"
               />
-              {selectedClient && (
+              {duplicateWorkItem && (
+                <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+                  <p className="text-sm font-medium text-destructive">
+                    A pending {currentWorkType} work item already exists for this client.
+                  </p>
+                  <p className="text-xs text-destructive/80">
+                    Please complete or cancel the existing work item before creating a new one.
+                  </p>
+                </div>
+              )}
+              {selectedClient && !duplicateWorkItem && (
                 <div className="p-3 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
                   <p className="text-sm font-medium text-primary">{selectedClient.name}</p>
                   <p className="text-xs text-[hsl(var(--wq-text-secondary))]">
