@@ -6,7 +6,7 @@ import { useFormDirtyContext, getFieldStateClasses } from "@/components/form/For
 
 interface ClientSearchInputProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, client?: Client) => void;
   placeholder?: string;
   className?: string;
   fieldName?: string;
@@ -44,7 +44,7 @@ const ClientSearchInput = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    onChange(newValue);
+    onChange(newValue, undefined);
 
     if (newValue.trim()) {
       const results = searchClients(newValue);
@@ -59,12 +59,12 @@ const ClientSearchInput = ({
   const handleSelectClient = (client: Client) => {
     const selectedValue = `${client.name} (${client.cnNumber})`;
     setInputValue(selectedValue);
-    onChange(selectedValue);
+    onChange(selectedValue, client);
     setIsOpen(false);
   };
 
   const handleAddNew = () => {
-    onChange(inputValue);
+    onChange(inputValue, undefined);
     setIsOpen(false);
   };
 
@@ -103,7 +103,9 @@ const ClientSearchInput = ({
                   className="w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none flex flex-col"
                 >
                   <span className="font-medium text-primary">{client.name}</span>
-                  <span className="text-sm text-muted-foreground">{client.cnNumber}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {client.cnNumber} | {client.industry} | {client.location}
+                  </span>
                 </button>
               ))}
               <div className="border-t border-border-primary">
