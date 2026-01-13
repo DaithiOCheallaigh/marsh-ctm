@@ -223,7 +223,7 @@ const CreateWorkItem = () => {
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isStep1Valid() || !isStep2Valid() || !isStep3Valid()) {
       toast({
         title: "Validation Error",
@@ -256,6 +256,29 @@ const CreateWorkItem = () => {
       roles: tc.roles,
     })) : undefined;
 
+    // Convert files to data URLs for persistence
+    const convertToDataUrl = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    };
+
+    let attachmentsWithData;
+    if (workType === "onboarding" && onboardingAttachments.length > 0) {
+      attachmentsWithData = await Promise.all(
+        onboardingAttachments.map(async (att) => ({
+          id: att.id,
+          name: att.name,
+          size: att.size,
+          type: att.type,
+          dataUrl: await convertToDataUrl(att.file),
+        }))
+      );
+    }
+
     addWorkItem({
       workType: workTypeLabels[workType] || workType,
       clientName: getClientName(),
@@ -267,12 +290,7 @@ const CreateWorkItem = () => {
       priority: priority.charAt(0).toUpperCase() + priority.slice(1) as "High" | "Medium" | "Low",
       description: onboardingDescription,
       teams,
-      attachments: workType === "onboarding" ? onboardingAttachments.map(att => ({
-        id: att.id,
-        name: att.name,
-        size: att.size,
-        type: att.type,
-      })) : undefined,
+      attachments: attachmentsWithData,
     });
 
     toast({
