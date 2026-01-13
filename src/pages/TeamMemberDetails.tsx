@@ -25,6 +25,8 @@ import { ExpertiseTagList } from '@/components/team-assignment/ExpertiseTag';
 import { ScopesBadge } from '@/components/team-assignment/ScopesBadge';
 import { AddTeamMemberModal } from '@/components/team-assignment/AddTeamMemberModal';
 import { calculateAvailableCapacity } from '@/data/teamAssignments';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import reportingManagerIcon from '@/assets/reporting-manager-icon.png';
 
 const TeamMemberDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -192,10 +194,21 @@ const TeamMemberDetails: React.FC = () => {
                             [{member.firstName}, {member.lastName}]
                           </h3>
                           {member.isManualAdd && member.workdayManager && (
-                            <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm">
-                              <span className="text-amber-500">👤</span>
-                              <span>Reporting Manager: [{member.workdayManager}]</span>
-                            </div>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <img 
+                                    src={reportingManagerIcon} 
+                                    alt="Reporting Manager" 
+                                    className="w-6 h-6 cursor-pointer"
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-[hsl(220,100%,24%)] text-white p-3 rounded-lg">
+                                  <p className="font-medium">Reporting Manager</p>
+                                  <p className="text-sm">{member.workdayManager}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           )}
                         </div>
                         <Button
