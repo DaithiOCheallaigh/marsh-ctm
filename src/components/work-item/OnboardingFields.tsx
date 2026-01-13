@@ -1,4 +1,5 @@
 import { useState, useRef, DragEvent } from "react";
+import { Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -445,7 +446,13 @@ const OnboardingFields = ({
                         </span>
                       </div>
                       <p className="text-xs text-destructive/70">
-                        Please complete or cancel the existing work item before creating a new one.
+                        Please complete or cancel the existing work item before creating a new one.{" "}
+                        <Link 
+                          to={`/work-item/${duplicateWorkItem.id}`}
+                          className="underline font-medium hover:text-destructive"
+                        >
+                          View existing work item
+                        </Link>
                       </p>
                     </div>
                   )}
