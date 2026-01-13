@@ -14,7 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
   
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Building2, path: '/' },
-    { id: 'team-assignment', label: 'My Team Assignment', icon: FileCheck, path: '/' },
+    { id: 'team-assignment', label: 'My Team Assignment', icon: FileCheck, path: '/my-team-assignment' },
     { id: 'work-queue', label: 'Work Queue', icon: AlertOctagon, path: '/' },
     { id: 'team-setup', label: 'Team Setup', icon: Settings, path: '/team-setup' }
   ];
