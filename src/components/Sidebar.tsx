@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
           transition-colors duration-200
           focus:outline-none focus:ring-2 focus:ring-white/30
         ">
-          <img src={homeIcon} alt="Home" className="w-4 h-4 flex-shrink-0" />
+          <img src={homeIcon} alt="Home" className="h-4 w-auto flex-shrink-0" />
           <span className="text-[hsl(200,100%,70%)] text-sm font-medium">Back to Home</span>
         </button>
         
