@@ -512,7 +512,7 @@ const CreateWorkItem = () => {
                 <h2 className="text-xl font-bold text-primary">
                   {currentStep === 1 && "Work Type & Basic Details"}
                   {currentStep === 2 && "Client/Colleague Selection"}
-                  {currentStep === 3 && "Work Item Configuration"}
+                  {currentStep === 3 && "Assignment Requirement"}
                 </h2>
                 {dirtyFields.size > 0 && (
                   <span className="text-xs px-2 py-1 bg-field-dirty-border/10 text-field-dirty-border rounded-full font-medium">

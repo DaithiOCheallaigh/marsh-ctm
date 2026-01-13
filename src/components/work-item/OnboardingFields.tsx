@@ -2,8 +2,7 @@ import { useState, useRef, DragEvent } from "react";
 import { Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronUp, ChevronDown, Trash2, Plus, Paperclip, X, FileText, Image, File } from "lucide-react";
+import { Trash2, Plus, Paperclip, X, FileText, Image, File } from "lucide-react";
 import ClientSearchInput from "@/components/ClientSearchInput";
 import { useFormDirtyContext, getFieldStateClasses } from "@/components/form/FormDirtyContext";
 import { 
@@ -280,7 +279,6 @@ const OnboardingFields = ({
   existingWorkItems = [],
   currentWorkType = "Onboarding",
 }: OnboardingFieldsProps) => {
-  const [isOpen, setIsOpen] = useState(true);
   const dirtyContext = useFormDirtyContext();
   
   const isFieldDirty = (fieldName: string) => {
@@ -477,125 +475,116 @@ const OnboardingFields = ({
         </>
       )}
 
-      {/* Team Role & Configuration */}
+      {/* Assignment Requirement */}
       {showTeamConfig && (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border-primary rounded-lg">
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
-            <span className="font-semibold text-primary">Team Role & Chair Configuration</span>
-            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-4 pb-4 space-y-4">
-            {/* Team Configurations */}
-            {teamConfigurations.map((config, configIndex) => (
-              <div key={config.id} className="bg-[#009DE0]/10 rounded-lg p-4 space-y-4 border border-[#009DE0]/30">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-primary">Team {configIndex + 1}</span>
-                  {teamConfigurations.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeTeamConfiguration(config.id)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+        <div className="space-y-4">
+          <h3 className="font-semibold text-primary">Assignment Requirement</h3>
+          
+          {/* Team Configurations */}
+          {teamConfigurations.map((config, configIndex) => (
+            <div key={config.id} className="bg-[#009DE0]/10 rounded-lg p-4 space-y-4 border border-[#009DE0]/30">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-primary">Team {configIndex + 1}</span>
+                {teamConfigurations.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeTeamConfiguration(config.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-text-secondary">
-                      Team Type<span className="text-[hsl(0,100%,50%)]">*</span>
-                    </Label>
-                    <FormSelect
-                      value={config.teamType}
-                      onValueChange={(value) => updateTeamConfiguration(config.id, "teamType", value)}
-                    >
-                      <FormSelectTrigger fieldName="teamConfigurations">
-                        <FormSelectValue placeholder="Select Team Type" />
-                      </FormSelectTrigger>
-                      <FormSelectContent>
-                        {teamTypes.map((team) => {
-                          const isUsed = teamConfigurations.some(
-                            tc => tc.id !== config.id && tc.teamType === team
-                          );
-                          return (
-                            <FormSelectItem 
-                              key={team} 
-                              value={team}
-                              disabled={isUsed}
-                            >
-                              {team} {isUsed && "(Already added)"}
-                            </FormSelectItem>
-                          );
-                        })}
-                      </FormSelectContent>
-                    </FormSelect>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-text-secondary">
-                      Number of Chairs<span className="text-[hsl(0,100%,50%)]">*</span>
-                    </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-text-secondary">
+                    Team Type<span className="text-[hsl(0,100%,50%)]">*</span>
+                  </Label>
+                  <FormSelect
+                    value={config.teamType}
+                    onValueChange={(value) => updateTeamConfiguration(config.id, "teamType", value)}
+                  >
+                    <FormSelectTrigger fieldName="teamConfigurations">
+                      <FormSelectValue placeholder="Select Team Type" />
+                    </FormSelectTrigger>
+                    <FormSelectContent>
+                      {teamTypes.map((team) => {
+                        const isUsed = teamConfigurations.some(
+                          tc => tc.id !== config.id && tc.teamType === team
+                        );
+                        return (
+                          <FormSelectItem 
+                            key={team} 
+                            value={team}
+                            disabled={isUsed}
+                          >
+                            {team} {isUsed && "(Already added)"}
+                          </FormSelectItem>
+                        );
+                      })}
+                    </FormSelectContent>
+                  </FormSelect>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-text-secondary">
+                    Number of Chairs<span className="text-[hsl(0,100%,50%)]">*</span>
+                  </Label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={config.numberOfRoles}
+                    onChange={(e) =>
+                      updateTeamConfiguration(config.id, "numberOfRoles", parseInt(e.target.value) || 1)
+                    }
+                    className={cn(
+                      "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                      getFieldStateClasses(isFieldDirty("teamConfigurations"))
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Dynamic Roles/Chairs */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-text-secondary">Role Titles</Label>
+                {config.roles.map((role, roleIndex) => (
+                  <div key={roleIndex} className="flex items-center gap-3">
+                    <span className="text-xs text-[hsl(var(--wq-text-secondary))] w-6">{roleIndex + 1}.</span>
                     <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      value={config.numberOfRoles}
-                      onChange={(e) =>
-                        updateTeamConfiguration(config.id, "numberOfRoles", parseInt(e.target.value) || 1)
-                      }
+                      type="text"
+                      value={role}
+                      onChange={(e) => {
+                        const updatedRoles = [...config.roles];
+                        updatedRoles[roleIndex] = e.target.value;
+                        updateTeamConfiguration(config.id, "roles", updatedRoles);
+                      }}
+                      placeholder={`Chair ${roleIndex + 1}`}
                       className={cn(
-                        "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+                        "flex h-9 w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
                         getFieldStateClasses(isFieldDirty("teamConfigurations"))
                       )}
                     />
                   </div>
-                </div>
-
-                {/* Dynamic Roles/Chairs */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium text-text-secondary">Role Titles</Label>
-                  {config.roles.map((role, roleIndex) => (
-                    <div key={roleIndex} className="flex items-center gap-3">
-                      <input
-                        value={role}
-                        onChange={(e) => updateRole(config.id, roleIndex, e.target.value)}
-                        placeholder={`Chair ${roleIndex + 1}`}
-                        className={cn(
-                          "flex h-10 flex-1 rounded-md px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground placeholder:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
-                          getFieldStateClasses(isFieldDirty("teamConfigurations"))
-                        )}
-                      />
-                      {config.roles.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeRole(config.id, roleIndex)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+          ))}
 
-            {/* Add Another Team Button */}
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={addTeamConfiguration}
-              className="w-full text-primary font-semibold hover:bg-primary/5"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Another Team
-            </Button>
-          </CollapsibleContent>
-        </Collapsible>
+          {/* Add Another Team Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={addTeamConfiguration}
+            className="w-full text-primary font-semibold hover:bg-primary/5"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Another Team
+          </Button>
+        </div>
       )}
     </div>
   );
