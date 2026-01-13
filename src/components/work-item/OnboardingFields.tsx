@@ -399,25 +399,41 @@ const OnboardingFields = ({
                 placeholder="Search by client name or CN number"
                 fieldName="onboardingClientName"
               />
-              {duplicateWorkItem && (
-                <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/30">
-                  <p className="text-sm font-medium text-destructive">
-                    A pending {currentWorkType} work item already exists for this client.
+              {selectedClient && (
+                <div className={cn(
+                  "p-3 rounded-lg border",
+                  duplicateWorkItem 
+                    ? "bg-destructive/10 border-destructive/30" 
+                    : "bg-[hsl(var(--wq-bg-header))] border-[hsl(var(--wq-border))]"
+                )}>
+                  <p className={cn(
+                    "text-sm font-medium",
+                    duplicateWorkItem ? "text-destructive" : "text-primary"
+                  )}>
+                    {selectedClient.name}
                   </p>
-                  <p className="text-xs text-destructive/80">
-                    Please complete or cancel the existing work item before creating a new one.
-                  </p>
-                </div>
-              )}
-              {selectedClient && !duplicateWorkItem && (
-                <div className="p-3 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
-                  <p className="text-sm font-medium text-primary">{selectedClient.name}</p>
-                  <p className="text-xs text-[hsl(var(--wq-text-secondary))]">
+                  <p className={cn(
+                    "text-xs",
+                    duplicateWorkItem ? "text-destructive/80" : "text-[hsl(var(--wq-text-secondary))]"
+                  )}>
                     CN: {selectedClient.cnNumber} | {selectedClient.industry} | {selectedClient.location}
                   </p>
-                  <p className="text-xs text-[hsl(var(--wq-text-secondary))]">
+                  <p className={cn(
+                    "text-xs",
+                    duplicateWorkItem ? "text-destructive/80" : "text-[hsl(var(--wq-text-secondary))]"
+                  )}>
                     Account Owner: {selectedClient.accountOwner}
                   </p>
+                  {duplicateWorkItem && (
+                    <div className="mt-2 pt-2 border-t border-destructive/20">
+                      <p className="text-xs font-medium text-destructive">
+                        ⚠ A pending {currentWorkType} work item already exists for this client.
+                      </p>
+                      <p className="text-xs text-destructive/70 mt-0.5">
+                        Please complete or cancel the existing work item before creating a new one.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
