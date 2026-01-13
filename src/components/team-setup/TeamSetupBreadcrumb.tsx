@@ -30,7 +30,7 @@ export const TeamSetupBreadcrumb: React.FC<TeamSetupBreadcrumbProps> = ({ items 
             <span 
               className={
                 item.isActive 
-                  ? "text-[hsl(var(--wq-accent))] font-medium" 
+                  ? "text-[hsl(var(--wq-primary))] font-medium" 
                   : "text-[hsl(var(--wq-text-secondary))]"
               }
             >
