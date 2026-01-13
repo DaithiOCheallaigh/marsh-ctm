@@ -24,6 +24,7 @@ const priorityOrder: Record<string, number> = {
 };
 
 const statusOrder: Record<string, number> = {
+  'Draft': 0,
   'Pending': 1,
   'In Progress': 2,
   'Completed': 3,
@@ -147,10 +148,20 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 `}
                 tabIndex={0}
                 role="row"
-                onClick={() => navigate(`/work-item/${item.id}`)}
+                onClick={() => {
+                  if (item.status === 'Draft') {
+                    navigate(`/create-work-item?draft=${item.id}`);
+                  } else {
+                    navigate(`/work-item/${item.id}`);
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    navigate(`/work-item/${item.id}`);
+                    if (item.status === 'Draft') {
+                      navigate(`/create-work-item?draft=${item.id}`);
+                    } else {
+                      navigate(`/work-item/${item.id}`);
+                    }
                   }
                 }}
               >

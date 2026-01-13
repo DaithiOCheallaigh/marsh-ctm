@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Clock, Calendar as CalendarIcon, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,8 +47,10 @@ const steps = [
 
 const CreateWorkItem = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const draftId = searchParams.get('draft');
   const { toast } = useToast();
-  const { addWorkItem, workItems } = useWorkItems();
+  const { addWorkItem, workItems, updateWorkItem } = useWorkItems();
   
   // Step management
   const [currentStep, setCurrentStep] = useState(1);
@@ -104,6 +106,54 @@ const CreateWorkItem = () => {
   const [offboardingClientName, setOffboardingClientName] = useState("");
   const [offboardingReason, setOffboardingReason] = useState("");
   const [finalAssignmentDate, setFinalAssignmentDate] = useState<Date | undefined>();
+
+  // Load draft data if editing a draft
+  useEffect(() => {
+    if (draftId) {
+      const draft = workItems.find(item => item.id === draftId && item.status === 'Draft');
+      if (draft) {
+        // Map work type
+        const workTypeMap: Record<string, WorkType> = {
+          'Onboarding': 'onboarding',
+          'New Joiner': 'new-joiner',
+          'Leaver': 'leaver',
+          'Offboarding': 'offboarding',
+        };
+        setWorkType(workTypeMap[draft.workType] || '');
+        setPriority(draft.priority.toLowerCase() as Priority);
+        
+        // Find assignee id
+        const assignee = managers.find(m => m.name === draft.assignee);
+        if (assignee) setAssignTo(assignee.id);
+        
+        // Parse due date
+        if (draft.dueDate) {
+          const parsed = new Date(draft.dueDate);
+          if (!isNaN(parsed.getTime())) setDueDate(parsed);
+        }
+        
+        // Set type-specific fields
+        if (draft.workType === 'Onboarding') {
+          setOnboardingClientName(draft.clientName);
+          setOnboardingDescription(draft.description || '');
+          if (draft.teams) {
+            setTeamConfigurations(draft.teams.map((t, idx) => ({
+              id: String(idx + 1),
+              teamType: t.teamName,
+              numberOfRoles: t.roles.length,
+              roles: t.roles,
+            })));
+          }
+        } else if (draft.workType === 'New Joiner') {
+          setColleagueName(draft.clientName);
+        } else if (draft.workType === 'Leaver') {
+          setLeaverName(draft.clientName);
+        } else if (draft.workType === 'Offboarding') {
+          setOffboardingClientName(draft.clientName);
+        }
+      }
+    }
+  }, [draftId, workItems]);
 
   // Wrapper functions to track dirty state
   const handleWorkTypeChange = (value: WorkType) => {
@@ -292,7 +342,7 @@ const CreateWorkItem = () => {
       );
     }
 
-    addWorkItem({
+    const workItemData = {
       workType: workTypeLabels[workType] || workType,
       clientName: getClientName(),
       cnNumber: selectedClient?.cnNumber,
@@ -304,12 +354,22 @@ const CreateWorkItem = () => {
       description: onboardingDescription,
       teams,
       attachments: attachmentsWithData,
-    });
+    };
 
-    toast({
-      title: "Work Item Created",
-      description: "Your work item has been successfully created.",
-    });
+    if (draftId) {
+      // Update existing draft to Pending status
+      updateWorkItem(draftId, { ...workItemData, status: 'Pending' });
+      toast({
+        title: "Work Item Submitted",
+        description: "Your draft has been submitted as a work item.",
+      });
+    } else {
+      addWorkItem(workItemData);
+      toast({
+        title: "Work Item Created",
+        description: "Your work item has been successfully created.",
+      });
+    }
     navigate("/");
   };
 
