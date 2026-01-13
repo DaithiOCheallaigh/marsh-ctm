@@ -96,7 +96,7 @@ export default function TeamDetail() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Team Name</span>
-                    <span className="text-[hsl(var(--wq-accent))] font-medium">{team.name}</span>
+                    <span className="text-[hsl(var(--wq-primary))] font-medium">{team.name}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Qualifiers</span>
@@ -113,7 +113,7 @@ export default function TeamDetail() {
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Team Base</span>
-                    <span className="text-[hsl(var(--wq-accent))]">{team.teamBase}</span>
+                    <span className="text-[hsl(var(--wq-primary))]">{team.teamBase}</span>
                   </div>
                 </div>
               </CollapsibleSection>
@@ -172,10 +172,10 @@ export default function TeamDetail() {
                         key={role.id}
                         className="border-b border-[hsl(var(--wq-border))] last:border-b-0"
                       >
-                        <td className="px-4 py-3 text-[hsl(var(--wq-accent))]">{role.roleName}</td>
-                        <td className="px-4 py-3 text-[hsl(var(--wq-accent))]">{role.chairName}</td>
-                        <td className="px-4 py-3 text-[hsl(var(--wq-accent))]">{role.chairType}</td>
-                        <td className="px-4 py-3 text-[hsl(var(--wq-accent))]">{role.order}</td>
+                        <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.roleName}</td>
+                        <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.chairName}</td>
+                        <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.chairType}</td>
+                        <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.order}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -259,7 +259,7 @@ export default function TeamDetail() {
                     <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Primary Manager</span>
                     <a 
                       href="#" 
-                      className="text-[hsl(var(--wq-accent))] font-medium hover:underline"
+                      className="text-[hsl(var(--wq-primary))] font-medium hover:underline"
                     >
                       {team.primaryManager}
                     </a>
@@ -268,7 +268,7 @@ export default function TeamDetail() {
                     <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Oversite Manager</span>
                     <a 
                       href="#" 
-                      className="text-[hsl(var(--wq-accent))] font-medium hover:underline"
+                      className="text-[hsl(var(--wq-primary))] font-medium hover:underline"
                     >
                       {team.oversiteManager}
                     </a>
