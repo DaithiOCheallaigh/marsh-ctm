@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface StatusBadgeProps {
-  status: 'Pending' | 'Completed';
+  status: 'Pending' | 'Completed' | 'Draft';
   className?: string;
 }
 
@@ -16,6 +16,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
       bg: 'bg-[hsl(136,70%,90%)]',
       text: 'text-[hsl(120,100%,27%)]',
       border: 'border-[hsl(120,100%,27%,0.2)]'
+    },
+    Draft: {
+      bg: 'bg-[hsl(210,20%,93%)]',
+      text: 'text-[hsl(210,15%,45%)]',
+      border: 'border-[hsl(210,15%,45%,0.2)]'
     }
   };
 

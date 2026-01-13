@@ -313,12 +313,73 @@ const CreateWorkItem = () => {
     navigate("/");
   };
 
-  const handleSaveForLater = () => {
+  const handleSaveForLater = async () => {
+    // Need at least work type selected to save as draft
+    if (!workType) {
+      toast({
+        title: "Cannot Save Draft",
+        description: "Please select a work type before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const workTypeLabels: Record<string, string> = {
+      "onboarding": "Onboarding",
+      "new-joiner": "New Joiner",
+      "leaver": "Leaver",
+      "offboarding": "Offboarding",
+    };
+
+    // Build teams config for onboarding
+    const teams = workType === "onboarding" ? teamConfigurations.map(tc => ({
+      teamName: tc.teamType,
+      roles: tc.roles,
+    })) : undefined;
+
+    // Convert files to data URLs for persistence
+    const convertToDataUrl = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    };
+
+    let attachmentsWithData;
+    if (workType === "onboarding" && onboardingAttachments.length > 0) {
+      attachmentsWithData = await Promise.all(
+        onboardingAttachments.map(async (att) => ({
+          id: att.id,
+          name: att.name,
+          size: att.size,
+          type: att.type,
+          dataUrl: await convertToDataUrl(att.file),
+        }))
+      );
+    }
+
+    addWorkItem({
+      workType: workTypeLabels[workType] || workType,
+      clientName: getClientName(),
+      cnNumber: selectedClient?.cnNumber,
+      accountOwner: selectedClient?.accountOwner,
+      location: selectedClient?.location,
+      dueDate: dueDate ? format(dueDate, "dd MMM yyyy") : "",
+      assignee: getAssigneeName(),
+      priority: priority.charAt(0).toUpperCase() + priority.slice(1) as "High" | "Medium" | "Low",
+      description: onboardingDescription,
+      teams,
+      attachments: attachmentsWithData,
+    }, true); // Pass true to save as draft
+
     setLastSavedAt(new Date());
     toast({
       title: "Draft Saved",
       description: "Your work item has been saved as a draft.",
     });
+    navigate("/");
   };
 
   // Step Progress Indicator
