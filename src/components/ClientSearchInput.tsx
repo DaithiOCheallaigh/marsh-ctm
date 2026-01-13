@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import { searchClients, Client } from "@/data/clients";
 import { cn } from "@/lib/utils";
 import { useFormDirtyContext, getFieldStateClasses } from "@/components/form/FormDirtyContext";
@@ -63,13 +63,7 @@ const ClientSearchInput = ({
     setIsOpen(false);
   };
 
-  const handleAddNew = () => {
-    onChange(inputValue, undefined);
-    setIsOpen(false);
-  };
-
-  const showAddNewOption = inputValue.trim() && searchResults.length === 0;
-  const showDropdown = isOpen && (searchResults.length > 0 || showAddNewOption);
+  const showDropdown = isOpen && searchResults.length > 0;
 
   return (
     <div ref={containerRef} className={cn("relative max-w-md", className)}>
@@ -93,42 +87,19 @@ const ClientSearchInput = ({
 
       {showDropdown && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-border-primary rounded-md shadow-lg max-h-60 overflow-auto">
-          {searchResults.length > 0 ? (
-            <>
-              {searchResults.map((client) => (
-                <button
-                  key={client.id}
-                  type="button"
-                  onClick={() => handleSelectClient(client)}
-                  className="w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none flex flex-col"
-                >
-                  <span className="font-medium text-primary">{client.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {client.cnNumber} | {client.industry} | {client.location}
-                  </span>
-                </button>
-              ))}
-              <div className="border-t border-border-primary">
-                <button
-                  type="button"
-                  onClick={handleAddNew}
-                  className="w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none flex items-center gap-2 text-primary"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add "{inputValue}" as new client</span>
-                </button>
-              </div>
-            </>
-          ) : (
+          {searchResults.map((client) => (
             <button
+              key={client.id}
               type="button"
-              onClick={handleAddNew}
-              className="w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none flex items-center gap-2 text-primary"
+              onClick={() => handleSelectClient(client)}
+              className="w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none flex flex-col"
             >
-              <Plus className="h-4 w-4" />
-              <span>Add "{inputValue}" as new client</span>
+              <span className="font-medium text-primary">{client.name}</span>
+              <span className="text-sm text-muted-foreground">
+                {client.cnNumber} | {client.industry} | {client.location}
+              </span>
             </button>
-          )}
+          ))}
         </div>
       )}
     </div>
