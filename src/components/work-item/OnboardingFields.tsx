@@ -426,7 +426,7 @@ const OnboardingFields = ({
                     "text-xs",
                     duplicateWorkItem ? "text-destructive/80" : "text-[hsl(var(--wq-text-secondary))]"
                   )}>
-                    CN: {selectedClient.cnNumber} | {selectedClient.industry} | {selectedClient.location}
+                    {selectedClient.cnNumber} | {selectedClient.industry} | {selectedClient.location}
                   </p>
                   {duplicateWorkItem && (
                     <div className="mt-2 pt-2 border-t border-destructive/20 space-y-1">
