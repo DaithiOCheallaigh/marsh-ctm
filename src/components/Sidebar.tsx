@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, FileCheck, AlertOctagon, Settings, ArrowUp } from 'lucide-react';
 import marshLogo from '@/assets/marsh-logo-white.png';
 import homeIcon from '@/assets/home-icon.png';
@@ -9,11 +10,13 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', className = "" }) => {
+  const navigate = useNavigate();
+  
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Building2 },
-    { id: 'team-assignment', label: 'My Team Assignment', icon: FileCheck },
-    { id: 'work-queue', label: 'Work Queue', icon: AlertOctagon },
-    { id: 'team-setup', label: 'Team Setup', icon: Settings }
+    { id: 'dashboard', label: 'Dashboard', icon: Building2, path: '/' },
+    { id: 'team-assignment', label: 'My Team Assignment', icon: FileCheck, path: '/' },
+    { id: 'work-queue', label: 'Work Queue', icon: AlertOctagon, path: '/' },
+    { id: 'team-setup', label: 'Team Setup', icon: Settings, path: '/team-setup' }
   ];
 
   return (
@@ -40,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
           return (
             <button
               key={item.id}
+              onClick={() => navigate(item.path)}
               className={`
                 flex items-center gap-3
                 w-full h-12 
