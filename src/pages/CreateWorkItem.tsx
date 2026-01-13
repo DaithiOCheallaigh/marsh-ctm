@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
-import { Clock, Calendar as CalendarIcon, Check } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
-import { VerticalStepIndicator } from "@/components/VerticalStepIndicator";
 import PrioritySelector from "@/components/work-item/PrioritySelector";
 import OnboardingFields, { OnboardingAttachment } from "@/components/work-item/OnboardingFields";
 import LeaverFields from "@/components/work-item/LeaverFields";
@@ -443,12 +442,38 @@ const CreateWorkItem = () => {
     navigate("/");
   };
 
-  // Handle step click for navigation back to previous steps
-  const handleStepClick = (stepId: number) => {
-    if (stepId < currentStep) {
-      setCurrentStep(stepId);
-    }
-  };
+  // Step Progress Indicator
+  const StepIndicator = () => (
+    <div className="flex items-center justify-center mb-8">
+      {steps.map((step, index) => (
+        <div key={step.id} className="flex items-center">
+          <div 
+            className={cn(
+              "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all",
+              currentStep === step.id
+                ? "bg-primary border-primary text-primary-foreground"
+                : currentStep > step.id
+                ? "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]"
+                : "bg-card border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))]"
+            )}
+          >
+            {currentStep > step.id ? <Check className="w-4 h-4" /> : step.id}
+          </div>
+          <span 
+            className={cn(
+              "ml-2 text-sm font-medium hidden sm:inline",
+              currentStep === step.id ? "text-primary" : "text-[hsl(var(--wq-text-secondary))]"
+            )}
+          >
+            {step.shortName}
+          </span>
+          {index < steps.length - 1 && (
+            <ChevronRight className="w-5 h-5 mx-3 text-[hsl(var(--wq-border))]" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <FormDirtyContext.Provider value={{ isDirty, markDirty }}>
@@ -456,27 +481,17 @@ const CreateWorkItem = () => {
         <div className="px-6 pt-6">
           <Header />
         </div>
-        <div className="flex flex-1 px-6 pb-6 gap-4">
+        <div className="flex flex-1 px-6 pb-6 gap-6">
           <Sidebar />
-          
-          {/* Vertical Step Indicator */}
-          <div className="ml-[280px]">
-            <VerticalStepIndicator
-              steps={steps}
-              currentStep={currentStep}
-              onStepClick={handleStepClick}
-            />
-          </div>
-
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 ml-[280px] overflow-auto">
             {/* Breadcrumb and timestamp */}
-            <div className="flex items-center justify-between mb-6 pt-6">
+            <div className="flex items-center justify-between mb-6">
               <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
                 <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
                   Work Queue
                 </Link>
                 <span className="text-muted-foreground">&gt;</span>
-                <span className="text-primary font-medium">{draftId ? "Edit Draft" : "Create Work Item"}</span>
+                <span className="text-primary font-medium">Create Work Item</span>
               </nav>
               <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
                 <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
@@ -485,6 +500,9 @@ const CreateWorkItem = () => {
                 </span>
               </div>
             </div>
+
+            {/* Step Indicator */}
+            <StepIndicator />
 
             {/* Main Form Card */}
             <div className="bg-white rounded-lg border border-border-primary p-6 mb-6">
