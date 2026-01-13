@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import PrioritySelector from "@/components/work-item/PrioritySelector";
-import OnboardingFields from "@/components/work-item/OnboardingFields";
+import OnboardingFields, { OnboardingAttachment } from "@/components/work-item/OnboardingFields";
 import LeaverFields from "@/components/work-item/LeaverFields";
 import NewJoinerFields from "@/components/work-item/NewJoinerFields";
 import OffboardingFields from "@/components/work-item/OffboardingFields";
@@ -85,6 +85,7 @@ const CreateWorkItem = () => {
   const [onboardingClientName, setOnboardingClientName] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [onboardingDescription, setOnboardingDescription] = useState("");
+  const [onboardingAttachments, setOnboardingAttachments] = useState<OnboardingAttachment[]>([]);
   const [teamConfigurations, setTeamConfigurations] = useState<TeamRole[]>([
     { id: "1", teamType: "", numberOfRoles: 2, roles: ["Chair 1", "Chair 2"] },
   ]);
@@ -266,6 +267,12 @@ const CreateWorkItem = () => {
       priority: priority.charAt(0).toUpperCase() + priority.slice(1) as "High" | "Medium" | "Low",
       description: onboardingDescription,
       teams,
+      attachments: workType === "onboarding" ? onboardingAttachments.map(att => ({
+        id: att.id,
+        name: att.name,
+        size: att.size,
+        type: att.type,
+      })) : undefined,
     });
 
     toast({
@@ -472,6 +479,8 @@ const CreateWorkItem = () => {
                       selectedClient={selectedClient}
                       setSelectedClient={setSelectedClient}
                       showTeamConfig={false}
+                      attachments={onboardingAttachments}
+                      setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
                     />
                   )}
 
@@ -525,6 +534,8 @@ const CreateWorkItem = () => {
                       setSelectedClient={setSelectedClient}
                       showTeamConfig={true}
                       showClientSearch={false}
+                      attachments={onboardingAttachments}
+                      setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
                     />
                   )}
 
