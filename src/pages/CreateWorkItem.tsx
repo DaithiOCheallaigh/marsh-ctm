@@ -82,6 +82,8 @@ const CreateWorkItem = () => {
     date.setDate(date.getDate() + 7);
     return date;
   });
+  const [dueDateOpen, setDueDateOpen] = useState(false);
+  const [tempDueDate, setTempDueDate] = useState<Date | undefined>(undefined);
 
   // Onboarding fields
   const [onboardingClientName, setOnboardingClientName] = useState("");
@@ -581,7 +583,12 @@ const CreateWorkItem = () => {
                     <Label className="text-right text-sm font-medium text-text-secondary">
                       Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
                     </Label>
-                    <Popover>
+                    <Popover open={dueDateOpen} onOpenChange={(open) => {
+                      setDueDateOpen(open);
+                      if (open) {
+                        setTempDueDate(dueDate);
+                      }
+                    }}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -598,12 +605,25 @@ const CreateWorkItem = () => {
                       <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
                         <Calendar
                           mode="single"
-                          selected={dueDate}
-                          onSelect={handleDueDateChange}
+                          selected={tempDueDate}
+                          onSelect={setTempDueDate}
                           disabled={(date) => date < new Date()}
                           initialFocus
                           className="pointer-events-auto"
                         />
+                        {tempDueDate && (
+                          <div className="p-3 pt-0 border-t">
+                            <Button 
+                              className="w-full" 
+                              onClick={() => {
+                                handleDueDateChange(tempDueDate);
+                                setDueDateOpen(false);
+                              }}
+                            >
+                              Select
+                            </Button>
+                          </div>
+                        )}
                       </PopoverContent>
                     </Popover>
                   </div>
