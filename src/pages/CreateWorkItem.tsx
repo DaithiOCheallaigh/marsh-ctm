@@ -146,6 +146,24 @@ const CreateWorkItem = () => {
     return assignee?.name || "Unassigned";
   };
 
+  const checkForDuplicate = () => {
+    const workTypeLabels: Record<string, string> = {
+      "onboarding": "Onboarding",
+      "new-joiner": "New Joiner",
+      "leaver": "Leaver",
+      "offboarding": "Offboarding",
+    };
+    
+    const clientName = getClientName();
+    const workTypeLabel = workTypeLabels[workType] || workType;
+    
+    return workItems.some(item => 
+      item.workType.toLowerCase() === workTypeLabel.toLowerCase() &&
+      item.clientName.toLowerCase() === clientName.toLowerCase() &&
+      item.status === 'Pending'
+    );
+  };
+
   // Validation for Step 1
   const isStep1Valid = () => {
     return workType !== "" && assignTo !== "" && dueDate !== undefined;
@@ -153,18 +171,31 @@ const CreateWorkItem = () => {
 
   // Validation for Step 2
   const isStep2Valid = () => {
+    // First check basic validation
+    let hasRequiredFields = false;
     switch (workType) {
       case "onboarding":
-        return onboardingClientName !== "" || selectedClient !== null;
+        hasRequiredFields = onboardingClientName !== "" || selectedClient !== null;
+        break;
       case "new-joiner":
-        return colleagueName !== "";
+        hasRequiredFields = colleagueName !== "";
+        break;
       case "leaver":
-        return leaverName !== "";
+        hasRequiredFields = leaverName !== "";
+        break;
       case "offboarding":
-        return offboardingClientName !== "";
+        hasRequiredFields = offboardingClientName !== "";
+        break;
       default:
-        return false;
+        hasRequiredFields = false;
     }
+    
+    if (!hasRequiredFields) return false;
+    
+    // Check for duplicates
+    if (checkForDuplicate()) return false;
+    
+    return true;
   };
 
   // Validation for Step 3
@@ -203,24 +234,6 @@ const CreateWorkItem = () => {
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
-  };
-
-  const checkForDuplicate = () => {
-    const workTypeLabels: Record<string, string> = {
-      "onboarding": "Onboarding",
-      "new-joiner": "New Joiner",
-      "leaver": "Leaver",
-      "offboarding": "Offboarding",
-    };
-    
-    const clientName = getClientName();
-    const workTypeLabel = workTypeLabels[workType] || workType;
-    
-    return workItems.some(item => 
-      item.workType.toLowerCase() === workTypeLabel.toLowerCase() &&
-      item.clientName.toLowerCase() === clientName.toLowerCase() &&
-      item.status === 'Pending'
-    );
   };
 
   const handleSubmit = async () => {
@@ -499,6 +512,8 @@ const CreateWorkItem = () => {
                       showTeamConfig={false}
                       attachments={onboardingAttachments}
                       setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
+                      existingWorkItems={workItems}
+                      currentWorkType="Onboarding"
                     />
                   )}
 
