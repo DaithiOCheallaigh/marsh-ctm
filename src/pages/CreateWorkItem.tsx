@@ -625,12 +625,6 @@ const CreateWorkItem = () => {
                     </Popover>
                   </div>
 
-                  {/* Validation message */}
-                  {!isStep1Valid() && (
-                    <div className="text-sm text-[hsl(var(--wq-status-pending-text))] bg-[hsl(var(--wq-status-pending-bg))] p-3 rounded-lg">
-                      Please complete all required fields marked with * to proceed.
-                    </div>
-                  )}
                 </div>
               )}
 
