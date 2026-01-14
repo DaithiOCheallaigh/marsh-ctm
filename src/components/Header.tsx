@@ -6,7 +6,7 @@ interface HeaderProps {
   className?: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ userName = "[First Name]", className = "" }) => {
+export const Header: React.FC<HeaderProps> = ({ userName = "First Name", className = "" }) => {
   return (
     <header 
       className={`
