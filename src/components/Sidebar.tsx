@@ -91,15 +91,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeItem = 'work-queue', cla
           <span className="text-[hsl(200,100%,70%)] text-sm font-medium">Back to Home</span>
         </button>
         
-        <button className="
-          flex items-center gap-3
-          w-full h-11 
-          px-5 
-          rounded-lg 
-          hover:bg-white/10
-          transition-colors duration-200
-          focus:outline-none focus:ring-2 focus:ring-white/30
-        ">
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="
+            flex items-center gap-3
+            w-full h-11 
+            px-5 
+            rounded-lg 
+            hover:bg-white/10
+            transition-colors duration-200
+            focus:outline-none focus:ring-2 focus:ring-white/30
+          "
+        >
           <ArrowUp className="w-4 h-4 text-[hsl(200,100%,70%)] flex-shrink-0" strokeWidth={1.5} />
           <span className="text-[hsl(200,100%,70%)] text-sm font-medium">Back to Top</span>
         </button>
