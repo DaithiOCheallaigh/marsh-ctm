@@ -51,7 +51,7 @@ const ManagerSynopsis = ({
             <Users className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-primary">{manager.name}</p>
+            <p className="text-sm font-semibold text-primary">Assigned to: {manager.name}</p>
             <p className="text-xs text-muted-foreground">{manager.role}</p>
           </div>
         </div>
