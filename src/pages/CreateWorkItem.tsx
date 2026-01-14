@@ -245,6 +245,19 @@ const CreateWorkItem = () => {
     return isSection1Complete() && isSection2Complete() && isSection3Complete();
   };
 
+  // Auto-expand next section when current section is validated
+  useEffect(() => {
+    if (isSection1Complete() && !openSections.has(2)) {
+      setOpenSections(prev => new Set([...prev, 2]));
+    }
+  }, [workType, assignTo, dueDate]);
+
+  useEffect(() => {
+    if (isSection1Complete() && isSection2Complete() && !openSections.has(3)) {
+      setOpenSections(prev => new Set([...prev, 3]));
+    }
+  }, [onboardingClientName, selectedClient, colleagueName, leaverName, offboardingClientName, workType]);
+
   const handleSubmit = async () => {
     if (!canSubmit()) {
       toast({
