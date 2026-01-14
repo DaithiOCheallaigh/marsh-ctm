@@ -216,15 +216,8 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
               {chair.assignedMember ? (
                 // Show assigned member
                 <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3">
                     <p className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium">[{chair.chairLabel}]</p>
-                    <button
-                      onClick={() => handleUnassignClick(chairIndex)}
-                      className="p-1 hover:bg-destructive/10 rounded transition-colors"
-                      title="Remove assignment"
-                    >
-                      <X className="w-4 h-4 text-destructive" />
-                    </button>
                   </div>
                   <div className="bg-card rounded-lg p-4 border border-[hsl(var(--wq-border))]">
                     <p className="text-accent font-semibold text-sm">{chair.assignedMember.name}</p>
