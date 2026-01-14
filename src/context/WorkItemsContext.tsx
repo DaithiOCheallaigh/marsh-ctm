@@ -40,7 +40,7 @@ export interface WorkItem {
 
 interface WorkItemsContextType {
   workItems: WorkItem[];
-  addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>, asDraft?: boolean) => void;
+  addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>, asDraft?: boolean) => string;
   updateWorkItem: (id: string, updates: Partial<WorkItem>) => void;
   completeWorkItem: (id: string) => void;
 }
@@ -305,15 +305,17 @@ const initialWorkItems: WorkItem[] = [
 export const WorkItemsProvider = ({ children }: { children: ReactNode }) => {
   const [workItems, setWorkItems] = useState<WorkItem[]>(initialWorkItems);
 
-  const addWorkItem = (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>, asDraft = false) => {
+  const addWorkItem = (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>, asDraft = false): string => {
+    const newId = Date.now().toString().slice(-10);
     const newItem: WorkItem = {
       ...item,
-      id: Date.now().toString().slice(-10),
+      id: newId,
       dateCreated: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       status: asDraft ? 'Draft' : 'Pending',
       lastModified: new Date().toISOString(),
     };
     setWorkItems((prev) => [newItem, ...prev]);
+    return newId;
   };
 
   const updateWorkItem = (id: string, updates: Partial<WorkItem>) => {

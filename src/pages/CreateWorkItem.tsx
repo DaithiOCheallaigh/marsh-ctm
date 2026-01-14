@@ -352,21 +352,24 @@ const CreateWorkItem = () => {
       attachments: attachmentsWithData,
     };
 
+    let workItemId: string;
+    
     if (draftId) {
       // Update existing draft to Pending status
       updateWorkItem(draftId, { ...workItemData, status: 'Pending' });
+      workItemId = draftId;
       toast({
         title: "Work Item Submitted",
         description: "Your draft has been submitted as a work item.",
       });
     } else {
-      addWorkItem(workItemData);
+      workItemId = addWorkItem(workItemData);
       toast({
         title: "Work Item Created",
         description: "Your work item has been successfully created.",
       });
     }
-    navigate("/");
+    navigate(`/work-item/${workItemId}`);
   };
 
   const handleSaveForLater = async () => {
