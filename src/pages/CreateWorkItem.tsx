@@ -404,31 +404,55 @@ const CreateWorkItem = () => {
   const SectionHeader = ({ 
     title, 
     sectionNumber, 
-    isComplete 
+    isComplete,
+    isDisabled = false
   }: { 
     title: string; 
     sectionNumber: number; 
     isComplete: boolean;
+    isDisabled?: boolean;
   }) => (
-    <div className="flex items-center justify-between bg-[hsl(220,60%,97%)] -mx-6 -mt-6 mb-6 px-6 py-4 rounded-t-lg border-b border-[hsl(var(--wq-border))]">
+    <div className={cn(
+      "flex items-center justify-between -mx-6 -mt-6 mb-6 px-6 py-4 rounded-t-lg border-b",
+      isDisabled 
+        ? "bg-[hsl(0,0%,95%)] border-[hsl(0,0%,85%)]" 
+        : "bg-[hsl(220,60%,97%)] border-[hsl(var(--wq-border))]"
+    )}>
       <div className="flex items-center gap-3">
         <div 
           className={cn(
             "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-200",
-            isComplete
-              ? "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]"
-              : "bg-primary border-primary text-primary-foreground"
+            isDisabled
+              ? "bg-[hsl(0,0%,85%)] border-[hsl(0,0%,75%)] text-[hsl(0,0%,55%)]"
+              : isComplete
+                ? "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]"
+                : "bg-primary border-primary text-primary-foreground"
           )}
         >
-          {isComplete ? <Check className="w-4 h-4" /> : sectionNumber}
+          {isComplete && !isDisabled ? <Check className="w-4 h-4" /> : sectionNumber}
         </div>
-        <h2 className="text-lg font-bold text-primary">{title}</h2>
+        <h2 className={cn(
+          "text-lg font-bold",
+          isDisabled ? "text-[hsl(0,0%,55%)]" : "text-primary"
+        )}>{title}</h2>
       </div>
-      {isComplete && (
+      {isComplete && !isDisabled && (
         <span className="text-xs px-2 py-1 bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] rounded-full font-medium">
           Complete
         </span>
       )}
+      {isDisabled && (
+        <span className="text-xs px-2 py-1 bg-[hsl(0,0%,85%)] text-[hsl(0,0%,55%)] rounded-full font-medium">
+          Complete previous sections
+        </span>
+      )}
+    </div>
+  );
+
+  // Disabled section placeholder component
+  const DisabledSectionContent = ({ message }: { message: string }) => (
+    <div className="flex items-center justify-center py-8 text-[hsl(0,0%,55%)]">
+      <p className="text-sm">{message}</p>
     </div>
   );
 
@@ -573,16 +597,92 @@ const CreateWorkItem = () => {
               </div>
             </div>
 
-            {/* Section 2: Client/Colleague Selection - Appears when Section 1 is complete */}
-            {isSection1Complete() && (
-              <div className="bg-white rounded-lg border border-border-primary p-6 mb-6 animate-fade-in">
+            {/* Section 2: Client/Colleague Selection - Visible when work type is selected */}
+            {workType && (
+              <div className={cn(
+                "bg-white rounded-lg border p-6 mb-6 animate-fade-in transition-opacity",
+                !isSection1Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
+              )}>
                 <SectionHeader 
                   title="Client Selection" 
                   sectionNumber={2} 
-                  isComplete={isSection2Complete()} 
+                  isComplete={isSection2Complete()}
+                  isDisabled={!isSection1Complete()}
                 />
                 
-                {workType === "onboarding" && (
+                {!isSection1Complete() ? (
+                  <DisabledSectionContent message="Complete Work Type & Basic Details to continue" />
+                ) : (
+                  <>
+                    {workType === "onboarding" && (
+                      <OnboardingFields
+                        clientName={onboardingClientName}
+                        setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
+                        description={onboardingDescription}
+                        setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
+                        selectedClient={selectedClient}
+                        setSelectedClient={setSelectedClient}
+                        showTeamConfig={false}
+                        attachments={onboardingAttachments}
+                        setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
+                        existingWorkItems={workItems}
+                        currentWorkType="Onboarding"
+                      />
+                    )}
+
+                    {workType === "leaver" && (
+                      <LeaverFields
+                        leaverName={leaverName}
+                        setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
+                        leavingDate={leavingDate}
+                        setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
+                      />
+                    )}
+
+                    {workType === "new-joiner" && (
+                      <NewJoinerFields
+                        colleagueName={colleagueName}
+                        setColleagueName={(val) => { setColleagueName(val); markDirty("colleagueName"); }}
+                        teamAssignment={teamAssignment}
+                        setTeamAssignment={(val) => { setTeamAssignment(val); markDirty("teamAssignment"); }}
+                        clientLoadCapacity={clientLoadCapacity}
+                        setClientLoadCapacity={(val) => { setClientLoadCapacity(val); markDirty("clientLoadCapacity"); }}
+                        startDate={startDate}
+                        setStartDate={(val) => { setStartDate(val); markDirty("startDate"); }}
+                      />
+                    )}
+
+                    {workType === "offboarding" && (
+                      <OffboardingFields
+                        clientName={offboardingClientName}
+                        setClientName={(val) => { setOffboardingClientName(val); markDirty("offboardingClientName"); }}
+                        reason={offboardingReason}
+                        setReason={(val) => { setOffboardingReason(val); markDirty("offboardingReason"); }}
+                        finalAssignmentDate={finalAssignmentDate}
+                        setFinalAssignmentDate={(val) => { setFinalAssignmentDate(val); markDirty("finalAssignmentDate"); }}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Section 3: Team Configuration (onboarding) or Review (other types) - Visible when work type is selected */}
+            {workType === "onboarding" && (
+              <div className={cn(
+                "bg-white rounded-lg border p-6 mb-6 animate-fade-in transition-opacity",
+                !isSection2Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
+              )}>
+                <SectionHeader 
+                  title="Team Configuration" 
+                  sectionNumber={3} 
+                  isComplete={isSection3Complete()}
+                  isDisabled={!isSection2Complete()}
+                />
+                
+                {!isSection2Complete() ? (
+                  <DisabledSectionContent message="Complete Client Selection to continue" />
+                ) : (
                   <OnboardingFields
                     clientName={onboardingClientName}
                     setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
@@ -590,98 +690,48 @@ const CreateWorkItem = () => {
                     setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
                     selectedClient={selectedClient}
                     setSelectedClient={setSelectedClient}
-                    showTeamConfig={false}
+                    showTeamConfig={true}
+                    showClientSearch={false}
                     attachments={onboardingAttachments}
                     setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
-                    existingWorkItems={workItems}
-                    currentWorkType="Onboarding"
+                    assignedToManagerId={assignTo}
+                    primaryTeam={primaryTeam}
+                    additionalTeams={additionalTeams}
+                    onPrimaryTeamChange={(team) => { setPrimaryTeam(team); markDirty("teamAssignment"); }}
+                    onAdditionalTeamsChange={(teams) => { setAdditionalTeams(teams); markDirty("teamAssignment"); }}
                   />
                 )}
-
-                {workType === "leaver" && (
-                  <LeaverFields
-                    leaverName={leaverName}
-                    setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
-                    leavingDate={leavingDate}
-                    setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
-                  />
-                )}
-
-                {workType === "new-joiner" && (
-                  <NewJoinerFields
-                    colleagueName={colleagueName}
-                    setColleagueName={(val) => { setColleagueName(val); markDirty("colleagueName"); }}
-                    teamAssignment={teamAssignment}
-                    setTeamAssignment={(val) => { setTeamAssignment(val); markDirty("teamAssignment"); }}
-                    clientLoadCapacity={clientLoadCapacity}
-                    setClientLoadCapacity={(val) => { setClientLoadCapacity(val); markDirty("clientLoadCapacity"); }}
-                    startDate={startDate}
-                    setStartDate={(val) => { setStartDate(val); markDirty("startDate"); }}
-                  />
-                )}
-
-                {workType === "offboarding" && (
-                  <OffboardingFields
-                    clientName={offboardingClientName}
-                    setClientName={(val) => { setOffboardingClientName(val); markDirty("offboardingClientName"); }}
-                    reason={offboardingReason}
-                    setReason={(val) => { setOffboardingReason(val); markDirty("offboardingReason"); }}
-                    finalAssignmentDate={finalAssignmentDate}
-                    setFinalAssignmentDate={(val) => { setFinalAssignmentDate(val); markDirty("finalAssignmentDate"); }}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Section 3: Configuration - Appears when Section 2 is complete (only for onboarding) */}
-            {isSection1Complete() && isSection2Complete() && workType === "onboarding" && (
-              <div className="bg-white rounded-lg border border-border-primary p-6 mb-6 animate-fade-in">
-                <SectionHeader 
-                  title="Team Configuration" 
-                  sectionNumber={3} 
-                  isComplete={isSection3Complete()} 
-                />
-                
-                <OnboardingFields
-                  clientName={onboardingClientName}
-                  setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
-                  description={onboardingDescription}
-                  setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
-                  selectedClient={selectedClient}
-                  setSelectedClient={setSelectedClient}
-                  showTeamConfig={true}
-                  showClientSearch={false}
-                  attachments={onboardingAttachments}
-                  setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
-                  assignedToManagerId={assignTo}
-                  primaryTeam={primaryTeam}
-                  additionalTeams={additionalTeams}
-                  onPrimaryTeamChange={(team) => { setPrimaryTeam(team); markDirty("teamAssignment"); }}
-                  onAdditionalTeamsChange={(teams) => { setAdditionalTeams(teams); markDirty("teamAssignment"); }}
-                />
               </div>
             )}
 
             {/* Review Section for non-onboarding work types */}
-            {isSection1Complete() && isSection2Complete() && workType !== "onboarding" && (
-              <div className="bg-white rounded-lg border border-border-primary p-6 mb-6 animate-fade-in">
+            {workType && workType !== "onboarding" && (
+              <div className={cn(
+                "bg-white rounded-lg border p-6 mb-6 animate-fade-in transition-opacity",
+                !isSection2Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
+              )}>
                 <SectionHeader 
                   title="Review & Submit" 
                   sectionNumber={3} 
-                  isComplete={true} 
+                  isComplete={isSection2Complete()}
+                  isDisabled={!isSection2Complete()}
                 />
                 
-                <div className="text-center py-4">
-                  <p className="text-[hsl(var(--wq-text-secondary))] mb-4">
-                    Review your selections and click "Create Work Item" to complete.
-                  </p>
-                  <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg inline-block text-left">
-                    <p className="text-sm"><strong>Work Type:</strong> {workType}</p>
-                    <p className="text-sm"><strong>Assignee:</strong> {getAssigneeName()}</p>
-                    <p className="text-sm"><strong>Client/Colleague:</strong> {getClientName()}</p>
-                    <p className="text-sm"><strong>Due Date:</strong> {dueDate ? format(dueDate, "dd MMM yyyy") : "Not set"}</p>
+                {!isSection2Complete() ? (
+                  <DisabledSectionContent message="Complete previous sections to review" />
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-[hsl(var(--wq-text-secondary))] mb-4">
+                      Review your selections and click "Create Work Item" to complete.
+                    </p>
+                    <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg inline-block text-left">
+                      <p className="text-sm"><strong>Work Type:</strong> {workType}</p>
+                      <p className="text-sm"><strong>Assignee:</strong> {getAssigneeName()}</p>
+                      <p className="text-sm"><strong>Client/Colleague:</strong> {getClientName()}</p>
+                      <p className="text-sm"><strong>Due Date:</strong> {dueDate ? format(dueDate, "dd MMM yyyy") : "Not set"}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
