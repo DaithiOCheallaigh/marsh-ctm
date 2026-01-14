@@ -76,11 +76,13 @@ const WorkItemDetail = () => {
     // Build roles from teams configuration
     const roles: RoleConfig[] = [];
     item.teams.forEach((team) => {
-      team.roles.forEach((roleName) => {
+      team.roles.forEach((roleConfig) => {
         roles.push({
-          title: `${roleName} (${team.teamName})`,
-          chairs: [{ chairLabel: "Primary Chair 1" }],
-          totalRoles: 1,
+          title: `${team.teamName} (${roleConfig.roleName})`,
+          chairs: Array.from({ length: roleConfig.chairRequirement }, (_, i) => ({
+            chairLabel: `Primary Chair ${i + 1}`,
+          })),
+          totalRoles: roleConfig.chairRequirement,
         });
       });
     });
