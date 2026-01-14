@@ -73,13 +73,12 @@ const ManagerSynopsis = ({ managerId }: { managerId: string }) => {
             <span className="text-xs text-muted-foreground">Teams: {teams.length}</span>
             <div className="flex gap-1">
               {teams.map(team => (
-                <Badge 
+                <span 
                   key={team.id} 
-                  variant="secondary" 
-                  className="text-[10px] px-1.5 py-0 h-5"
+                  className="text-[11px] px-2 py-0.5 rounded bg-[hsl(195,100%,95%)] text-[hsl(195,100%,35%)] font-medium"
                 >
                   {team.name}
-                </Badge>
+                </span>
               ))}
             </div>
           </div>
