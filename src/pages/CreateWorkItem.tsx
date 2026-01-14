@@ -93,6 +93,14 @@ const CreateWorkItem = () => {
   const [teamConfigurations, setTeamConfigurations] = useState<TeamRole[]>([
     { id: "1", teamType: "", numberOfRoles: 2, roles: ["Chair 1", "Chair 2"] },
   ]);
+  // New: Selected teams from TeamsContext for multi-select
+  const [selectedTeams, setSelectedTeams] = useState<Array<{
+    id: string;
+    teamName: string;
+    memberCount: number;
+    totalRoles: number;
+    roles: { roleName: string; chairCount: number }[];
+  }>>([]);
 
   // Leaver fields
   const [leaverName, setLeaverName] = useState("");
@@ -253,6 +261,11 @@ const CreateWorkItem = () => {
   // Validation for Step 3
   const isStep3Valid = () => {
     if (workType === "onboarding") {
+      // When using existing teams, validate selectedTeams
+      if (selectedTeams.length > 0) {
+        return true; // At least one team selected
+      }
+      // Fall back to legacy team configuration validation
       return teamConfigurations.length > 0 && 
         teamConfigurations.every(tc => tc.teamType !== "" && tc.roles.length > 0);
     }
@@ -315,11 +328,25 @@ const CreateWorkItem = () => {
       "offboarding": "Offboarding",
     };
 
-    // Build teams config for onboarding
-    const teams = workType === "onboarding" ? teamConfigurations.map(tc => ({
-      teamName: tc.teamType,
-      roles: tc.roles,
-    })) : undefined;
+    // Build teams config for onboarding - prefer selectedTeams if available
+    let teams;
+    if (workType === "onboarding") {
+      if (selectedTeams.length > 0) {
+        // Use the new team selection format
+        teams = selectedTeams.map(team => ({
+          teamName: team.teamName,
+          roles: team.roles.flatMap(r => 
+            Array.from({ length: r.chairCount }, (_, i) => `${r.roleName} - Chair ${i + 1}`)
+          ),
+        }));
+      } else {
+        // Fall back to legacy team configuration
+        teams = teamConfigurations.map(tc => ({
+          teamName: tc.teamType,
+          roles: tc.roles,
+        }));
+      }
+    }
 
     // Convert files to data URLs for persistence
     const convertToDataUrl = (file: File): Promise<string> => {
@@ -393,11 +420,23 @@ const CreateWorkItem = () => {
       "offboarding": "Offboarding",
     };
 
-    // Build teams config for onboarding
-    const teams = workType === "onboarding" ? teamConfigurations.map(tc => ({
-      teamName: tc.teamType,
-      roles: tc.roles,
-    })) : undefined;
+    // Build teams config for onboarding - prefer selectedTeams if available
+    let teams;
+    if (workType === "onboarding") {
+      if (selectedTeams.length > 0) {
+        teams = selectedTeams.map(team => ({
+          teamName: team.teamName,
+          roles: team.roles.flatMap(r => 
+            Array.from({ length: r.chairCount }, (_, i) => `${r.roleName} - Chair ${i + 1}`)
+          ),
+        }));
+      } else {
+        teams = teamConfigurations.map(tc => ({
+          teamName: tc.teamType,
+          roles: tc.roles,
+        }));
+      }
+    }
 
     // Convert files to data URLs for persistence
     const convertToDataUrl = (file: File): Promise<string> => {
@@ -710,6 +749,9 @@ const CreateWorkItem = () => {
                       showClientSearch={false}
                       attachments={onboardingAttachments}
                       setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
+                      selectedTeams={selectedTeams}
+                      setSelectedTeams={(val) => { setSelectedTeams(val); markDirty("selectedTeams"); }}
+                      useExistingTeams={true}
                     />
                   )}
 
