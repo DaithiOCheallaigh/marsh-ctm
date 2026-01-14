@@ -16,7 +16,7 @@ const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelector
         type="button"
         onClick={() => onChange("high")}
         className={cn(
-          "w-[72px] py-2 rounded text-sm font-medium transition-all duration-200 ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "w-[88px] py-2 rounded text-sm font-medium transition-all duration-200 ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           value === "high"
             ? "bg-[hsl(0,72%,51%)] text-white"
             : "bg-[hsl(2,100%,95%)] text-[hsl(10,53%,71%)]"
@@ -28,7 +28,7 @@ const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelector
         type="button"
         onClick={() => onChange("medium")}
         className={cn(
-          "w-[72px] py-2 rounded text-sm font-medium transition-all duration-200 ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "w-[88px] py-2 rounded text-sm font-medium transition-all duration-200 ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           value === "medium"
             ? "bg-[hsl(27,100%,55%)] text-white"
             : "bg-[hsl(33,100%,95%)] text-[hsl(27,70%,65%)]"
@@ -40,7 +40,7 @@ const PrioritySelector = ({ value, onChange, isDirty = false }: PrioritySelector
         type="button"
         onClick={() => onChange("low")}
         className={cn(
-          "w-[72px] py-2 rounded text-sm font-medium transition-all duration-200 ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+          "w-[88px] py-2 rounded text-sm font-medium transition-all duration-200 ease-out focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           value === "low"
             ? "bg-[hsl(0,0%,58%)] text-white"
             : "bg-[hsl(0,0%,94%)] text-[hsl(0,0%,65%)]"
