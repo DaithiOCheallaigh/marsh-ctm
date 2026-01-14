@@ -144,7 +144,7 @@ const TeamCard = ({
           <Badge variant="secondary" className="text-xs">
             {config.roles.length} role{config.roles.length !== 1 ? 's' : ''} • {totalChairs} chair{totalChairs !== 1 ? 's' : ''}
           </Badge>
-          {canRemove && <Button type="button" variant="ghost" size="sm" onClick={onRemove} className="text-muted-foreground hover:text-destructive h-8 w-8 p-0">
+          {canRemove && <Button type="button" variant="ghost" size="sm" onClick={onRemove} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0">
               <Trash2 className="h-4 w-4" />
             </Button>}
         </div>
@@ -309,7 +309,7 @@ const TeamAssignmentConfiguration = ({
         </Label>
         
         {!primaryTeam ? <FormSelect onValueChange={handlePrimaryTeamSelect}>
-            <FormSelectTrigger fieldName="primaryTeam" className={cn("max-w-md", !primaryTeam && "border-dashed")}>
+            <FormSelectTrigger fieldName="primaryTeam" className={cn("max-w-md hover:bg-[#E5EEFF]/50 transition-colors", !primaryTeam && "border-dashed")}>
               <FormSelectValue placeholder="Select primary team..." />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -337,7 +337,7 @@ const TeamAssignmentConfiguration = ({
         {/* Add Team Button/Dropdown */}
         {unselectedTeams.length > 0 && <div className="flex items-center gap-3">
             <FormSelect onValueChange={handleAddAdditionalTeam}>
-              <FormSelectTrigger fieldName="additionalTeam" className="max-w-md border-dashed">
+              <FormSelectTrigger fieldName="additionalTeam" className="max-w-md border-dashed hover:bg-[#E5EEFF]/50 transition-colors">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Plus className="h-4 w-4" />
                   <span>Add another team...</span>
