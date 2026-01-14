@@ -410,7 +410,7 @@ const CreateWorkItem = () => {
     sectionNumber: number; 
     isComplete: boolean;
   }) => (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center justify-between bg-[hsl(220,60%,97%)] -mx-6 -mt-6 mb-6 px-6 py-4 rounded-t-lg border-b border-[hsl(var(--wq-border))]">
       <div className="flex items-center gap-3">
         <div 
           className={cn(
@@ -422,7 +422,7 @@ const CreateWorkItem = () => {
         >
           {isComplete ? <Check className="w-4 h-4" /> : sectionNumber}
         </div>
-        <h2 className="text-xl font-bold text-primary">{title}</h2>
+        <h2 className="text-lg font-bold text-primary">{title}</h2>
       </div>
       {isComplete && (
         <span className="text-xs px-2 py-1 bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] rounded-full font-medium">
