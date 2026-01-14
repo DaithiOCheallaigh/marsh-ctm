@@ -158,51 +158,40 @@ const TeamCard = ({
             Role & Chair Configuration
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-4">
-            {availableRoles.length === 0 ? (
-              <div className="text-sm text-muted-foreground italic py-2">
+            {availableRoles.length === 0 ? <div className="text-sm text-muted-foreground italic py-2">
                 No roles configured for this team
-              </div>
-            ) : (
-              <div className="space-y-3">
+              </div> : <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
                   Select roles and specify chair requirements for each:
                 </p>
                 {availableRoles.map(role => {
-                  const isSelected = isRoleSelected(role.id);
-                  const chairValue = getRoleChairRequirement(role.id);
-                  return (
-                    <div key={role.id} className={cn("flex items-center gap-4 p-3 rounded-lg border transition-all", isSelected ? "bg-background border-primary/30" : "bg-muted/30 border-transparent")}>
+              const isSelected = isRoleSelected(role.id);
+              const chairValue = getRoleChairRequirement(role.id);
+              return <div key={role.id} className={cn("flex items-center gap-4 p-3 rounded-lg border transition-all", isSelected ? "bg-background border-primary/30" : "bg-muted/30 border-transparent")}>
                       <Checkbox id={`role-${role.id}`} checked={isSelected} onCheckedChange={checked => handleRoleToggle(role, checked as boolean)} />
                       <Label htmlFor={`role-${role.id}`} className={cn("flex-1 cursor-pointer text-sm", isSelected ? "text-primary font-medium" : "text-muted-foreground")}>
                         {role.roleName}
                       </Label>
-                      {isSelected && (
-                        <div className="flex items-center gap-2">
+                      {isSelected && <div className="flex items-center gap-2">
                           <Label className="text-xs text-muted-foreground whitespace-nowrap">
                             Chairs:
                           </Label>
                           <input type="number" min={1} max={10} value={chairValue} onChange={e => handleChairRequirementChange(role.id, parseInt(e.target.value) || 1)} className={cn("w-16 h-8 px-2 text-sm rounded-md border text-center", getFieldStateClasses(isDirty))} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        </div>}
+                    </div>;
+            })}
+              </div>}
 
             {/* Validation Warning */}
-            {config.roles.length === 0 && (
-              <div className="flex items-center gap-2 mt-3 p-2 bg-destructive/10 text-destructive text-xs rounded-md">
+            {config.roles.length === 0 && <div className="flex items-center gap-2 mt-3 p-2 bg-destructive/10 text-destructive text-xs rounded-md">
                 <AlertCircle className="h-4 w-4" />
                 At least one role must be selected
-              </div>
-            )}
+              </div>}
           </CollapsibleContent>
         </Collapsible>
       </div>
-    </div>
+    </div>;
 };
-
 const TeamAssignmentConfiguration = ({
   assignedToManagerId,
   primaryTeam,
