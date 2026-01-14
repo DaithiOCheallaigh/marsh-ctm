@@ -577,7 +577,7 @@ const CreateWorkItem = () => {
             {isSection1Complete() && (
               <div className="bg-white rounded-lg border border-border-primary p-6 mb-6 animate-fade-in">
                 <SectionHeader 
-                  title="Client/Colleague Selection" 
+                  title="Client Selection" 
                   sectionNumber={2} 
                   isComplete={isSection2Complete()} 
                 />
