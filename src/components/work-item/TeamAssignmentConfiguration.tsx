@@ -136,7 +136,6 @@ const TeamCard = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isPrimary && <Badge variant="default" className="bg-primary text-primary-foreground text-xs">
-              <Star className="h-3 w-3 mr-1" />
               Primary
             </Badge>}
           <span className="font-semibold text-primary">{config.teamName}</span>
