@@ -166,7 +166,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 }}
               >
                 <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-4 py-4">
-                  [{item.id}]
+                  {item.id}
                 </td>
                 <td className="text-[hsl(220,100%,24%)] text-sm font-medium px-3 py-4">
                   {item.workType}
