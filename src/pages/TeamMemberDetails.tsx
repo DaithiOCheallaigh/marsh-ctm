@@ -190,8 +190,8 @@ const TeamMemberDetails: React.FC = () => {
                     <div className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-[hsl(220,100%,24%)]">
-                            [{member.firstName}, {member.lastName}]
+                          <h3 className="text-lg font-semibold text-[hsl(var(--wq-primary))]">
+                            {member.firstName}, {member.lastName}
                           </h3>
                           {member.isManualAdd && member.workdayManager && (
                             <TooltipProvider>
@@ -225,15 +225,15 @@ const TeamMemberDetails: React.FC = () => {
                       <div className="grid grid-cols-2 gap-x-8 gap-y-3 mt-4">
                         <div className="flex items-center gap-4">
                           <span className="text-gray-500 text-sm w-32">Title</span>
-                          <span className="text-[hsl(220,100%,40%)]">[{member.title}]</span>
+                          <span className="text-[hsl(var(--wq-primary))]">{member.title}</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-gray-500 text-sm w-32">Start Date</span>
-                          <span className="text-[hsl(220,100%,40%)]">[{member.startDate}]</span>
+                          <span className="text-[hsl(var(--wq-primary))]">{member.startDate}</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-gray-500 text-sm w-32">Location</span>
-                          <span className="text-[hsl(220,100%,40%)]">[{member.location}]</span>
+                          <span className="text-[hsl(var(--wq-primary))]">{member.location}</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-gray-500 text-sm w-32">Expertise</span>
@@ -245,7 +245,7 @@ const TeamMemberDetails: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-gray-500 text-sm w-32">Clients Assigned</span>
-                          <span className="text-[hsl(220,100%,40%)]">[{member.clientAssignments.length}]</span>
+                          <span className="text-[hsl(var(--wq-primary))]">{member.clientAssignments.length}</span>
                         </div>
                       </div>
                     </div>
@@ -300,18 +300,18 @@ const TeamMemberDetails: React.FC = () => {
                               ) : (
                                 paginatedAssignments.map((assignment) => (
                                   <TableRow key={assignment.id}>
-                                    <TableCell className="text-[hsl(220,100%,40%)] max-w-[150px] truncate" title={assignment.clientName}>
-                                      [{assignment.clientName.substring(0, 15)}...]
+                                    <TableCell className="text-[hsl(var(--wq-primary))] max-w-[150px] truncate" title={assignment.clientName}>
+                                      {assignment.clientName.substring(0, 15)}...
                                     </TableCell>
-                                    <TableCell className="text-[hsl(220,100%,40%)]">[{assignment.cnNumber}]</TableCell>
-                                    <TableCell className="text-[hsl(220,100%,40%)]">{assignment.servicingCountry}</TableCell>
-                                    <TableCell className="text-[hsl(220,100%,40%)]">[{assignment.assignmentDate}]</TableCell>
-                                    <TableCell className="text-[hsl(220,100%,40%)]">{assignment.assignmentRole}</TableCell>
-                                    <TableCell className="text-[hsl(220,100%,40%)]">{assignment.chairName}</TableCell>
+                                    <TableCell className="text-[hsl(var(--wq-primary))]">{assignment.cnNumber}</TableCell>
+                                    <TableCell className="text-[hsl(var(--wq-primary))]">{assignment.servicingCountry}</TableCell>
+                                    <TableCell className="text-[hsl(var(--wq-primary))]">{assignment.assignmentDate}</TableCell>
+                                    <TableCell className="text-[hsl(var(--wq-primary))]">{assignment.assignmentRole}</TableCell>
+                                    <TableCell className="text-[hsl(var(--wq-primary))]">{assignment.chairName}</TableCell>
                                     <TableCell>
                                       <ScopesBadge scopes={assignment.scopes} />
                                     </TableCell>
-                                    <TableCell className="text-[hsl(220,100%,40%)]">[{assignment.workload}%]</TableCell>
+                                    <TableCell className="text-[hsl(var(--wq-primary))]">{assignment.workload}%</TableCell>
                                   </TableRow>
                                 ))
                               )}
