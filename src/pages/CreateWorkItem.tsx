@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
-import { Clock, Calendar as CalendarIcon, Check } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, Check, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -68,6 +69,9 @@ const CreateWorkItem = () => {
   });
   const [dueDateOpen, setDueDateOpen] = useState(false);
   const [tempDueDate, setTempDueDate] = useState<Date | undefined>(undefined);
+
+  // Collapsible section state
+  const [openSections, setOpenSections] = useState<Set<number>>(new Set([1]));
 
   // Onboarding fields
   const [onboardingClientName, setOnboardingClientName] = useState("");
@@ -400,23 +404,39 @@ const CreateWorkItem = () => {
     navigate("/");
   };
 
-  // Section Header component with completion indicator
-  const SectionHeader = ({ 
+  // Toggle section open/close
+  const toggleSection = (sectionNumber: number) => {
+    setOpenSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionNumber)) {
+        newSet.delete(sectionNumber);
+      } else {
+        newSet.add(sectionNumber);
+      }
+      return newSet;
+    });
+  };
+
+  // Section Header component with completion indicator (now a collapsible trigger)
+  const CollapsibleSectionHeader = ({ 
     title, 
     sectionNumber, 
     isComplete,
-    isDisabled = false
+    isDisabled = false,
+    isOpen = false
   }: { 
     title: string; 
     sectionNumber: number; 
     isComplete: boolean;
     isDisabled?: boolean;
+    isOpen?: boolean;
   }) => (
     <div className={cn(
-      "flex items-center justify-between -mx-6 -mt-6 mb-6 px-6 py-4 rounded-t-lg border-b",
+      "flex items-center justify-between px-6 py-4 rounded-lg cursor-pointer transition-colors",
       isDisabled 
-        ? "bg-[hsl(0,0%,95%)] border-[hsl(0,0%,85%)]" 
-        : "bg-[hsl(220,60%,97%)] border-[hsl(var(--wq-border))]"
+        ? "bg-[hsl(0,0%,95%)] cursor-not-allowed" 
+        : "bg-[hsl(220,60%,97%)] hover:bg-[hsl(220,60%,94%)]",
+      isOpen && !isDisabled && "rounded-b-none border-b border-[hsl(var(--wq-border))]"
     )}>
       <div className="flex items-center gap-3">
         <div 
@@ -436,16 +456,24 @@ const CreateWorkItem = () => {
           isDisabled ? "text-[hsl(0,0%,55%)]" : "text-primary"
         )}>{title}</h2>
       </div>
-      {isComplete && !isDisabled && (
-        <span className="text-xs px-2 py-1 bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] rounded-full font-medium">
-          Complete
-        </span>
-      )}
-      {isDisabled && (
-        <span className="text-xs px-2 py-1 bg-[hsl(0,0%,85%)] text-[hsl(0,0%,55%)] rounded-full font-medium">
-          Complete previous sections
-        </span>
-      )}
+      <div className="flex items-center gap-3">
+        {isComplete && !isDisabled && (
+          <span className="text-xs px-2 py-1 bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] rounded-full font-medium">
+            Complete
+          </span>
+        )}
+        {isDisabled && (
+          <span className="text-xs px-2 py-1 bg-[hsl(0,0%,85%)] text-[hsl(0,0%,55%)] rounded-full font-medium">
+            Complete previous sections
+          </span>
+        )}
+        {!isDisabled && (
+          <ChevronDown className={cn(
+            "w-5 h-5 text-primary transition-transform duration-200",
+            isOpen && "rotate-180"
+          )} />
+        )}
+      </div>
     </div>
   );
 
@@ -483,138 +511,228 @@ const CreateWorkItem = () => {
             </div>
 
             {/* Section 1: Work Type & Basic Details - Always visible */}
-            <div className="bg-white rounded-lg border border-border-primary p-6 mb-6 animate-fade-in">
-              <SectionHeader 
-                title="Work Type & Basic Details" 
-                sectionNumber={1} 
-                isComplete={isSection1Complete()} 
-              />
-              
-              <div className="space-y-6">
-                {/* Work Type */}
-                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                  <Label className="text-right text-sm font-medium text-text-secondary">
-                    Work Type<span className="text-[hsl(0,100%,50%)]">*</span>
-                  </Label>
-                  <FormSelect value={workType} onValueChange={handleWorkTypeChange}>
-                    <FormSelectTrigger className="max-w-md" fieldName="workType">
-                      <FormSelectValue placeholder="Select Work Type" />
-                    </FormSelectTrigger>
-                    <FormSelectContent>
-                      <FormSelectItem value="onboarding">Client Onboarding</FormSelectItem>
-                      <FormSelectItem value="offboarding">Client Offboarding</FormSelectItem>
-                      <FormSelectItem value="new-joiner">New Joiner</FormSelectItem>
-                      <FormSelectItem value="leaver">Leaver</FormSelectItem>
-                    </FormSelectContent>
-                  </FormSelect>
-                </div>
-
-                {/* Priority */}
-                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                  <Label className="text-right text-sm font-medium text-text-secondary">
-                    Priority<span className="text-[hsl(0,100%,50%)]">*</span>
-                  </Label>
-                  <PrioritySelector 
-                    value={priority} 
-                    onChange={handlePriorityChange}
-                    isDirty={isDirty("priority")}
+            <Collapsible 
+              open={openSections.has(1)} 
+              onOpenChange={() => toggleSection(1)}
+              className="mb-4"
+            >
+              <div className="bg-white rounded-lg border border-border-primary overflow-hidden animate-fade-in">
+                <CollapsibleTrigger className="w-full">
+                  <CollapsibleSectionHeader 
+                    title="Work Type & Basic Details" 
+                    sectionNumber={1} 
+                    isComplete={isSection1Complete()}
+                    isOpen={openSections.has(1)}
                   />
-                </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-6 space-y-6">
+                    {/* Work Type */}
+                    <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                      <Label className="text-right text-sm font-medium text-text-secondary">
+                        Work Type<span className="text-[hsl(0,100%,50%)]">*</span>
+                      </Label>
+                      <FormSelect value={workType} onValueChange={handleWorkTypeChange}>
+                        <FormSelectTrigger className="max-w-md" fieldName="workType">
+                          <FormSelectValue placeholder="Select Work Type" />
+                        </FormSelectTrigger>
+                        <FormSelectContent>
+                          <FormSelectItem value="onboarding">Client Onboarding</FormSelectItem>
+                          <FormSelectItem value="offboarding">Client Offboarding</FormSelectItem>
+                          <FormSelectItem value="new-joiner">New Joiner</FormSelectItem>
+                          <FormSelectItem value="leaver">Leaver</FormSelectItem>
+                        </FormSelectContent>
+                      </FormSelect>
+                    </div>
 
-                {/* Assign To - Managers Only */}
-                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                  <Label className="text-right text-sm font-medium text-text-secondary">
-                    Assign To<span className="text-[hsl(0,100%,50%)]">*</span>
-                  </Label>
-                  <div className="space-y-1">
-                    <FormSelect value={assignTo} onValueChange={handleAssignToChange}>
-                      <FormSelectTrigger className="max-w-md" fieldName="assignTo">
-                        <FormSelectValue placeholder="Select Manager" />
-                      </FormSelectTrigger>
-                      <FormSelectContent>
-                        {managers.map((manager) => (
-                          <FormSelectItem key={manager.id} value={manager.id}>
-                            {manager.name} - {manager.role}
-                          </FormSelectItem>
-                        ))}
-                      </FormSelectContent>
-                    </FormSelect>
-                    <p className="text-xs text-muted-foreground ml-1">
-                      Only managers can be assigned as the primary owner
-                    </p>
-                  </div>
-                </div>
-
-                {/* Due Date */}
-                <div className="grid grid-cols-[180px_1fr] items-center gap-4">
-                  <Label className="text-right text-sm font-medium text-text-secondary">
-                    Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
-                  </Label>
-                  <Popover open={dueDateOpen} onOpenChange={(open) => {
-                    setDueDateOpen(open);
-                    if (open) {
-                      setTempDueDate(dueDate);
-                    }
-                  }}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "max-w-md justify-start text-left font-normal transition-all duration-200",
-                          getFieldStateClasses(isDirty("dueDate")),
-                          !dueDate && "text-muted-foreground"
-                        )}
-                      >
-                        {dueDate ? format(dueDate, "MM/dd/yyyy") : "Select date"}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={tempDueDate}
-                        onSelect={setTempDueDate}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                        className="pointer-events-auto"
+                    {/* Priority */}
+                    <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                      <Label className="text-right text-sm font-medium text-text-secondary">
+                        Priority<span className="text-[hsl(0,100%,50%)]">*</span>
+                      </Label>
+                      <PrioritySelector 
+                        value={priority} 
+                        onChange={handlePriorityChange}
+                        isDirty={isDirty("priority")}
                       />
-                      {tempDueDate && (
-                        <div className="p-3 pt-0 border-t">
-                          <Button 
-                            className="w-full" 
-                            onClick={() => {
-                              handleDueDateChange(tempDueDate);
-                              setDueDateOpen(false);
-                            }}
+                    </div>
+
+                    {/* Assign To - Managers Only */}
+                    <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                      <Label className="text-right text-sm font-medium text-text-secondary">
+                        Assign To<span className="text-[hsl(0,100%,50%)]">*</span>
+                      </Label>
+                      <div className="space-y-1">
+                        <FormSelect value={assignTo} onValueChange={handleAssignToChange}>
+                          <FormSelectTrigger className="max-w-md" fieldName="assignTo">
+                            <FormSelectValue placeholder="Select Manager" />
+                          </FormSelectTrigger>
+                          <FormSelectContent>
+                            {managers.map((manager) => (
+                              <FormSelectItem key={manager.id} value={manager.id}>
+                                {manager.name} - {manager.role}
+                              </FormSelectItem>
+                            ))}
+                          </FormSelectContent>
+                        </FormSelect>
+                        <p className="text-xs text-muted-foreground ml-1">
+                          Only managers can be assigned as the primary owner
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Due Date */}
+                    <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+                      <Label className="text-right text-sm font-medium text-text-secondary">
+                        Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
+                      </Label>
+                      <Popover open={dueDateOpen} onOpenChange={(open) => {
+                        setDueDateOpen(open);
+                        if (open) {
+                          setTempDueDate(dueDate);
+                        }
+                      }}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "max-w-md justify-start text-left font-normal transition-all duration-200",
+                              getFieldStateClasses(isDirty("dueDate")),
+                              !dueDate && "text-muted-foreground"
+                            )}
                           >
-                            Select
+                            {dueDate ? format(dueDate, "MM/dd/yyyy") : "Select date"}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-white z-50" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={tempDueDate}
+                            onSelect={setTempDueDate}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                          {tempDueDate && (
+                            <div className="p-3 pt-0 border-t">
+                              <Button 
+                                className="w-full" 
+                                onClick={() => {
+                                  handleDueDateChange(tempDueDate);
+                                  setDueDateOpen(false);
+                                }}
+                              >
+                                Select
+                              </Button>
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </CollapsibleContent>
               </div>
-            </div>
+            </Collapsible>
 
             {/* Section 2: Client/Colleague Selection - Visible when work type is selected */}
             {workType && (
-              <div className={cn(
-                "bg-white rounded-lg border p-6 mb-6 animate-fade-in transition-opacity",
-                !isSection1Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
-              )}>
-                <SectionHeader 
-                  title="Client Selection" 
-                  sectionNumber={2} 
-                  isComplete={isSection2Complete()}
-                  isDisabled={!isSection1Complete()}
-                />
-                
-                {!isSection1Complete() ? (
-                  <DisabledSectionContent message="Complete Work Type & Basic Details to continue" />
-                ) : (
-                  <>
-                    {workType === "onboarding" && (
+              <Collapsible 
+                open={isSection1Complete() && openSections.has(2)} 
+                onOpenChange={() => isSection1Complete() && toggleSection(2)}
+                className="mb-4"
+              >
+                <div className={cn(
+                  "bg-white rounded-lg border overflow-hidden animate-fade-in transition-opacity",
+                  !isSection1Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
+                )}>
+                  <CollapsibleTrigger className="w-full" disabled={!isSection1Complete()}>
+                    <CollapsibleSectionHeader 
+                      title="Client Selection" 
+                      sectionNumber={2} 
+                      isComplete={isSection2Complete()}
+                      isDisabled={!isSection1Complete()}
+                      isOpen={isSection1Complete() && openSections.has(2)}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="p-6">
+                      {workType === "onboarding" && (
+                        <OnboardingFields
+                          clientName={onboardingClientName}
+                          setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
+                          description={onboardingDescription}
+                          setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
+                          selectedClient={selectedClient}
+                          setSelectedClient={setSelectedClient}
+                          showTeamConfig={false}
+                          attachments={onboardingAttachments}
+                          setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
+                          existingWorkItems={workItems}
+                          currentWorkType="Onboarding"
+                        />
+                      )}
+
+                      {workType === "leaver" && (
+                        <LeaverFields
+                          leaverName={leaverName}
+                          setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
+                          leavingDate={leavingDate}
+                          setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
+                        />
+                      )}
+
+                      {workType === "new-joiner" && (
+                        <NewJoinerFields
+                          colleagueName={colleagueName}
+                          setColleagueName={(val) => { setColleagueName(val); markDirty("colleagueName"); }}
+                          teamAssignment={teamAssignment}
+                          setTeamAssignment={(val) => { setTeamAssignment(val); markDirty("teamAssignment"); }}
+                          clientLoadCapacity={clientLoadCapacity}
+                          setClientLoadCapacity={(val) => { setClientLoadCapacity(val); markDirty("clientLoadCapacity"); }}
+                          startDate={startDate}
+                          setStartDate={(val) => { setStartDate(val); markDirty("startDate"); }}
+                        />
+                      )}
+
+                      {workType === "offboarding" && (
+                        <OffboardingFields
+                          clientName={offboardingClientName}
+                          setClientName={(val) => { setOffboardingClientName(val); markDirty("offboardingClientName"); }}
+                          reason={offboardingReason}
+                          setReason={(val) => { setOffboardingReason(val); markDirty("offboardingReason"); }}
+                          finalAssignmentDate={finalAssignmentDate}
+                          setFinalAssignmentDate={(val) => { setFinalAssignmentDate(val); markDirty("finalAssignmentDate"); }}
+                        />
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            )}
+
+            {/* Section 3: Team Configuration (onboarding) - Visible when work type is selected */}
+            {workType === "onboarding" && (
+              <Collapsible 
+                open={isSection2Complete() && openSections.has(3)} 
+                onOpenChange={() => isSection2Complete() && toggleSection(3)}
+                className="mb-4"
+              >
+                <div className={cn(
+                  "bg-white rounded-lg border overflow-hidden animate-fade-in transition-opacity",
+                  !isSection2Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
+                )}>
+                  <CollapsibleTrigger className="w-full" disabled={!isSection2Complete()}>
+                    <CollapsibleSectionHeader 
+                      title="Team Configuration" 
+                      sectionNumber={3} 
+                      isComplete={isSection3Complete()}
+                      isDisabled={!isSection2Complete()}
+                      isOpen={isSection2Complete() && openSections.has(3)}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="p-6">
                       <OnboardingFields
                         clientName={onboardingClientName}
                         setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
@@ -622,117 +740,57 @@ const CreateWorkItem = () => {
                         setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
                         selectedClient={selectedClient}
                         setSelectedClient={setSelectedClient}
-                        showTeamConfig={false}
+                        showTeamConfig={true}
+                        showClientSearch={false}
                         attachments={onboardingAttachments}
                         setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
-                        existingWorkItems={workItems}
-                        currentWorkType="Onboarding"
+                        assignedToManagerId={assignTo}
+                        primaryTeam={primaryTeam}
+                        additionalTeams={additionalTeams}
+                        onPrimaryTeamChange={(team) => { setPrimaryTeam(team); markDirty("teamAssignment"); }}
+                        onAdditionalTeamsChange={(teams) => { setAdditionalTeams(teams); markDirty("teamAssignment"); }}
                       />
-                    )}
-
-                    {workType === "leaver" && (
-                      <LeaverFields
-                        leaverName={leaverName}
-                        setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
-                        leavingDate={leavingDate}
-                        setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
-                      />
-                    )}
-
-                    {workType === "new-joiner" && (
-                      <NewJoinerFields
-                        colleagueName={colleagueName}
-                        setColleagueName={(val) => { setColleagueName(val); markDirty("colleagueName"); }}
-                        teamAssignment={teamAssignment}
-                        setTeamAssignment={(val) => { setTeamAssignment(val); markDirty("teamAssignment"); }}
-                        clientLoadCapacity={clientLoadCapacity}
-                        setClientLoadCapacity={(val) => { setClientLoadCapacity(val); markDirty("clientLoadCapacity"); }}
-                        startDate={startDate}
-                        setStartDate={(val) => { setStartDate(val); markDirty("startDate"); }}
-                      />
-                    )}
-
-                    {workType === "offboarding" && (
-                      <OffboardingFields
-                        clientName={offboardingClientName}
-                        setClientName={(val) => { setOffboardingClientName(val); markDirty("offboardingClientName"); }}
-                        reason={offboardingReason}
-                        setReason={(val) => { setOffboardingReason(val); markDirty("offboardingReason"); }}
-                        finalAssignmentDate={finalAssignmentDate}
-                        setFinalAssignmentDate={(val) => { setFinalAssignmentDate(val); markDirty("finalAssignmentDate"); }}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Section 3: Team Configuration (onboarding) or Review (other types) - Visible when work type is selected */}
-            {workType === "onboarding" && (
-              <div className={cn(
-                "bg-white rounded-lg border p-6 mb-6 animate-fade-in transition-opacity",
-                !isSection2Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
-              )}>
-                <SectionHeader 
-                  title="Team Configuration" 
-                  sectionNumber={3} 
-                  isComplete={isSection3Complete()}
-                  isDisabled={!isSection2Complete()}
-                />
-                
-                {!isSection2Complete() ? (
-                  <DisabledSectionContent message="Complete Client Selection to continue" />
-                ) : (
-                  <OnboardingFields
-                    clientName={onboardingClientName}
-                    setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
-                    description={onboardingDescription}
-                    setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
-                    selectedClient={selectedClient}
-                    setSelectedClient={setSelectedClient}
-                    showTeamConfig={true}
-                    showClientSearch={false}
-                    attachments={onboardingAttachments}
-                    setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
-                    assignedToManagerId={assignTo}
-                    primaryTeam={primaryTeam}
-                    additionalTeams={additionalTeams}
-                    onPrimaryTeamChange={(team) => { setPrimaryTeam(team); markDirty("teamAssignment"); }}
-                    onAdditionalTeamsChange={(teams) => { setAdditionalTeams(teams); markDirty("teamAssignment"); }}
-                  />
-                )}
-              </div>
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
             )}
 
             {/* Review Section for non-onboarding work types */}
             {workType && workType !== "onboarding" && (
-              <div className={cn(
-                "bg-white rounded-lg border p-6 mb-6 animate-fade-in transition-opacity",
-                !isSection2Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
-              )}>
-                <SectionHeader 
-                  title="Review & Submit" 
-                  sectionNumber={3} 
-                  isComplete={isSection2Complete()}
-                  isDisabled={!isSection2Complete()}
-                />
-                
-                {!isSection2Complete() ? (
-                  <DisabledSectionContent message="Complete previous sections to review" />
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-[hsl(var(--wq-text-secondary))] mb-4">
-                      Review your selections and click "Create Work Item" to complete.
-                    </p>
-                    <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg inline-block text-left">
-                      <p className="text-sm"><strong>Work Type:</strong> {workType}</p>
-                      <p className="text-sm"><strong>Assignee:</strong> {getAssigneeName()}</p>
-                      <p className="text-sm"><strong>Client/Colleague:</strong> {getClientName()}</p>
-                      <p className="text-sm"><strong>Due Date:</strong> {dueDate ? format(dueDate, "dd MMM yyyy") : "Not set"}</p>
+              <Collapsible 
+                open={isSection2Complete() && openSections.has(3)} 
+                onOpenChange={() => isSection2Complete() && toggleSection(3)}
+                className="mb-4"
+              >
+                <div className={cn(
+                  "bg-white rounded-lg border overflow-hidden animate-fade-in transition-opacity",
+                  !isSection2Complete() ? "border-[hsl(0,0%,85%)] opacity-70" : "border-border-primary"
+                )}>
+                  <CollapsibleTrigger className="w-full" disabled={!isSection2Complete()}>
+                    <CollapsibleSectionHeader 
+                      title="Review & Submit" 
+                      sectionNumber={3} 
+                      isComplete={isSection2Complete()}
+                      isDisabled={!isSection2Complete()}
+                      isOpen={isSection2Complete() && openSections.has(3)}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="p-6 text-center py-4">
+                      <p className="text-[hsl(var(--wq-text-secondary))] mb-4">
+                        Review your selections and click "Create Work Item" to complete.
+                      </p>
+                      <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg inline-block text-left">
+                        <p className="text-sm"><strong>Work Type:</strong> {workType}</p>
+                        <p className="text-sm"><strong>Assignee:</strong> {getAssigneeName()}</p>
+                        <p className="text-sm"><strong>Client/Colleague:</strong> {getClientName()}</p>
+                        <p className="text-sm"><strong>Due Date:</strong> {dueDate ? format(dueDate, "dd MMM yyyy") : "Not set"}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
             )}
 
             {/* Action Buttons - Fixed at bottom */}
