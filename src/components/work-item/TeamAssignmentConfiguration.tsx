@@ -303,12 +303,9 @@ const TeamAssignmentConfiguration = ({
 
       {/* Primary Team Selection */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Star className="h-4 w-4 text-primary" />
-          <Label className="text-sm font-medium text-primary">
-            Primary Team<span className="text-destructive">*</span>
-          </Label>
-        </div>
+        <Label className="text-sm font-medium text-primary">
+          Primary Team<span className="text-destructive">*</span>
+        </Label>
         
         {!primaryTeam ? <FormSelect onValueChange={handlePrimaryTeamSelect}>
             <FormSelectTrigger fieldName="primaryTeam" className={cn("max-w-md", !primaryTeam && "border-dashed")}>
