@@ -316,7 +316,7 @@ const TeamAssignmentConfiguration = ({
               {availableTeams.map(team => <FormSelectItem key={team.id} value={team.id}>
                   <div className="flex items-center gap-2">
                     <span>{team.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-white">
                       ({team.roles.length} roles)
                     </span>
                   </div>
@@ -347,7 +347,7 @@ const TeamAssignmentConfiguration = ({
                 {unselectedTeams.map(team => <FormSelectItem key={team.id} value={team.id}>
                     <div className="flex items-center gap-2">
                       <span>{team.name}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-white">
                         ({team.roles.length} roles)
                       </span>
                     </div>
