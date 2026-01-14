@@ -435,7 +435,7 @@ const CreateWorkItem = () => {
       "flex items-center justify-between px-6 py-4 rounded-lg cursor-pointer transition-colors",
       isDisabled 
         ? "bg-[hsl(0,0%,95%)] cursor-not-allowed" 
-        : "bg-[hsl(220,60%,97%)] hover:bg-[hsl(220,60%,94%)]",
+        : "bg-[hsl(220,60%,97%)] hover:bg-[#E5EEFF]",
       isOpen && !isDisabled && "rounded-b-none border-b border-[hsl(var(--wq-border))]"
     )}>
       <div className="flex items-center gap-3">
