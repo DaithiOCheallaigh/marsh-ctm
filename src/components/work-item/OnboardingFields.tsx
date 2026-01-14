@@ -292,8 +292,9 @@ const OnboardingFields = ({
       {showClientSearch && (
         <>
           <div className="grid grid-cols-[180px_1fr] items-start gap-4">
-            <Label className="text-right text-sm font-medium text-text-secondary pt-2">
-              Client Name or CN Number<span className="text-[hsl(0,100%,50%)]">*</span>
+            <Label className="text-right text-sm font-medium text-text-secondary pt-2 flex flex-col">
+              <span>Client Name or</span>
+              <span>CN Number<span className="text-[hsl(0,100%,50%)]">*</span></span>
             </Label>
             <div className="space-y-2">
               <ClientSearchInput
