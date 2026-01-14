@@ -286,10 +286,7 @@ const OnboardingFields = ({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-border-primary p-6 space-y-6">
-      <h3 className="text-lg font-semibold text-primary">
-        {showClientSearch ? "Client Selection" : "Team Assignment Configuration"}
-      </h3>
+    <div className="space-y-6">
 
       {/* Client Name Search */}
       {showClientSearch && (
