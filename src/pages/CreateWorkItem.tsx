@@ -133,6 +133,13 @@ const CreateWorkItem = () => {
         if (draft.workType === 'Onboarding') {
           setOnboardingClientName(draft.clientName);
           setOnboardingDescription(draft.description || '');
+          // Load teams from draft
+          if (draft.teams && draft.teams.length > 0) {
+            const primary = draft.teams.find(t => t.isPrimary) || draft.teams[0];
+            const additional = draft.teams.filter(t => !t.isPrimary && t.teamId !== primary.teamId);
+            setPrimaryTeam(primary);
+            setAdditionalTeams(additional);
+          }
         } else if (draft.workType === 'New Joiner') {
           setColleagueName(draft.clientName);
         } else if (draft.workType === 'Leaver') {

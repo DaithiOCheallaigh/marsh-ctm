@@ -1,9 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { WorkItemTeamConfig, RoleChairConfig } from '@/types/teamAssignment';
 
-export interface TeamConfig {
-  teamName: string;
-  roles: string[];
-}
+// Re-export for backward compatibility
+export type TeamConfig = WorkItemTeamConfig;
+
+// Helper to create RoleChairConfig from role name
+const createRole = (roleName: string, chairRequirement: number = 1): RoleChairConfig => ({
+  roleId: `role-${roleName.toLowerCase().replace(/\s+/g, '-')}`,
+  roleName,
+  chairRequirement,
+});
 
 export interface Attachment {
   id: string;
@@ -57,8 +63,8 @@ const initialWorkItems: WorkItem[] = [
     status: 'Pending',
     description: 'Manufacturing client requiring comprehensive property and liability coverage for 12 facilities',
     teams: [
-      { teamName: 'Property Risk', roles: ['Senior Account Manager', 'Risk Engineer'] },
-      { teamName: 'General Liability', roles: ['Claims Specialist'] }
+      { teamId: 'team-prop', teamName: 'Property Risk', isPrimary: true, roles: [createRole('Senior Account Manager'), createRole('Risk Engineer')] },
+      { teamId: 'team-gl', teamName: 'General Liability', isPrimary: false, roles: [createRole('Claims Specialist')] }
     ],
     attachments: [
       {
@@ -98,8 +104,8 @@ const initialWorkItems: WorkItem[] = [
     status: 'Pending',
     description: 'Freight and logistics company needing cargo insurance and fleet coverage',
     teams: [
-      { teamName: 'Marine Cargo', roles: ['Account Executive', 'Underwriting Specialist'] },
-      { teamName: 'Fleet', roles: ['Fleet Manager'] }
+      { teamId: 'team-mc', teamName: 'Marine Cargo', isPrimary: true, roles: [createRole('Account Executive'), createRole('Underwriting Specialist')] },
+      { teamId: 'team-fleet', teamName: 'Fleet', isPrimary: false, roles: [createRole('Fleet Manager')] }
     ]
   },
   { 
@@ -143,9 +149,9 @@ const initialWorkItems: WorkItem[] = [
     status: 'Pending',
     description: 'Regional hospital network requiring malpractice, D&O, and property coverage',
     teams: [
-      { teamName: 'Healthcare Professional Liability', roles: ['Account Director', 'Senior Broker'] },
-      { teamName: 'D&O', roles: ['D&O Specialist'] },
-      { teamName: 'Property', roles: ['Risk Consultant'] }
+      { teamId: 'team-hpl', teamName: 'Healthcare Professional Liability', isPrimary: true, roles: [createRole('Account Director'), createRole('Senior Broker')] },
+      { teamId: 'team-do', teamName: 'D&O', isPrimary: false, roles: [createRole('D&O Specialist')] },
+      { teamId: 'team-prop2', teamName: 'Property', isPrimary: false, roles: [createRole('Risk Consultant')] }
     ]
   },
   { 
@@ -175,7 +181,7 @@ const initialWorkItems: WorkItem[] = [
     status: 'Pending',
     description: 'Commercial construction company requiring builders risk and surety bonds',
     teams: [
-      { teamName: 'Construction', roles: ['Construction Specialist', 'Surety Bond Manager'] }
+      { teamId: 'team-const', teamName: 'Construction', isPrimary: true, roles: [createRole('Construction Specialist'), createRole('Surety Bond Manager')] }
     ]
   },
   { 
@@ -219,8 +225,8 @@ const initialWorkItems: WorkItem[] = [
     status: 'Completed',
     description: 'Oil & gas exploration company requiring energy package and environmental liability',
     teams: [
-      { teamName: 'Energy', roles: ['Energy Specialist', 'Senior Broker', 'Risk Engineer'] },
-      { teamName: 'Environmental', roles: ['Environmental Risk Manager'] }
+      { teamId: 'team-energy', teamName: 'Energy', isPrimary: true, roles: [createRole('Energy Specialist'), createRole('Senior Broker'), createRole('Risk Engineer')] },
+      { teamId: 'team-env', teamName: 'Environmental', isPrimary: false, roles: [createRole('Environmental Risk Manager')] }
     ]
   },
   { 
@@ -290,8 +296,8 @@ const initialWorkItems: WorkItem[] = [
     status: 'Pending',
     description: 'Regional bank requiring D&O, E&O, and cyber liability coverage',
     teams: [
-      { teamName: 'Financial Institutions', roles: ['FI Specialist', 'Account Director'] },
-      { teamName: 'Cyber', roles: ['Cyber Risk Analyst'] }
+      { teamId: 'team-fi', teamName: 'Financial Institutions', isPrimary: true, roles: [createRole('FI Specialist'), createRole('Account Director')] },
+      { teamId: 'team-cyber', teamName: 'Cyber', isPrimary: false, roles: [createRole('Cyber Risk Analyst')] }
     ]
   }
 ];
