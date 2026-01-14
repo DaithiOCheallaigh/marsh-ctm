@@ -189,7 +189,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
           <h4 className="text-primary font-bold text-sm">{roleTitle}</h4>
           <div className="flex items-center gap-2">
             <span className="text-[hsl(var(--wq-text-secondary))] text-xs">Roles Assigned</span>
-            <span className="text-accent text-sm font-medium">
+            <span className={`text-sm font-medium ${rolesCount.current === rolesCount.total ? 'text-primary' : 'text-accent'}`}>
               {rolesCount.current}/{rolesCount.total}
             </span>
             <div className="w-16 h-1.5 bg-[hsl(var(--wq-bg-muted))] rounded-full overflow-hidden">
