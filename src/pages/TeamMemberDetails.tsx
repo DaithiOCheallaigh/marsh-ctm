@@ -119,11 +119,11 @@ const TeamMemberDetails: React.FC = () => {
           <div className="max-w-[1200px]">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm mb-4">
-            <Link to="/my-team-assignment" className="text-gray-500 hover:text-[hsl(220,100%,40%)]">
+            <Link to="/my-team-assignment" className="text-[hsl(var(--wq-text-secondary))] hover:text-[hsl(var(--wq-primary))]">
               My Team Assignment
             </Link>
-            <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-[hsl(220,100%,40%)] font-medium">{team.teamName}</span>
+            <ChevronRightIcon className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+            <span className="text-[hsl(var(--wq-primary))] font-medium">{team.teamName}</span>
           </nav>
 
           {/* Header Section */}
