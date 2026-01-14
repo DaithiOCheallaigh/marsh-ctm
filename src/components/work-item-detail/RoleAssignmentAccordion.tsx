@@ -187,10 +187,17 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
           className="w-full flex items-center justify-between px-6 py-4 hover:bg-[hsl(var(--wq-bg-hover))] transition-colors"
         >
           <h4 className="text-primary font-bold text-sm">{roleTitle}</h4>
-          <div className="flex items-center gap-3">
-            <span className="text-accent text-sm">
-              {rolesCount.current}/{rolesCount.total} Roles Assigned
+          <div className="flex items-center gap-2">
+            <span className="text-[hsl(var(--wq-text-secondary))] text-xs">Roles Assigned</span>
+            <span className="text-accent text-sm font-medium">
+              {rolesCount.current}/{rolesCount.total}
             </span>
+            <div className="w-16 h-1.5 bg-[hsl(var(--wq-bg-muted))] rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-[hsl(var(--wq-status-completed-text))] rounded-full transition-all duration-300"
+                style={{ width: `${rolesCount.total > 0 ? (rolesCount.current / rolesCount.total) * 100 : 0}%` }}
+              />
+            </div>
             {isExpanded ? (
               <ChevronUp className="w-5 h-5 text-[hsl(var(--wq-text-secondary))]" />
             ) : (
