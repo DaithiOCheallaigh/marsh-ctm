@@ -105,12 +105,18 @@ const TeamMemberDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(210,20%,98%)]">
-      <Header />
-      <Sidebar activeItem="team-assignment" />
+    <div className="flex flex-col w-full min-h-screen bg-[hsl(210,20%,98%)]">
+      {/* Header - Full Width */}
+      <div className="w-full px-6 pt-6">
+        <Header />
+      </div>
       
-      <main className="pl-[300px] pt-[100px] pr-6 pb-8">
-        <div className="max-w-[1200px]">
+      {/* Content Area with Sidebar */}
+      <div className="flex flex-1">
+        <Sidebar activeItem="team-assignment" />
+        
+        <main className="flex-1 ml-[300px] px-8 pt-6 pb-10">
+          <div className="max-w-[1200px]">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm mb-4">
             <Link to="/my-team-assignment" className="text-gray-500 hover:text-[hsl(220,100%,40%)]">
@@ -458,6 +464,7 @@ const TeamMemberDetails: React.FC = () => {
           )}
         </div>
       </main>
+      </div>
 
       {/* Add Team Member Modal */}
       <AddTeamMemberModal
