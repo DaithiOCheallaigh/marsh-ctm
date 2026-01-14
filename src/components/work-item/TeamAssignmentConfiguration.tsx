@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Trash2, ChevronDown, ChevronUp, AlertCircle, Star } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, AlertCircle, Star, Users, Briefcase, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,7 +19,7 @@ import {
   RoleChairConfig,
   TeamAssignmentValidationError 
 } from "@/types/teamAssignment";
-import { getTeamsForManager, getUniqueRolesForTeam, managerHasTeams } from "@/data/managerTeamMappings";
+import { getTeamsForManager, getUniqueRolesForTeam, managerHasTeams, getManagerById } from "@/data/managerTeamMappings";
 import { Team } from "@/data/teams";
 
 interface TeamAssignmentConfigurationProps {
@@ -30,6 +30,108 @@ interface TeamAssignmentConfigurationProps {
   onAdditionalTeamsChange: (teams: WorkItemTeamConfig[]) => void;
   isDirty?: boolean;
 }
+
+// Manager Synopsis Component
+const ManagerSynopsis = ({ managerId }: { managerId: string }) => {
+  const manager = getManagerById(managerId);
+  const teams = getTeamsForManager(managerId);
+  
+  if (!manager || teams.length === 0) return null;
+
+  // Calculate total unique roles across all teams
+  const allRoles = new Set<string>();
+  let totalChairs = 0;
+  
+  teams.forEach(team => {
+    team.roles.forEach(role => {
+      allRoles.add(role.roleName);
+      totalChairs++;
+    });
+  });
+
+  // Calculate capacity (simplified: available chairs / total chairs)
+  const capacityPercentage = Math.round((totalChairs * 0.7) / totalChairs * 100); // Mock 70% capacity
+
+  return (
+    <div className="bg-[hsl(var(--wq-bg-header))] rounded-lg p-4 mb-4 border border-[hsl(var(--wq-border))]">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <Users className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-primary">{manager.name}</p>
+          <p className="text-xs text-muted-foreground">{manager.role}</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-4">
+        {/* Teams */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Briefcase className="h-3.5 w-3.5" />
+            <span>Teams</span>
+          </div>
+          <p className="text-lg font-bold text-primary">{teams.length}</p>
+          <div className="flex flex-wrap gap-1">
+            {teams.slice(0, 3).map(team => (
+              <Badge 
+                key={team.id} 
+                variant="secondary" 
+                className="text-[10px] px-1.5 py-0 h-5"
+              >
+                {team.name}
+              </Badge>
+            ))}
+            {teams.length > 3 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
+                +{teams.length - 3}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Roles */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Users className="h-3.5 w-3.5" />
+            <span>Unique Roles</span>
+          </div>
+          <p className="text-lg font-bold text-primary">{allRoles.size}</p>
+          <p className="text-[10px] text-muted-foreground">
+            {totalChairs} total chairs
+          </p>
+        </div>
+
+        {/* Capacity */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <BarChart3 className="h-3.5 w-3.5" />
+            <span>Capacity</span>
+          </div>
+          <p className={cn(
+            "text-lg font-bold",
+            capacityPercentage >= 80 ? "text-[hsl(var(--wq-status-pending-text))]" :
+            capacityPercentage >= 50 ? "text-[hsl(var(--wq-priority-medium))]" :
+            "text-[hsl(var(--wq-status-completed-text))]"
+          )}>
+            {capacityPercentage}%
+          </p>
+          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+            <div 
+              className={cn(
+                "h-full rounded-full transition-all",
+                capacityPercentage >= 80 ? "bg-[hsl(var(--wq-status-pending-text))]" :
+                capacityPercentage >= 50 ? "bg-[hsl(var(--wq-priority-medium))]" :
+                "bg-[hsl(var(--wq-status-completed-text))]"
+              )}
+              style={{ width: `${capacityPercentage}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface RoleWithMaxChairs {
   id: string;
@@ -317,6 +419,9 @@ const TeamAssignmentConfiguration = ({
 
   return (
     <div className="space-y-4">
+      {/* Manager Synopsis */}
+      <ManagerSynopsis managerId={assignedToManagerId} />
+
       {/* Primary Team Selection */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
