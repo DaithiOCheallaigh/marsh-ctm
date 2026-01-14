@@ -15,7 +15,6 @@ import {
 } from "@/components/form/FormSelect";
 import { cn } from "@/lib/utils";
 import { Client } from "@/data/clients";
-import TeamMultiSelect, { SelectedTeam } from "./TeamMultiSelect";
 
 interface Attachment {
   id: string;
@@ -65,10 +64,6 @@ interface OnboardingFieldsProps {
   setAttachments?: (attachments: OnboardingAttachment[]) => void;
   existingWorkItems?: WorkItemBasic[];
   currentWorkType?: string;
-  // New: for using existing teams from TeamsContext
-  selectedTeams?: SelectedTeam[];
-  setSelectedTeams?: (teams: SelectedTeam[]) => void;
-  useExistingTeams?: boolean;
 }
 
 // B2B Insurance Industry Teams
@@ -284,9 +279,6 @@ const OnboardingFields = ({
   setAttachments,
   existingWorkItems = [],
   currentWorkType = "Onboarding",
-  selectedTeams = [],
-  setSelectedTeams,
-  useExistingTeams = false,
 }: OnboardingFieldsProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const dirtyContext = useFormDirtyContext();
@@ -485,33 +477,8 @@ const OnboardingFields = ({
         </>
       )}
 
-      {/* Team Selection - Using Existing Teams from TeamsContext */}
-      {showTeamConfig && useExistingTeams && setSelectedTeams && (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border-primary rounded-lg">
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
-            <span className="font-semibold text-primary">Team Selection</span>
-            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="px-4 pb-4 space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-text-secondary">
-                Select Teams<span className="text-[hsl(0,100%,50%)]">*</span>
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Choose from teams assigned to you. Multiple teams can be selected.
-              </p>
-              <TeamMultiSelect
-                selectedTeams={selectedTeams}
-                onTeamsChange={setSelectedTeams}
-                placeholder="Search and select teams..."
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-
-      {/* Team Role & Configuration - Legacy mode for manual team configuration */}
-      {showTeamConfig && !useExistingTeams && (
+      {/* Team Role & Configuration */}
+      {showTeamConfig && (
         <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border-primary rounded-lg">
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
             <span className="font-semibold text-primary">Team Role & Chair Configuration</span>
