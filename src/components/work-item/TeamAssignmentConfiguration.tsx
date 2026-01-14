@@ -316,40 +316,88 @@ const TeamAssignmentConfiguration = ({
   }
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border-primary rounded-lg">
-      <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-primary">Team Assignment Requirements</span>
-          <Badge variant="outline" className="text-xs">
-            {selectedTeamIds.length} team{selectedTeamIds.length !== 1 ? 's' : ''} selected
-          </Badge>
+    <div className="space-y-4">
+      {/* Primary Team Selection */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-medium text-primary">
+            Primary Team<span className="text-destructive">*</span>
+          </Label>
         </div>
-        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-      </CollapsibleTrigger>
+        
+        {!primaryTeam ? (
+          <FormSelect onValueChange={handlePrimaryTeamSelect}>
+            <FormSelectTrigger 
+              fieldName="primaryTeam"
+              className={cn(
+                "max-w-md",
+                !primaryTeam && "border-dashed"
+              )}
+            >
+              <FormSelectValue placeholder="Select primary team..." />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              {availableTeams.map(team => (
+                <FormSelectItem key={team.id} value={team.id}>
+                  <div className="flex items-center gap-2">
+                    <span>{team.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({team.roles.length} roles)
+                    </span>
+                  </div>
+                </FormSelectItem>
+              ))}
+            </FormSelectContent>
+          </FormSelect>
+        ) : (
+          <TeamCard
+            config={primaryTeam}
+            isPrimary={true}
+            availableRoles={getUniqueRolesForTeam(primaryTeam.teamId)}
+            onUpdate={handleUpdatePrimaryTeam}
+            onRemove={() => onPrimaryTeamChange(null)}
+            canRemove={true}
+            isDirty={isDirty}
+          />
+        )}
+      </div>
 
-      <CollapsibleContent className="px-4 pb-4 space-y-4">
-        {/* Primary Team Selection */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-primary" />
-            <Label className="text-sm font-medium text-primary">
-              Primary Team<span className="text-destructive">*</span>
-            </Label>
-          </div>
-          
-          {!primaryTeam ? (
-            <FormSelect onValueChange={handlePrimaryTeamSelect}>
+      {/* Additional Teams Section */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-[hsl(var(--wq-text-secondary))]">
+          Additional Teams (Optional)
+        </Label>
+
+        {/* Existing Additional Teams */}
+        {additionalTeams.map(team => (
+          <TeamCard
+            key={team.teamId}
+            config={team}
+            isPrimary={false}
+            availableRoles={getUniqueRolesForTeam(team.teamId)}
+            onUpdate={(updates) => handleUpdateAdditionalTeam(team.teamId, updates)}
+            onRemove={() => handleRemoveAdditionalTeam(team.teamId)}
+            canRemove={true}
+            isDirty={isDirty}
+          />
+        ))}
+
+        {/* Add Team Button/Dropdown */}
+        {unselectedTeams.length > 0 && (
+          <div className="flex items-center gap-3">
+            <FormSelect onValueChange={handleAddAdditionalTeam}>
               <FormSelectTrigger 
-                fieldName="primaryTeam"
-                className={cn(
-                  "max-w-md",
-                  !primaryTeam && "border-dashed"
-                )}
+                fieldName="additionalTeam"
+                className="max-w-md border-dashed"
               >
-                <FormSelectValue placeholder="Select primary team..." />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Plus className="h-4 w-4" />
+                  <span>Add another team...</span>
+                </div>
               </FormSelectTrigger>
               <FormSelectContent>
-                {availableTeams.map(team => (
+                {unselectedTeams.map(team => (
                   <FormSelectItem key={team.id} value={team.id}>
                     <div className="flex items-center gap-2">
                       <span>{team.name}</span>
@@ -361,84 +409,24 @@ const TeamAssignmentConfiguration = ({
                 ))}
               </FormSelectContent>
             </FormSelect>
-          ) : (
-            <TeamCard
-              config={primaryTeam}
-              isPrimary={true}
-              availableRoles={getUniqueRolesForTeam(primaryTeam.teamId)}
-              onUpdate={handleUpdatePrimaryTeam}
-              onRemove={() => onPrimaryTeamChange(null)}
-              canRemove={true}
-              isDirty={isDirty}
-            />
-          )}
-        </div>
-
-        {/* Additional Teams Section */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium text-[hsl(var(--wq-text-secondary))]">
-            Additional Teams (Optional)
-          </Label>
-
-          {/* Existing Additional Teams */}
-          {additionalTeams.map(team => (
-            <TeamCard
-              key={team.teamId}
-              config={team}
-              isPrimary={false}
-              availableRoles={getUniqueRolesForTeam(team.teamId)}
-              onUpdate={(updates) => handleUpdateAdditionalTeam(team.teamId, updates)}
-              onRemove={() => handleRemoveAdditionalTeam(team.teamId)}
-              canRemove={true}
-              isDirty={isDirty}
-            />
-          ))}
-
-          {/* Add Team Button/Dropdown */}
-          {unselectedTeams.length > 0 && (
-            <div className="flex items-center gap-3">
-              <FormSelect onValueChange={handleAddAdditionalTeam}>
-                <FormSelectTrigger 
-                  fieldName="additionalTeam"
-                  className="max-w-md border-dashed"
-                >
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Plus className="h-4 w-4" />
-                    <span>Add another team...</span>
-                  </div>
-                </FormSelectTrigger>
-                <FormSelectContent>
-                  {unselectedTeams.map(team => (
-                    <FormSelectItem key={team.id} value={team.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{team.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({team.roles.length} roles)
-                        </span>
-                      </div>
-                    </FormSelectItem>
-                  ))}
-                </FormSelectContent>
-              </FormSelect>
-            </div>
-          )}
-
-          {unselectedTeams.length === 0 && selectedTeamIds.length > 0 && (
-            <p className="text-xs text-muted-foreground italic">
-              All available teams have been added
-            </p>
-          )}
-        </div>
-
-        {/* Validation Summary */}
-        {primaryTeam && primaryTeam.roles.length === 0 && (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg">
-            <AlertCircle className="h-4 w-4" />
-            <span>Primary team must have at least one role with chair requirements defined</span>
           </div>
         )}
-      </CollapsibleContent>
-    </Collapsible>
+
+        {unselectedTeams.length === 0 && selectedTeamIds.length > 0 && (
+          <p className="text-xs text-muted-foreground italic">
+            All available teams have been added
+          </p>
+        )}
+      </div>
+
+      {/* Validation Summary */}
+      {primaryTeam && primaryTeam.roles.length === 0 && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg">
+          <AlertCircle className="h-4 w-4" />
+          <span>Primary team must have at least one role with chair requirements defined</span>
+        </div>
+      )}
+    </div>
   );
 };
 
