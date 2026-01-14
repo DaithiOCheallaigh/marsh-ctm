@@ -126,7 +126,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 <SortableHeader column="dueDate">Due Date</SortableHeader>
               </th>
               <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[160px]" scope="col">
-                <SortableHeader column="assignee">Assignee</SortableHeader>
+                <SortableHeader column="assignee">Assigned To</SortableHeader>
               </th>
               <th className="text-[hsl(0,0%,45%)] text-xs font-semibold tracking-[0.5px] text-left px-3 py-4 w-[100px]" scope="col">
                 <SortableHeader column="priority">Priority</SortableHeader>
