@@ -13,11 +13,10 @@ export const ExpertiseTag: React.FC<ExpertiseTagProps> = ({ label, onRemove, cla
       className={`
         inline-flex items-center gap-1 
         px-3 py-1 
-        bg-[hsl(200,80%,95%)] 
-        text-[hsl(220,100%,40%)] 
+        bg-[#F0F0F0] 
+        text-[#009DE0] 
         text-sm 
-        rounded-md 
-        border border-[hsl(200,80%,85%)]
+        rounded-md
         ${className}
       `}
     >
