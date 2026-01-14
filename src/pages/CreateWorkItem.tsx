@@ -27,16 +27,10 @@ import {
 import { getFieldStateClasses } from "@/components/form/FormDirtyContext";
 import { managers } from "@/data/teamMembers";
 import { Client } from "@/data/clients";
+import { WorkItemTeamConfig } from "@/types/teamAssignment";
 
 type WorkType = "" | "onboarding" | "new-joiner" | "leaver" | "offboarding";
 type Priority = "high" | "medium" | "low";
-
-interface TeamRole {
-  id: string;
-  teamType: string;
-  numberOfRoles: number;
-  roles: string[];
-}
 
 // Steps for the multi-step form
 const steps = [
@@ -90,9 +84,10 @@ const CreateWorkItem = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [onboardingDescription, setOnboardingDescription] = useState("");
   const [onboardingAttachments, setOnboardingAttachments] = useState<OnboardingAttachment[]>([]);
-  const [teamConfigurations, setTeamConfigurations] = useState<TeamRole[]>([
-    { id: "1", teamType: "", numberOfRoles: 2, roles: ["Chair 1", "Chair 2"] },
-  ]);
+  
+  // New team assignment state
+  const [primaryTeam, setPrimaryTeam] = useState<WorkItemTeamConfig | null>(null);
+  const [additionalTeams, setAdditionalTeams] = useState<WorkItemTeamConfig[]>([]);
 
   // Leaver fields
   const [leaverName, setLeaverName] = useState("");
@@ -138,14 +133,6 @@ const CreateWorkItem = () => {
         if (draft.workType === 'Onboarding') {
           setOnboardingClientName(draft.clientName);
           setOnboardingDescription(draft.description || '');
-          if (draft.teams) {
-            setTeamConfigurations(draft.teams.map((t, idx) => ({
-              id: String(idx + 1),
-              teamType: t.teamName,
-              numberOfRoles: t.roles.length,
-              roles: t.roles,
-            })));
-          }
         } else if (draft.workType === 'New Joiner') {
           setColleagueName(draft.clientName);
         } else if (draft.workType === 'Leaver') {
@@ -253,8 +240,8 @@ const CreateWorkItem = () => {
   // Validation for Step 3
   const isStep3Valid = () => {
     if (workType === "onboarding") {
-      return teamConfigurations.length > 0 && 
-        teamConfigurations.every(tc => tc.teamType !== "" && tc.roles.length > 0);
+      // Must have primary team with at least one role
+      return primaryTeam !== null && primaryTeam.roles.length > 0;
     }
     return true;
   };
@@ -315,11 +302,11 @@ const CreateWorkItem = () => {
       "offboarding": "Offboarding",
     };
 
-    // Build teams config for onboarding
-    const teams = workType === "onboarding" ? teamConfigurations.map(tc => ({
-      teamName: tc.teamType,
-      roles: tc.roles,
-    })) : undefined;
+    // Build teams config for onboarding using new structure
+    const teams = workType === "onboarding" && primaryTeam ? [
+      primaryTeam,
+      ...additionalTeams
+    ] : undefined;
 
     // Convert files to data URLs for persistence
     const convertToDataUrl = (file: File): Promise<string> => {
@@ -393,11 +380,11 @@ const CreateWorkItem = () => {
       "offboarding": "Offboarding",
     };
 
-    // Build teams config for onboarding
-    const teams = workType === "onboarding" ? teamConfigurations.map(tc => ({
-      teamName: tc.teamType,
-      roles: tc.roles,
-    })) : undefined;
+    // Build teams config for onboarding using new structure
+    const teams = workType === "onboarding" && primaryTeam ? [
+      primaryTeam,
+      ...additionalTeams
+    ] : undefined;
 
     // Convert files to data URLs for persistence
     const convertToDataUrl = (file: File): Promise<string> => {
@@ -646,8 +633,6 @@ const CreateWorkItem = () => {
                       setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
                       description={onboardingDescription}
                       setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
-                      teamConfigurations={teamConfigurations}
-                      setTeamConfigurations={(val) => { setTeamConfigurations(val); markDirty("teamConfigurations"); }}
                       selectedClient={selectedClient}
                       setSelectedClient={setSelectedClient}
                       showTeamConfig={false}
@@ -702,14 +687,17 @@ const CreateWorkItem = () => {
                       setClientName={(val) => { setOnboardingClientName(val); markDirty("onboardingClientName"); }}
                       description={onboardingDescription}
                       setDescription={(val) => { setOnboardingDescription(val); markDirty("onboardingDescription"); }}
-                      teamConfigurations={teamConfigurations}
-                      setTeamConfigurations={(val) => { setTeamConfigurations(val); markDirty("teamConfigurations"); }}
                       selectedClient={selectedClient}
                       setSelectedClient={setSelectedClient}
                       showTeamConfig={true}
                       showClientSearch={false}
                       attachments={onboardingAttachments}
                       setAttachments={(val) => { setOnboardingAttachments(val); markDirty("attachments"); }}
+                      assignedToManagerId={assignTo}
+                      primaryTeam={primaryTeam}
+                      additionalTeams={additionalTeams}
+                      onPrimaryTeamChange={(team) => { setPrimaryTeam(team); markDirty("teamAssignment"); }}
+                      onAdditionalTeamsChange={(teams) => { setAdditionalTeams(teams); markDirty("teamAssignment"); }}
                     />
                   )}
 
