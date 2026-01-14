@@ -54,78 +54,47 @@ const ManagerSynopsis = ({ managerId }: { managerId: string }) => {
 
   return (
     <div className="bg-[hsl(var(--wq-bg-header))] rounded-lg p-4 mb-4 border border-[hsl(var(--wq-border))]">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <Users className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-primary">{manager.name}</p>
-          <p className="text-xs text-muted-foreground">{manager.role}</p>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-3 gap-4">
-        {/* Teams */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Briefcase className="h-3.5 w-3.5" />
-            <span>Teams</span>
+      <div className="flex items-center justify-between">
+        {/* Manager Info */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Users className="h-4 w-4 text-primary" />
           </div>
-          <p className="text-lg font-bold text-primary">{teams.length}</p>
-          <div className="flex flex-wrap gap-1">
-            {teams.slice(0, 3).map(team => (
-              <Badge 
-                key={team.id} 
-                variant="secondary" 
-                className="text-[10px] px-1.5 py-0 h-5"
-              >
-                {team.name}
-              </Badge>
-            ))}
-            {teams.length > 3 && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
-                +{teams.length - 3}
-              </Badge>
-            )}
+          <div>
+            <p className="text-sm font-semibold text-primary">{manager.name}</p>
+            <p className="text-xs text-muted-foreground">{manager.role}</p>
           </div>
         </div>
 
-        {/* Roles */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Users className="h-3.5 w-3.5" />
-            <span>Unique Roles</span>
+        {/* Teams & Capacity */}
+        <div className="flex items-center gap-6">
+          {/* Teams */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Teams: {teams.length}</span>
+            <div className="flex gap-1">
+              {teams.map(team => (
+                <Badge 
+                  key={team.id} 
+                  variant="secondary" 
+                  className="text-[10px] px-1.5 py-0 h-5"
+                >
+                  {team.name}
+                </Badge>
+              ))}
+            </div>
           </div>
-          <p className="text-lg font-bold text-primary">{allRoles.size}</p>
-          <p className="text-[10px] text-muted-foreground">
-            {totalChairs} total chairs
-          </p>
-        </div>
 
-        {/* Capacity */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span>Capacity</span>
-          </div>
-          <p className={cn(
-            "text-lg font-bold",
-            capacityPercentage >= 80 ? "text-[hsl(var(--wq-status-pending-text))]" :
-            capacityPercentage >= 50 ? "text-[hsl(var(--wq-priority-medium))]" :
-            "text-[hsl(var(--wq-status-completed-text))]"
-          )}>
-            {capacityPercentage}%
-          </p>
-          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-            <div 
-              className={cn(
-                "h-full rounded-full transition-all",
-                capacityPercentage >= 80 ? "bg-[hsl(var(--wq-status-pending-text))]" :
-                capacityPercentage >= 50 ? "bg-[hsl(var(--wq-priority-medium))]" :
-                "bg-[hsl(var(--wq-status-completed-text))]"
-              )}
-              style={{ width: `${capacityPercentage}%` }}
-            />
+          {/* Capacity */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Overall Team Capacity:</span>
+            <span className={cn(
+              "text-sm font-semibold",
+              capacityPercentage >= 80 ? "text-[hsl(var(--wq-status-pending-text))]" :
+              capacityPercentage >= 50 ? "text-[hsl(var(--wq-priority-medium))]" :
+              "text-[hsl(var(--wq-status-completed-text))]"
+            )}>
+              {capacityPercentage}%
+            </span>
           </div>
         </div>
       </div>
