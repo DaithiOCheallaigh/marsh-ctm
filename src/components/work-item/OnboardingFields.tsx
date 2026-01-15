@@ -71,7 +71,7 @@ const AttachmentLimitsInfo = () => {
     <div className="text-xs text-muted-foreground bg-muted/30 rounded-md px-3 py-2 mt-2">
       <div className="flex items-center gap-1 mb-1">
         <AlertCircle className="h-3 w-3" />
-        <span className="font-medium">Attachment Limits (TBC)</span>
+        <span className="font-medium">Attachment Limits</span>
       </div>
       <ul className="list-disc list-inside space-y-0.5 ml-1">
         <li>File types: {limits.allowedTypes.join(', ').toUpperCase()}</li>
