@@ -573,7 +573,7 @@ const CreateWorkItem = () => {
                     {/* Assign To - Managers Only */}
                     <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                       <Label className="text-right text-sm font-medium text-text-secondary">
-                        Assign To<span className="text-[hsl(0,100%,50%)]">*</span>
+                        Assigned To<span className="text-[hsl(0,100%,50%)]">*</span>
                       </Label>
                       <div className="space-y-1">
                         <FormSelect value={assignTo} onValueChange={handleAssignToChange}>
