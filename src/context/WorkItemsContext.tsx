@@ -1,14 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { WorkItemTeamConfig, RoleChairConfig } from '@/types/teamAssignment';
+import { WorkItemTeamConfig, RoleConfig } from '@/types/teamAssignment';
 
 // Re-export for backward compatibility
 export type TeamConfig = WorkItemTeamConfig;
 
-// Helper to create RoleChairConfig from role name
-const createRole = (roleName: string, chairRequirement: number = 1): RoleChairConfig => ({
+// Helper to create RoleConfig from role name (simplified - no chair management in V1)
+const createRole = (roleName: string): RoleConfig => ({
   roleId: `role-${roleName.toLowerCase().replace(/\s+/g, '-')}`,
   roleName,
-  chairRequirement,
 });
 
 export interface Attachment {
@@ -29,6 +28,7 @@ export interface WorkItem {
   dateCreated: string;
   dueDate: string;
   assignee: string;
+  delegateManager?: string;
   priority: 'High' | 'Medium' | 'Low';
   status: 'Pending' | 'Completed' | 'Draft';
   description?: string;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Paperclip, FileText, Image, File } from 'lucide-react';
+import { ChevronDown, ChevronUp, Paperclip, FileText, Image, File, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WorkItem } from '@/context/WorkItemsContext';
 
@@ -26,8 +26,9 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Get team names from work item
+  // Get team names from work item with truncation
   const teamNames = workItem.teams?.map(t => t.teamName).join(', ') || 'Not Assigned';
+  const isReadOnly = workItem.status === 'Completed' || workItem.isReadOnly;
 
   return (
     <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
@@ -35,7 +36,15 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between px-6 py-4 hover:bg-[hsl(var(--wq-bg-hover))] transition-colors"
       >
-        <h3 className="text-primary font-bold text-sm">Work Details</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-primary font-bold text-sm">Work Details</h3>
+          {isReadOnly && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-[hsl(var(--wq-bg-muted))] rounded-full">
+              <Lock className="w-3 h-3 text-[hsl(var(--wq-text-secondary))]" />
+              <span className="text-xs text-[hsl(var(--wq-text-secondary))] font-medium">Read Only</span>
+            </div>
+          )}
+        </div>
         {isExpanded ? (
           <ChevronUp className="w-5 h-5 text-[hsl(var(--wq-text-secondary))]" />
         ) : (
@@ -50,14 +59,17 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
         )}
       >
         <div className="px-6 py-5 border-t border-[hsl(var(--wq-border))]">
+          {/* Description - Full Width Row */}
+          <div className="mb-5 pb-5 border-b border-[hsl(var(--wq-border))]">
+            <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-2">Description</p>
+            <p className="text-primary text-sm">
+              {workItem.description || "New client requires team assignment for upcoming project"}
+            </p>
+          </div>
+
+          {/* Main Details Grid */}
           <div className="grid grid-cols-3 gap-x-12 gap-y-5">
             {/* Row 1 */}
-            <div>
-              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Description</p>
-              <p className="text-primary text-sm font-medium">
-                {workItem.description || "New client requires team assignment for upcoming project"}
-              </p>
-            </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">CN Number</p>
               <p className="text-primary text-sm font-medium">{workItem.cnNumber || 'N/A'}</p>
@@ -66,22 +78,25 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Account Owner</p>
               <p className="text-primary text-sm font-medium">{workItem.accountOwner || 'Unassigned'}</p>
             </div>
-            
-            {/* Row 2 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Location</p>
               <p className="text-primary text-sm font-medium">{workItem.location || 'Not Specified'}</p>
             </div>
+            
+            {/* Row 2 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Team Names</p>
-              <p className="text-primary text-sm font-medium">{teamNames}</p>
+              <p 
+                className="text-primary text-sm font-medium truncate max-w-[200px]"
+                title={teamNames}
+              >
+                {teamNames}
+              </p>
             </div>
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Date Created</p>
               <p className="text-primary text-sm font-medium">{workItem.dateCreated}</p>
             </div>
-
-            {/* Row 3 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Roles Assigned</p>
               <div className="flex items-center gap-2">
@@ -96,6 +111,8 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Row 3 */}
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Due Date</p>
               <p className="text-primary text-sm font-medium">{workItem.dueDate}</p>
@@ -103,6 +120,10 @@ export const WorkDetailsCard: React.FC<WorkDetailsCardProps> = ({
             <div>
               <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Assigned To</p>
               <p className="text-primary text-sm font-medium">{workItem.assignee}</p>
+            </div>
+            <div>
+              <p className="text-[hsl(var(--wq-text-secondary))] text-xs mb-1">Delegate Manager</p>
+              <p className="text-primary text-sm font-medium">{workItem.delegateManager || 'Not Assigned'}</p>
             </div>
           </div>
 

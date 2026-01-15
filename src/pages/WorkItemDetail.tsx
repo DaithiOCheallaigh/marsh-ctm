@@ -73,16 +73,14 @@ const WorkItemDetail = () => {
       ];
     }
 
-    // Build roles from teams configuration
+    // Build roles from teams configuration (simplified - no chair management in V1)
     const roles: RoleConfig[] = [];
     item.teams.forEach((team) => {
       team.roles.forEach((roleConfig) => {
         roles.push({
           title: `${team.teamName} (${roleConfig.roleName})`,
-          chairs: Array.from({ length: roleConfig.chairRequirement }, (_, i) => ({
-            chairLabel: `Primary Chair ${i + 1}`,
-          })),
-          totalRoles: roleConfig.chairRequirement,
+          chairs: [{ chairLabel: "Primary" }],
+          totalRoles: 1,
         });
       });
     });
