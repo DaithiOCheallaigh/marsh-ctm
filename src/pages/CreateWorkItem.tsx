@@ -737,7 +737,7 @@ const CreateWorkItem = () => {
                 )}>
                   <CollapsibleTrigger className="w-full" disabled={!isSection2Complete()}>
                     <CollapsibleSectionHeader 
-                      title="Team Configuration" 
+                      title="Assignment Requirement"
                       sectionNumber={3} 
                       isComplete={isSection3Complete()}
                       isDisabled={!isSection2Complete()}
