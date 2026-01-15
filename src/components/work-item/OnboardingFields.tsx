@@ -2,13 +2,13 @@ import { useState, useRef, DragEvent } from "react";
 import { Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Paperclip, X, FileText, Image, File } from "lucide-react";
+import { Paperclip, X, FileText, Image, File, AlertCircle } from "lucide-react";
 import ClientSearchInput from "@/components/ClientSearchInput";
 import { useFormDirtyContext, getFieldStateClasses } from "@/components/form/FormDirtyContext";
 import { cn } from "@/lib/utils";
 import { Client } from "@/data/clients";
 import TeamAssignmentConfiguration from "./TeamAssignmentConfiguration";
-import { WorkItemTeamConfig } from "@/types/teamAssignment";
+import { WorkItemTeamConfig, DEFAULT_ATTACHMENT_LIMITS } from "@/types/teamAssignment";
 
 export interface OnboardingAttachment {
   id: string;
@@ -63,6 +63,25 @@ const getFileIcon = (type: string) => {
   return File;
 };
 
+// Attachment limits info component
+const AttachmentLimitsInfo = () => {
+  const limits = DEFAULT_ATTACHMENT_LIMITS;
+  
+  return (
+    <div className="text-xs text-muted-foreground bg-muted/30 rounded-md px-3 py-2 mt-2">
+      <div className="flex items-center gap-1 mb-1">
+        <AlertCircle className="h-3 w-3" />
+        <span className="font-medium">Attachment Limits (TBC)</span>
+      </div>
+      <ul className="list-disc list-inside space-y-0.5 ml-1">
+        <li>File types: {limits.allowedTypes.join(', ').toUpperCase()}</li>
+        <li>Max file size: {formatFileSize(limits.maxFileSize)}</li>
+        <li>Max files: {limits.maxFiles}</li>
+      </ul>
+    </div>
+  );
+};
+
 interface DescriptionNotesWithAttachmentsProps {
   description: string;
   setDescription: (value: string) => void;
@@ -80,6 +99,7 @@ const DescriptionNotesWithAttachments = ({
 }: DescriptionNotesWithAttachmentsProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const limits = DEFAULT_ATTACHMENT_LIMITS;
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -102,8 +122,30 @@ const DescriptionNotesWithAttachments = ({
     addFiles(files);
   };
 
+  const validateFile = (file: File): { valid: boolean; error?: string } => {
+    // Check file size
+    if (file.size > limits.maxFileSize) {
+      return { valid: false, error: `File too large: ${file.name}` };
+    }
+    
+    // Check file count
+    if (attachments.length >= limits.maxFiles) {
+      return { valid: false, error: `Maximum ${limits.maxFiles} files allowed` };
+    }
+    
+    return { valid: true };
+  };
+
   const addFiles = (files: File[]) => {
-    const newAttachments: OnboardingAttachment[] = files.map((file) => ({
+    const validFiles = files.filter(file => {
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        console.warn(validation.error);
+      }
+      return validation.valid;
+    });
+
+    const newAttachments: OnboardingAttachment[] = validFiles.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: file.name,
       size: file.size,
@@ -129,10 +171,8 @@ const DescriptionNotesWithAttachments = ({
   };
 
   return (
-    <div className="bg-[#009DE0]/10 rounded-lg p-4 space-y-3 border border-[#009DE0]/30">
-      <Label className="text-sm font-medium text-text-secondary">
-        Description Notes (Optional)
-      </Label>
+    <div className="space-y-4">
+      {/* Description field */}
       <div className="space-y-1">
         <Label className="text-sm font-semibold text-primary">Task Description</Label>
         <textarea
@@ -140,7 +180,7 @@ const DescriptionNotesWithAttachments = ({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Enter details about this onboarding request..."
           className={cn(
-            "flex min-h-[80px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all duration-200",
+            "flex min-h-[100px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all duration-200 border",
             getFieldStateClasses(isFieldDirty("onboardingDescription"))
           )}
           maxLength={1000}
@@ -185,15 +225,15 @@ const DescriptionNotesWithAttachments = ({
             <p className="text-sm text-muted-foreground">
               {isDragging ? "Drop files here" : "Drag & drop files or click to browse"}
             </p>
-            <p className="text-xs text-muted-foreground">
-              Supports PDF, Word, Excel, and image files
-            </p>
           </div>
         </div>
 
+        {/* Attachment Limits Info */}
+        <AttachmentLimitsInfo />
+
         {/* Attached Files List */}
         {attachments.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2 mt-3">
             {attachments.map((attachment) => {
               const FileIcon = getFileIcon(attachment.type);
               return (
@@ -252,7 +292,7 @@ const OnboardingFields = ({
     return dirtyContext ? dirtyContext.isDirty(fieldName) : false;
   };
 
-  // Check if client already has a pending work item
+  // Check if client already has a pending work item (same manager only in V1)
   const getDuplicateWorkItem = (client: Client | null, name: string) => {
     const normalizeName = (raw: string) => raw.replace(/\s*\([^)]*\)\s*$/, "").trim().toLowerCase();
 
@@ -355,11 +395,8 @@ const OnboardingFields = ({
             </div>
           </div>
 
-          {/* Description Notes with Attachments */}
-          <div className="grid grid-cols-[180px_1fr] items-start gap-4">
-            <Label className="text-right text-sm font-medium text-text-secondary pt-2">
-              Description
-            </Label>
+          {/* Description Notes with Attachments - Full Width */}
+          <div className="border-t border-[hsl(var(--wq-border))] pt-6">
             <DescriptionNotesWithAttachments
               description={description}
               setDescription={setDescription}
