@@ -58,7 +58,7 @@ export default function AddTeam() {
       oversiteManager: '',
     });
     
-    navigate(`/team-setup/${newTeam.id}`);
+    navigate('/team-setup');
   };
 
   const handleCancel = () => {
