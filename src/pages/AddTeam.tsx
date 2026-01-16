@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Plus } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -18,8 +18,24 @@ export default function AddTeam() {
   const [qualifiers, setQualifiers] = useState<string[]>([]);
   const [teamBase, setTeamBase] = useState<'Workday' | 'Manual Select'>('Workday');
   const [isQualifierDropdownOpen, setIsQualifierDropdownOpen] = useState(false);
+  const [newQualifierInput, setNewQualifierInput] = useState('');
 
   const availableToAdd = availableQualifiers.filter(q => !qualifiers.includes(q));
+
+  const handleAddCustomQualifier = () => {
+    const trimmed = newQualifierInput.trim();
+    if (trimmed && !qualifiers.includes(trimmed)) {
+      setQualifiers(prev => [...prev, trimmed]);
+      setNewQualifierInput('');
+    }
+  };
+
+  const handleQualifierKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddCustomQualifier();
+    }
+  };
 
   const handleAddQualifier = (qualifier: string) => {
     setQualifiers(prev => [...prev, qualifier]);
@@ -128,24 +144,35 @@ export default function AddTeam() {
                     </div>
                   )}
 
-                  {/* Dropdown */}
+                  {/* Custom Input with Dropdown */}
                   <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setIsQualifierDropdownOpen(!isQualifierDropdownOpen)}
-                      className="
-                        w-full px-4 py-2.5
-                        flex items-center justify-between
-                        border border-[hsl(var(--wq-accent))] rounded-lg
-                        text-left text-sm
-                        text-[hsl(var(--wq-text-muted))]
-                        hover:border-[hsl(var(--wq-accent))]
-                        transition-colors bg-white
-                      "
-                    >
-                      [New Qualifier]
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          value={newQualifierInput}
+                          onChange={(e) => setNewQualifierInput(e.target.value)}
+                          onKeyDown={handleQualifierKeyDown}
+                          onFocus={() => setIsQualifierDropdownOpen(true)}
+                          placeholder="Type or select a qualifier"
+                          className="border-[hsl(var(--wq-accent))] focus:border-[hsl(var(--wq-accent))] focus:ring-[hsl(var(--wq-accent))] pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setIsQualifierDropdownOpen(!isQualifierDropdownOpen)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                        >
+                          <ChevronDown className="w-4 h-4 text-[hsl(var(--wq-text-muted))]" />
+                        </button>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleAddCustomQualifier}
+                        disabled={!newQualifierInput.trim() || qualifiers.includes(newQualifierInput.trim())}
+                        className="px-3 bg-[hsl(var(--wq-accent))] text-white hover:bg-[hsl(var(--wq-accent))]/90 disabled:opacity-50"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
                     
                     {isQualifierDropdownOpen && availableToAdd.length > 0 && (
                       <div className="
@@ -154,7 +181,9 @@ export default function AddTeam() {
                         shadow-lg z-50
                         max-h-48 overflow-y-auto
                       ">
-                        {availableToAdd.map(qualifier => (
+                        {availableToAdd
+                          .filter(q => q.toLowerCase().includes(newQualifierInput.toLowerCase()))
+                          .map(qualifier => (
                           <button
                             key={qualifier}
                             type="button"
@@ -167,7 +196,7 @@ export default function AddTeam() {
                               transition-colors
                             "
                           >
-                            [{qualifier}]
+                            {qualifier}
                           </button>
                         ))}
                       </div>
