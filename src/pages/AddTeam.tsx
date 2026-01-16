@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ChevronDown } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
@@ -180,23 +181,24 @@ export default function AddTeam() {
                 <label className="text-sm text-[hsl(var(--wq-text-secondary))] text-right">
                   Team Base
                 </label>
-                <div className="relative">
-                  <select
-                    value={teamBase}
-                    onChange={(e) => setTeamBase(e.target.value as 'Workday' | 'Manual Select')}
-                    className="
-                      w-full px-4 py-2.5
-                      border border-[hsl(var(--wq-accent))] rounded-lg
-                      text-sm text-[hsl(var(--wq-text-secondary))]
-                      focus:outline-none focus:ring-2 focus:ring-[hsl(var(--wq-accent))]
-                      bg-white appearance-none
-                    "
-                  >
-                    <option value="Workday">Workday</option>
-                    <option value="Manual Select">Manual Select</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--wq-text-muted))] pointer-events-none" />
-                </div>
+                <RadioGroup
+                  value={teamBase}
+                  onValueChange={(value) => setTeamBase(value as 'Workday' | 'Manual Select')}
+                  className="flex items-center gap-6"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="Workday" id="team-base-workday" />
+                    <label htmlFor="team-base-workday" className="text-sm text-[hsl(var(--wq-text-secondary))] cursor-pointer">
+                      Workday
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="Manual Select" id="team-base-manual" />
+                    <label htmlFor="team-base-manual" className="text-sm text-[hsl(var(--wq-text-secondary))] cursor-pointer">
+                      Manual Select
+                    </label>
+                  </div>
+                </RadioGroup>
               </div>
 
               {/* Actions */}
