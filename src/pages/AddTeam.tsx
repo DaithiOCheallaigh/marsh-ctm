@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronDown, Plus } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -146,32 +146,22 @@ export default function AddTeam() {
 
                   {/* Custom Input with Dropdown */}
                   <div className="relative">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Input
-                          value={newQualifierInput}
-                          onChange={(e) => setNewQualifierInput(e.target.value)}
-                          onKeyDown={handleQualifierKeyDown}
-                          onFocus={() => setIsQualifierDropdownOpen(true)}
-                          placeholder="Type or select a qualifier"
-                          className="border-[hsl(var(--wq-accent))] focus:border-[hsl(var(--wq-accent))] focus:ring-[hsl(var(--wq-accent))] pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setIsQualifierDropdownOpen(!isQualifierDropdownOpen)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2"
-                        >
-                          <ChevronDown className="w-4 h-4 text-[hsl(var(--wq-text-muted))]" />
-                        </button>
-                      </div>
-                      <Button
+                    <div className="relative">
+                      <Input
+                        value={newQualifierInput}
+                        onChange={(e) => setNewQualifierInput(e.target.value)}
+                        onKeyDown={handleQualifierKeyDown}
+                        onFocus={() => setIsQualifierDropdownOpen(true)}
+                        placeholder="Type or select a qualifier"
+                        className="border-[hsl(var(--wq-accent))] focus:border-[hsl(var(--wq-accent))] focus:ring-[hsl(var(--wq-accent))] pr-10"
+                      />
+                      <button
                         type="button"
-                        onClick={handleAddCustomQualifier}
-                        disabled={!newQualifierInput.trim() || qualifiers.includes(newQualifierInput.trim())}
-                        className="px-3 bg-[hsl(var(--wq-accent))] text-white hover:bg-[hsl(var(--wq-accent))]/90 disabled:opacity-50"
+                        onClick={() => setIsQualifierDropdownOpen(!isQualifierDropdownOpen)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
                       >
-                        <Plus className="w-4 h-4" />
-                      </Button>
+                        <ChevronDown className="w-4 h-4 text-[hsl(var(--wq-text-muted))]" />
+                      </button>
                     </div>
                     
                     {isQualifierDropdownOpen && availableToAdd.length > 0 && (
