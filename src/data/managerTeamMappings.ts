@@ -42,14 +42,18 @@ export const managerTeamMappings: ManagerTeamMapping[] = [
 
 /**
  * Get teams available for a specific manager
+ * Only returns teams that have at least one role configured
  * @param managerId The ID of the manager
- * @returns Array of teams the manager has access to
+ * @returns Array of teams the manager has access to (with roles)
  */
 export const getTeamsForManager = (managerId: string) => {
   const mapping = managerTeamMappings.find(m => m.managerId === managerId);
   if (!mapping) return [];
   
-  return teamsData.filter(team => mapping.teamIds.includes(team.id));
+  // Filter to only include teams that have roles configured
+  return teamsData.filter(team => 
+    mapping.teamIds.includes(team.id) && team.roles.length > 0
+  );
 };
 
 /**
