@@ -332,7 +332,7 @@ const WorkItemDetail = () => {
             {/* My Assignments Section */}
             <div className="mt-6">
               <h3 className="text-primary font-bold text-base mb-4">
-                My Assignments
+                Assignment Requirements
               </h3>
               <div className="space-y-4">
                 {roles.map((role, roleIndex) => (
