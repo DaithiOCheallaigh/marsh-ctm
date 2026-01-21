@@ -1,18 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search, RotateCcw, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, RotateCcw } from 'lucide-react';
 import { TeamMemberCard } from './TeamMemberCard';
-import { TeamMember, teamMembers, searchTeamMembers } from '@/data/teamMembers';
+import { TeamMember, searchTeamMembers } from '@/data/teamMembers';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,11 +59,13 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const [unassignChairIndex, setUnassignChairIndex] = useState<number | null>(null);
 
   // Memoized filtered members using debounced search query
-  const filteredMembers = useMemo(() => 
-    searchTeamMembers(debouncedSearchQuery),
-    [debouncedSearchQuery]
-  );
-  const displayedMembers = filteredMembers.slice(0, displayCount);
+  // Filter out members that are already assigned to other roles
+  const filteredMembers = useMemo(() => {
+    const searchResults = searchTeamMembers(debouncedSearchQuery);
+    return searchResults.filter(member => !checkDuplicateAssignment(member).isAssigned);
+  }, [debouncedSearchQuery, checkDuplicateAssignment]);
+  
+  const displayedMembers = showTable ? filteredMembers : filteredMembers.slice(0, displayCount);
 
   // Reset search and selection when collapsing
   useEffect(() => {
@@ -304,124 +297,36 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                     </div>
                   )}
 
-                  {/* Team members list or table */}
+                  {/* Team members list - always show as cards */}
                   {filteredMembers.length > 0 && (
                     <>
-                      {showTable ? (
-                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-[hsl(var(--wq-bg-header))] hover:bg-[hsl(var(--wq-bg-header))]">
-                                <TableHead className="w-12 py-3 px-4 text-xs font-bold uppercase text-primary">Select</TableHead>
-                                <TableHead className="py-3 px-4 text-xs font-bold uppercase text-primary">Name</TableHead>
-                                <TableHead className="py-3 px-4 text-xs font-bold uppercase text-primary">Role</TableHead>
-                                <TableHead className="py-3 px-4 text-xs font-bold uppercase text-primary">Location</TableHead>
-                                <TableHead className="py-3 px-4 text-xs font-bold uppercase text-primary">Expertise</TableHead>
-                                <TableHead className="py-3 px-4 text-xs font-bold uppercase text-primary">Capacity</TableHead>
-                                <TableHead className="py-3 px-4 text-xs font-bold uppercase text-primary">Match Score</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {filteredMembers.map((member, index) => {
-                                const duplicateCheck = checkDuplicateAssignment(member);
-                                const isDisabled = duplicateCheck.isAssigned;
-                                
-                                return (
-                                  <TableRow 
-                                    key={member.id}
-                                    className={`
-                                      hover:bg-[hsl(var(--wq-bg-hover))] cursor-pointer 
-                                      ${selectedMember?.id === member.id ? 'bg-accent/5' : ''} 
-                                      ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-                                    `}
-                                    onClick={() => !isDisabled && handleMemberSelect(member)}
-                                  >
-                                    <TableCell className="py-3 px-4">
-                                      <Checkbox 
-                                        checked={selectedMember?.id === member.id}
-                                        onCheckedChange={() => !isDisabled && handleMemberSelect(member)}
-                                        disabled={isDisabled}
-                                        className="border-[hsl(var(--wq-border))]"
-                                      />
-                                    </TableCell>
-                                    <TableCell className="py-3 px-4">
-                                      <div>
-                                        <p className="text-primary font-medium text-sm">{member.name}</p>
-                                        {index === 0 && member.matchScore === 100 && (
-                                          <span className="inline-block mt-1 px-2 py-0.5 bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] text-xs font-medium rounded-full border border-[hsl(var(--wq-status-completed-text))]">
-                                            Best Match
-                                          </span>
-                                        )}
-                                        {isDisabled && (
-                                          <span className="inline-block mt-1 px-2 py-0.5 bg-destructive/10 text-destructive text-xs font-medium rounded-full">
-                                            Assigned to {duplicateCheck.roleName}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="py-3 px-4 text-[hsl(var(--wq-text-secondary))] text-sm">{member.role}</TableCell>
-                                    <TableCell className="py-3 px-4 text-[hsl(var(--wq-text-secondary))] text-sm">{member.location}</TableCell>
-                                    <TableCell className="py-3 px-4 text-[hsl(var(--wq-text-secondary))] text-sm">{member.expertise.join(', ')}</TableCell>
-                                    <TableCell className="py-3 px-4">
-                                      <span className={`px-2 py-1 rounded text-sm ${
-                                        member.hasCapacity 
-                                          ? 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))]'
-                                          : 'bg-destructive/10 text-destructive'
-                                      }`}>
-                                        {member.capacity}%
-                                      </span>
-                                    </TableCell>
-                                    <TableCell className="py-3 px-4">
-                                      <span className={`font-medium ${
-                                        member.matchScore >= 80 ? 'text-[hsl(var(--wq-status-completed-text))]' :
-                                        member.matchScore >= 60 ? 'text-[hsl(var(--wq-status-pending-text))]' :
-                                        'text-[hsl(var(--wq-text-secondary))]'
-                                      }`}>
-                                        {member.matchScore}
-                                      </span>
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table>
+                      {/* Selected member card */}
+                      {selectedMember && (
+                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden mb-3">
+                          <TeamMemberCard
+                            member={selectedMember}
+                            isSelected={true}
+                            onSelect={handleMemberSelect}
+                            showBestMatch={selectedMember.matchScore === 100}
+                            capacityIncrease={CAPACITY_INCREASE}
+                            onCapacityChange={handleCapacityChange}
+                          />
                         </div>
-                      ) : (
-                        <>
-                          {/* Selected member card */}
-                          {selectedMember && (
-                            <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden mb-3">
-                              <TeamMemberCard
-                                member={selectedMember}
-                                isSelected={true}
-                                onSelect={handleMemberSelect}
-                                showBestMatch={selectedMember.matchScore === 100}
-                                capacityIncrease={CAPACITY_INCREASE}
-                                onCapacityChange={handleCapacityChange}
-                              />
-                            </div>
-                          )}
-                          
-                          {/* Other members when no selection */}
-                          {!selectedMember && (
-                            <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
-                              {displayedMembers.map((member, index) => {
-                                const duplicateCheck = checkDuplicateAssignment(member);
-                                return (
-                                  <TeamMemberCard
-                                    key={member.id}
-                                    member={member}
-                                    isSelected={selectedMember?.id === member.id}
-                                    onSelect={handleMemberSelect}
-                                    showBestMatch={index === 0 && member.matchScore === 100}
-                                    isDisabled={duplicateCheck.isAssigned}
-                                    disabledReason={duplicateCheck.roleName ? `Assigned to ${duplicateCheck.roleName}` : undefined}
-                                  />
-                                );
-                              })}
-                            </div>
-                          )}
-                        </>
+                      )}
+                      
+                      {/* Other members when no selection */}
+                      {!selectedMember && (
+                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
+                          {displayedMembers.map((member, index) => (
+                            <TeamMemberCard
+                              key={member.id}
+                              member={member}
+                              isSelected={selectedMember?.id === member.id}
+                              onSelect={handleMemberSelect}
+                              showBestMatch={index === 0 && member.matchScore === 100}
+                            />
+                          ))}
+                        </div>
                       )}
                     </>
                   )}
@@ -429,7 +334,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                   {/* Show more / Show less */}
                   {!selectedMember && filteredMembers.length > 0 && (
                     <div className="flex flex-col items-center mt-3 gap-2">
-                      {!showTable && displayCount < filteredMembers.length && (
+                      {!showTable && filteredMembers.length > displayCount && (
                         <button
                           onClick={handleShowMore}
                           className="text-primary text-sm font-medium hover:underline"
@@ -446,7 +351,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                         </button>
                       )}
                       <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
-                        Displaying: {showTable ? filteredMembers.length : displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
+                        Displaying: {displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
                       </span>
                     </div>
                   )}
