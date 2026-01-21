@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight, FolderOpen, Folder } from 'lucide-react';
+import { ChevronDown, ChevronRight, Users } from 'lucide-react';
 import { RoleAssignmentAccordion } from './RoleAssignmentAccordion';
 import { TeamMember } from '@/data/teamMembers';
 
@@ -63,11 +63,7 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
         className="w-full flex items-center justify-between px-6 py-4 hover:bg-[hsl(var(--wq-bg-hover))] transition-colors"
       >
         <div className="flex items-center gap-3">
-          {isExpanded ? (
-            <FolderOpen className="w-5 h-5 text-primary" />
-          ) : (
-            <Folder className="w-5 h-5 text-[hsl(var(--wq-text-secondary))]" />
-          )}
+          <Users className={`w-5 h-5 ${isExpanded ? 'text-primary' : 'text-[hsl(var(--wq-text-secondary))]'}`} />
           <div className="flex items-center gap-2">
             <h3 className="text-primary font-bold text-base">{teamName}</h3>
             {isPrimary && (
