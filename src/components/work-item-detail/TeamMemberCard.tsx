@@ -1,5 +1,5 @@
-import React from 'react';
-import { CheckCircle2, AlertCircle, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle2, AlertCircle, Check, AlertTriangle } from 'lucide-react';
 import { TeamMember } from '@/data/teamMembers';
 
 interface TeamMemberCardProps {
@@ -9,6 +9,8 @@ interface TeamMemberCardProps {
   showBestMatch?: boolean;
   isDisabled?: boolean;
   disabledReason?: string;
+  capacityIncrease?: number;
+  onCapacityChange?: (newCapacity: number) => void;
 }
 
 export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
@@ -18,11 +20,43 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   showBestMatch = false,
   isDisabled = false,
   disabledReason,
+  capacityIncrease = 20,
+  onCapacityChange,
 }) => {
+  // Calculate projected capacity when selected
+  const projectedCapacity = isSelected ? member.capacity + capacityIncrease : member.capacity;
+  const [editableCapacity, setEditableCapacity] = useState(projectedCapacity);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Update editable capacity when selection changes or member changes
+  useEffect(() => {
+    setEditableCapacity(isSelected ? member.capacity + capacityIncrease : member.capacity);
+  }, [isSelected, member.capacity, capacityIncrease]);
+
+  const isOverCapacity = isSelected && editableCapacity > 100;
+
   const getMatchScoreColor = (score: number) => {
     if (score >= 80) return 'text-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]';
     if (score >= 60) return 'text-[hsl(var(--wq-status-pending-text))] bg-[hsl(var(--wq-status-pending-bg))]';
     return 'text-[hsl(var(--wq-text-secondary))] bg-[hsl(var(--wq-bg-muted))]';
+  };
+
+  const handleCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value) && value >= 0 && value <= 200) {
+      setEditableCapacity(value);
+      onCapacityChange?.(value);
+    }
+  };
+
+  const handleCapacityBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleCapacityKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setIsEditing(false);
+    }
   };
 
   return (
@@ -122,13 +156,59 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             <span>Expertise: {member.expertise.join(', ')}</span>
             <span className="flex items-center gap-1">
               Capacity: 
-              <span className={`px-1.5 py-0.5 rounded ${
-                member.hasCapacity 
-                  ? 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))]'
-                  : 'bg-destructive/10 text-destructive'
-              }`}>
-                {member.capacity}%
-              </span>
+              {isSelected ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="text-[hsl(var(--wq-text-muted))] line-through">{member.capacity}%</span>
+                  <span className="text-[hsl(var(--wq-text-secondary))]">→</span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={editableCapacity}
+                      onChange={handleCapacityChange}
+                      onBlur={handleCapacityBlur}
+                      onKeyDown={handleCapacityKeyDown}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                      min={0}
+                      max={200}
+                      className={`w-14 px-1.5 py-0.5 rounded text-center text-xs font-medium border focus:outline-none focus:ring-1 ${
+                        isOverCapacity
+                          ? 'bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))] border-[hsl(var(--wq-status-pending-text))] focus:ring-[hsl(var(--wq-status-pending-text))]'
+                          : 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))] border-[hsl(var(--wq-border))] focus:ring-accent'
+                      }`}
+                    />
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditing(true);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-xs font-medium hover:ring-1 hover:ring-accent transition-all ${
+                        isOverCapacity
+                          ? 'bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))]'
+                          : 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))]'
+                      }`}
+                      title="Click to edit capacity"
+                    >
+                      {editableCapacity}%
+                    </button>
+                  )}
+                  {isOverCapacity && (
+                    <span className="flex items-center gap-1 text-[hsl(var(--wq-status-pending-text))]">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span className="text-xs">Over capacity</span>
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span className={`px-1.5 py-0.5 rounded ${
+                  member.hasCapacity 
+                    ? 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))]'
+                    : 'bg-destructive/10 text-destructive'
+                }`}>
+                  {member.capacity}%
+                </span>
+              )}
             </span>
           </div>
         </div>
