@@ -7,6 +7,7 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
+  workloadPercentage?: number;
 }
 
 interface TeamRole {
@@ -21,11 +22,12 @@ interface TeamAccordionProps {
   teamName: string;
   isPrimary: boolean;
   roles: TeamRole[];
-  onAssign: (roleId: string, chairIndex: number, member: TeamMember, notes: string) => void;
+  onAssign: (roleId: string, chairIndex: number, member: TeamMember, notes: string, workloadPercentage: number) => void;
   onUnassign: (roleId: string, chairIndex: number) => void;
   expandedRoleId: string | null;
   onToggleRole: (roleId: string) => void;
   checkDuplicateAssignment: (member: TeamMember, roleId: string) => { isAssigned: boolean; roleName?: string };
+  getMemberTotalWorkload: (memberId: string) => number;
   isReadOnly?: boolean;
 }
 
@@ -39,6 +41,7 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
   expandedRoleId,
   onToggleRole,
   checkDuplicateAssignment,
+  getMemberTotalWorkload,
   isReadOnly = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -123,12 +126,13 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
                 total: role.totalRoles,
               }}
               chairs={role.chairs}
-              onAssign={(chairIndex, member, notes) => onAssign(role.roleId, chairIndex, member, notes)}
+              onAssign={(chairIndex, member, notes, workloadPercentage) => onAssign(role.roleId, chairIndex, member, notes, workloadPercentage)}
               onUnassign={(chairIndex) => onUnassign(role.roleId, chairIndex)}
               isExpanded={expandedRoleId === role.roleId && !isReadOnly}
               onToggleExpand={() => !isReadOnly && onToggleRole(role.roleId)}
               roleIndex={roleIndex}
               checkDuplicateAssignment={(member) => checkDuplicateAssignment(member, role.roleId)}
+              getMemberTotalWorkload={getMemberTotalWorkload}
             />
           ))}
         </div>

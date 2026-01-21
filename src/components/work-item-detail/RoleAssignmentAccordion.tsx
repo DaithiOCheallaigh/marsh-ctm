@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, ChevronRight, Search, RotateCcw, Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronRight, Search, RotateCcw, Plus, AlertTriangle } from 'lucide-react';
 import { TeamMemberCard } from './TeamMemberCard';
 import { TeamMember, searchTeamMembers } from '@/data/teamMembers';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
+import { MIN_WORKLOAD_PERCENTAGE, MAX_WORKLOAD_PERCENTAGE, MAX_CAPACITY } from '@/types/workload';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,18 +20,20 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
+  workloadPercentage?: number;
 }
 
 interface RoleAssignmentAccordionProps {
   roleTitle: string;
   rolesCount: { current: number; total: number };
   chairs: RoleAssignment[];
-  onAssign: (chairIndex: number, member: TeamMember, notes: string) => void;
+  onAssign: (chairIndex: number, member: TeamMember, notes: string, workloadPercentage: number) => void;
   onUnassign: (chairIndex: number) => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
   roleIndex: number;
   checkDuplicateAssignment: (member: TeamMember) => { isAssigned: boolean; roleName?: string };
+  getMemberTotalWorkload?: (memberId: string) => number;
 }
 
 export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = ({
@@ -43,20 +46,22 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   onToggleExpand,
   roleIndex,
   checkDuplicateAssignment,
+  getMemberTotalWorkload = () => 0,
 }) => {
   const [expandedChairIndex, setExpandedChairIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [assignmentNotes, setAssignmentNotes] = useState('');
+  const [workloadPercentage, setWorkloadPercentage] = useState<number>(10);
+  const [workloadError, setWorkloadError] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(3);
   const [showTable, setShowTable] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [warningType, setWarningType] = useState<'capacity' | 'location' | 'overCapacity' | null>(null);
-  const [pendingAssignment, setPendingAssignment] = useState<{ chairIndex: number; member: TeamMember; notes: string } | null>(null);
+  const [pendingAssignment, setPendingAssignment] = useState<{ chairIndex: number; member: TeamMember; notes: string; workload: number } | null>(null);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const [projectedCapacity, setProjectedCapacity] = useState<number>(0);
-  const CAPACITY_INCREASE = 20;
   const [unassignChairIndex, setUnassignChairIndex] = useState<number | null>(null);
 
   // Memoized filtered members using debounced search query
@@ -74,6 +79,8 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       setSearchQuery('');
       setSelectedMember(null);
       setAssignmentNotes('');
+      setWorkloadPercentage(10);
+      setWorkloadError(null);
       setDisplayCount(3);
       setShowTable(false);
       setProjectedCapacity(0);
@@ -85,6 +92,8 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     setSearchQuery('');
     setSelectedMember(null);
     setAssignmentNotes('');
+    setWorkloadPercentage(10);
+    setWorkloadError(null);
     setDisplayCount(3);
     setShowTable(false);
     setProjectedCapacity(0);
@@ -98,9 +107,44 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     if (selectedMember?.id === member.id) {
       setSelectedMember(null);
       setProjectedCapacity(0);
+      setWorkloadPercentage(10);
+      setWorkloadError(null);
     } else {
       setSelectedMember(member);
-      setProjectedCapacity(member.capacity + CAPACITY_INCREASE);
+      const currentWorkload = getMemberTotalWorkload(member.id);
+      setProjectedCapacity(currentWorkload + 10);
+      setWorkloadPercentage(10);
+      validateWorkload(10, member.id);
+    }
+  };
+
+  const validateWorkload = (percentage: number, memberId?: string): boolean => {
+    const targetMemberId = memberId || selectedMember?.id;
+    if (!targetMemberId) return false;
+
+    const currentWorkload = getMemberTotalWorkload(targetMemberId);
+    const availableCapacity = MAX_CAPACITY - currentWorkload;
+
+    if (percentage < MIN_WORKLOAD_PERCENTAGE || percentage > MAX_WORKLOAD_PERCENTAGE) {
+      setWorkloadError(`Workload must be between ${MIN_WORKLOAD_PERCENTAGE}% and ${MAX_WORKLOAD_PERCENTAGE}%`);
+      return false;
+    }
+
+    if (percentage > availableCapacity) {
+      setWorkloadError(`Cannot assign - would exceed capacity. Available: ${availableCapacity}%`);
+      return false;
+    }
+
+    setWorkloadError(null);
+    return true;
+  };
+
+  const handleWorkloadChange = (value: number) => {
+    setWorkloadPercentage(value);
+    if (selectedMember) {
+      const currentWorkload = getMemberTotalWorkload(selectedMember.id);
+      setProjectedCapacity(currentWorkload + value);
+      validateWorkload(value);
     }
   };
 
@@ -112,35 +156,43 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       return;
     }
 
-    if (projectedCapacity > 100) {
+    // Validate workload percentage
+    if (!validateWorkload(workloadPercentage)) {
+      return;
+    }
+
+    const currentWorkload = getMemberTotalWorkload(selectedMember.id);
+    const newTotalWorkload = currentWorkload + workloadPercentage;
+
+    if (newTotalWorkload > MAX_CAPACITY) {
       setWarningType('overCapacity');
-      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
+      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes, workload: workloadPercentage });
       setShowWarningDialog(true);
       return;
     }
 
     if (!selectedMember.hasCapacity) {
       setWarningType('capacity');
-      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
+      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes, workload: workloadPercentage });
       setShowWarningDialog(true);
       return;
     }
 
     if (!selectedMember.locationMatch) {
       setWarningType('location');
-      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
+      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes, workload: workloadPercentage });
       setShowWarningDialog(true);
       return;
     }
 
-    onAssign(chairIndex, selectedMember, assignmentNotes);
+    onAssign(chairIndex, selectedMember, assignmentNotes, workloadPercentage);
     resetSelection();
     setExpandedChairIndex(null);
   };
 
   const handleConfirmWarning = () => {
     if (pendingAssignment) {
-      onAssign(pendingAssignment.chairIndex, pendingAssignment.member, pendingAssignment.notes);
+      onAssign(pendingAssignment.chairIndex, pendingAssignment.member, pendingAssignment.notes, pendingAssignment.workload);
       resetSelection();
       setExpandedChairIndex(null);
     }
@@ -165,6 +217,8 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const resetSelection = () => {
     setSelectedMember(null);
     setAssignmentNotes('');
+    setWorkloadPercentage(10);
+    setWorkloadError(null);
     setShowTable(false);
     setDisplayCount(3);
     setProjectedCapacity(0);
@@ -179,10 +233,11 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
 
   const getWarningMessage = () => {
     if (warningType === 'overCapacity') {
-      return `Assigning this work item will increase ${selectedMember?.name}'s workload to ${projectedCapacity}%, which exceeds 100% capacity. Are you sure you want to proceed?`;
+      const memberName = pendingAssignment?.member?.name || selectedMember?.name;
+      return `Assigning ${pendingAssignment?.workload || workloadPercentage}% workload will increase ${memberName}'s total to ${projectedCapacity}%, which exceeds 100% capacity. Are you sure you want to proceed?`;
     }
     if (warningType === 'capacity') {
-      return `${selectedMember?.name} has limited capacity (${selectedMember?.capacity}%). Are you sure you want to assign them to this role?`;
+      return `${selectedMember?.name} has limited capacity. Are you sure you want to assign them to this role?`;
     }
     if (warningType === 'location') {
       return `${selectedMember?.name} is located in ${selectedMember?.location}, which may not match the required location. Are you sure you want to proceed?`;
@@ -347,8 +402,9 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                                     isSelected={true}
                                     onSelect={handleMemberSelect}
                                     showBestMatch={selectedMember.matchScore === 100}
-                                    capacityIncrease={CAPACITY_INCREASE}
-                                    onCapacityChange={handleCapacityChange}
+                                    currentWorkload={getMemberTotalWorkload(selectedMember.id)}
+                                    workloadPercentage={workloadPercentage}
+                                    onWorkloadChange={handleWorkloadChange}
                                   />
                                 </div>
                               )}
@@ -362,6 +418,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                                       isSelected={false}
                                       onSelect={handleMemberSelect}
                                       showBestMatch={index === 0 && member.matchScore === 100}
+                                      currentWorkload={getMemberTotalWorkload(member.id)}
                                     />
                                   ))}
                                 </div>
@@ -394,6 +451,49 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                             </div>
                           )}
 
+                          {/* Workload Percentage Input */}
+                          {selectedMember && (
+                            <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-4">
+                              <p className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium mb-2">
+                                Workload Percentage <span className="text-destructive">*</span>
+                              </p>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="number"
+                                  min={MIN_WORKLOAD_PERCENTAGE}
+                                  max={MAX_WORKLOAD_PERCENTAGE}
+                                  value={workloadPercentage}
+                                  onChange={(e) => handleWorkloadChange(parseInt(e.target.value) || 0)}
+                                  className={`w-24 px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-2 ${
+                                    workloadError
+                                      ? 'border-destructive text-destructive focus:ring-destructive/30'
+                                      : 'border-[hsl(var(--wq-border))] focus:ring-accent/30 focus:border-accent'
+                                  }`}
+                                />
+                                <span className="text-[hsl(var(--wq-text-secondary))] text-sm">%</span>
+                                <span className="text-[hsl(var(--wq-text-muted))] text-xs">
+                                  (Range: {MIN_WORKLOAD_PERCENTAGE}%-{MAX_WORKLOAD_PERCENTAGE}%)
+                                </span>
+                              </div>
+                              {workloadError && (
+                                <div className="flex items-center gap-2 mt-2 text-destructive">
+                                  <AlertTriangle className="w-4 h-4" />
+                                  <span className="text-xs">{workloadError}</span>
+                                </div>
+                              )}
+                              <div className="mt-2 flex items-center gap-4 text-xs text-[hsl(var(--wq-text-secondary))]">
+                                <span>Current Workload: {getMemberTotalWorkload(selectedMember.id)}%</span>
+                                <span>→</span>
+                                <span className={projectedCapacity > MAX_CAPACITY ? 'text-destructive font-medium' : 'text-[hsl(var(--wq-status-completed-text))] font-medium'}>
+                                  Projected: {projectedCapacity}%
+                                </span>
+                                <span className="text-[hsl(var(--wq-text-muted))]">
+                                  (Available: {MAX_CAPACITY - getMemberTotalWorkload(selectedMember.id)}%)
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Assignment Notes */}
                           <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-4">
                             <p className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium mb-2">
@@ -413,7 +513,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                             <Button
                               variant="outline"
                               onClick={() => handleAssignClick(chairIndex)}
-                              disabled={!selectedMember}
+                              disabled={!selectedMember || !!workloadError}
                               className="px-8 border-accent text-accent hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Assign

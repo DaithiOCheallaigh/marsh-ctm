@@ -29,6 +29,7 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
+  workloadPercentage?: number;
 }
 
 interface TeamRoleState {
@@ -43,6 +44,10 @@ interface TeamState {
   teamName: string;
   isPrimary: boolean;
   roles: TeamRoleState[];
+}
+
+interface MemberWorkloadMap {
+  [memberId: string]: number;
 }
 
 const WorkItemDetail = () => {
@@ -149,6 +154,21 @@ const WorkItemDetail = () => {
     );
   }, [teams]);
 
+  // Calculate total workload for a team member across all assignments in this work item
+  const getMemberTotalWorkload = useCallback((memberId: string): number => {
+    let totalWorkload = 0;
+    for (const team of teams) {
+      for (const role of team.roles) {
+        for (const chair of role.chairs) {
+          if (chair.assignedMember?.id === memberId && chair.workloadPercentage) {
+            totalWorkload += chair.workloadPercentage;
+          }
+        }
+      }
+    }
+    return totalWorkload;
+  }, [teams]);
+
   // Check if a member is already assigned to ANY role (including current role's other chairs)
   const isMemberAssignedElsewhere = useCallback(
     (member: TeamMember, currentRoleId: string): { isAssigned: boolean; roleName?: string } => {
@@ -176,7 +196,8 @@ const WorkItemDetail = () => {
     roleId: string,
     chairIndex: number,
     member: TeamMember,
-    notes: string
+    notes: string,
+    workloadPercentage: number
   ) => {
     if (isReadOnly) return;
 
@@ -200,7 +221,7 @@ const WorkItemDetail = () => {
                 ...role,
                 chairs: role.chairs.map((chair, idx) =>
                   idx === chairIndex
-                    ? { ...chair, assignedMember: member, assignmentNotes: notes }
+                    ? { ...chair, assignedMember: member, assignmentNotes: notes, workloadPercentage }
                     : chair
                 ),
               }
@@ -219,7 +240,7 @@ const WorkItemDetail = () => {
 
     toast({
       title: "Member Assigned",
-      description: `${member.name} has been assigned to ${roleName}.`,
+      description: `${member.name} has been assigned to ${roleName} with ${workloadPercentage}% workload.`,
     });
   };
 
@@ -426,8 +447,8 @@ const WorkItemDetail = () => {
                     teamName={team.teamName}
                     isPrimary={team.isPrimary}
                     roles={team.roles}
-                    onAssign={(roleId, chairIndex, member, notes) =>
-                      handleAssign(roleId, chairIndex, member, notes)
+                    onAssign={(roleId, chairIndex, member, notes, workloadPercentage) =>
+                      handleAssign(roleId, chairIndex, member, notes, workloadPercentage)
                     }
                     onUnassign={(roleId, chairIndex) => handleUnassign(roleId, chairIndex)}
                     expandedRoleId={expandedRoleId}
@@ -435,6 +456,7 @@ const WorkItemDetail = () => {
                     checkDuplicateAssignment={(member, roleId) =>
                       isMemberAssignedElsewhere(member, roleId)
                     }
+                    getMemberTotalWorkload={getMemberTotalWorkload}
                     isReadOnly={isReadOnly}
                   />
                 ))}
