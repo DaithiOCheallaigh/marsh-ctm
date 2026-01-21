@@ -11,7 +11,7 @@ import { WorkTypeBadge } from "@/components/work-item-detail/WorkTypeBadge";
 import { StatusIndicator, getStatusFromDueDate } from "@/components/work-item-detail/StatusIndicator";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
-import { ProgressiveAssignmentFlow, RoleDefinition, RoleAssignmentData } from "@/components/work-item-detail/ProgressiveAssignmentFlow";
+import { TeamAccordion } from "@/components/work-item-detail/TeamAccordion";
 import { TeamMember, teamMembers } from "@/data/teamMembers";
 import { CHAIR_LABELS, MAX_CHAIRS } from "@/utils/chairLabels";
 import {
@@ -439,50 +439,33 @@ const WorkItemDetail = () => {
               rolesAssigned={{ current: getPrimaryChairsAssigned(), total: getTotalRequired() }}
             />
 
-            {/* Assignment Requirements Section - Progressive Disclosure */}
+            {/* Assignment Requirements Section */}
             <div className="mt-6">
-              {teams.map((team) => {
-                // Convert team roles to RoleDefinition format
-                const availableRoles: RoleDefinition[] = team.roles.map(role => ({
-                  roleId: role.roleId,
-                  roleName: role.roleName,
-                }));
-
-                const handleAssignmentComplete = (assignments: RoleAssignmentData[]) => {
-                  // Update team state with assignments
-                  assignments.forEach(assignment => {
-                    if (assignment.selectedPerson) {
-                      handleAssign(
-                        assignment.roleId,
-                        0, // Primary chair index
-                        assignment.selectedPerson,
-                        `${assignment.chairType} Chair`,
-                        10 // Default workload
-                      );
+              <h3 className="text-primary font-bold text-base mb-4">
+                Assignment Requirements
+              </h3>
+              <div className="space-y-4">
+                {teams.map((team) => (
+                  <TeamAccordion
+                    key={team.teamId}
+                    teamId={team.teamId}
+                    teamName={team.teamName}
+                    isPrimary={team.isPrimary}
+                    roles={team.roles}
+                    onAssign={(roleId, chairIndex, member, notes, workloadPercentage) =>
+                      handleAssign(roleId, chairIndex, member, notes, workloadPercentage)
                     }
-                  });
-                  
-                  toast({
-                    title: "Assignments Complete",
-                    description: `${assignments.filter(a => a.selectedPerson).length} role(s) assigned for ${team.teamName}.`,
-                  });
-                };
-
-                return (
-                  <div key={team.teamId} className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h4 className="text-sm font-semibold text-[hsl(var(--wq-text-secondary))]">
-                        {team.teamName}
-                      </h4>
-                    </div>
-                    <ProgressiveAssignmentFlow
-                      availableRoles={availableRoles}
-                      onComplete={handleAssignmentComplete}
-                      isReadOnly={isReadOnly}
-                    />
-                  </div>
-                );
-              })}
+                    onUnassign={(roleId, chairIndex) => handleUnassign(roleId, chairIndex)}
+                    expandedRoleId={expandedRoleId}
+                    onToggleRole={handleToggleRole}
+                    checkDuplicateAssignment={(member, roleId) =>
+                      isMemberAssignedElsewhere(member, roleId)
+                    }
+                    getMemberTotalWorkload={getMemberTotalWorkload}
+                    isReadOnly={isReadOnly}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Action Buttons */}
