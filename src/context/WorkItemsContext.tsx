@@ -30,7 +30,7 @@ export interface WorkItem {
   assignee: string;
   delegateManager?: string;
   priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'Completed' | 'Draft';
+  status: 'Pending' | 'Completed';
   description?: string;
   teams?: TeamConfig[];
   attachments?: Attachment[];
@@ -40,7 +40,7 @@ export interface WorkItem {
 
 interface WorkItemsContextType {
   workItems: WorkItem[];
-  addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>, asDraft?: boolean) => string;
+  addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>) => string;
   updateWorkItem: (id: string, updates: Partial<WorkItem>) => void;
   completeWorkItem: (id: string) => void;
 }
@@ -474,13 +474,13 @@ const initialWorkItems: WorkItem[] = [
 export const WorkItemsProvider = ({ children }: { children: ReactNode }) => {
   const [workItems, setWorkItems] = useState<WorkItem[]>(initialWorkItems);
 
-  const addWorkItem = (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>, asDraft = false): string => {
+  const addWorkItem = (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>): string => {
     const newId = Date.now().toString().slice(-10);
     const newItem: WorkItem = {
       ...item,
       id: newId,
       dateCreated: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      status: asDraft ? 'Draft' : 'Pending',
+      status: 'Pending',
       lastModified: new Date().toISOString(),
     };
     setWorkItems((prev) => [newItem, ...prev]);

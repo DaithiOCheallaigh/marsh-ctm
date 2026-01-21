@@ -28,14 +28,12 @@ export const WorkQueueTable: React.FC<{ className?: string }> = ({ className = "
     }
     if (activeTab === 'pending') filtered = filtered.filter(item => item.status === 'Pending');
     else if (activeTab === 'completed') filtered = filtered.filter(item => item.status === 'Completed');
-    else if (activeTab === 'draft') filtered = filtered.filter(item => item.status === 'Draft');
     return filtered;
   }, [searchQuery, activeTab, workItems]);
 
   const tabs = useMemo(() => [
     { id: 'all', label: 'All', count: workItems.length },
     { id: 'pending', label: 'Pending', count: workItems.filter(i => i.status === 'Pending').length },
-    { id: 'draft', label: 'Draft', count: workItems.filter(i => i.status === 'Draft').length },
     { id: 'completed', label: 'Completed', count: workItems.filter(i => i.status === 'Completed').length }
   ], [workItems]);
 

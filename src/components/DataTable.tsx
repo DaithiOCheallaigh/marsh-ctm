@@ -148,20 +148,10 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 `}
                 tabIndex={0}
                 role="row"
-                onClick={() => {
-                  if (item.status === 'Draft') {
-                    navigate(`/create-work-item?draft=${item.id}`);
-                  } else {
-                    navigate(`/work-item/${item.id}`);
-                  }
-                }}
+                onClick={() => navigate(`/work-item/${item.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    if (item.status === 'Draft') {
-                      navigate(`/create-work-item?draft=${item.id}`);
-                    } else {
-                      navigate(`/work-item/${item.id}`);
-                    }
+                    navigate(`/work-item/${item.id}`);
                   }
                 }}
               >
