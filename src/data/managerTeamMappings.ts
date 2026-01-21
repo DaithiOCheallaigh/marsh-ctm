@@ -38,6 +38,46 @@ export const managerTeamMappings: ManagerTeamMapping[] = [
     managerName: 'Michael Santos',
     teamIds: ['1', '3', '4'], // Accounts, Cyber Security, Management
   },
+  {
+    managerId: 'tm7', // Sarah Anderson - Primary Manager for Accounts team
+    managerName: 'Sarah Anderson',
+    teamIds: ['1', '2', '4'], // Accounts, Claims, Management
+  },
+  {
+    managerId: 'tm16', // David Park - Primary Manager for Cyber Security team
+    managerName: 'David Park',
+    teamIds: ['3', '2', '5'], // Cyber Security, Claims, Risk
+  },
+  {
+    managerId: 'tm17', // Michael Chen - Primary Manager for Claims team
+    managerName: 'Michael Chen',
+    teamIds: ['2', '3', '1'], // Claims, Cyber Security, Accounts
+  },
+  {
+    managerId: 'tm18', // Robert Thompson - Primary Manager for Management team
+    managerName: 'Robert Thompson',
+    teamIds: ['4', '1', '2'], // Management, Accounts, Claims
+  },
+  {
+    managerId: 'tm19', // Jennifer Martinez - Primary Manager for Risk team
+    managerName: 'Jennifer Martinez',
+    teamIds: ['5', '2', '3'], // Risk, Claims, Cyber Security
+  },
+  {
+    managerId: 'tm20', // Kumar Lee - Oversight Manager
+    managerName: 'Kumar Lee',
+    teamIds: ['1', '5', '4'], // Accounts, Risk, Management
+  },
+  {
+    managerId: 'tm21', // Jessica Williams - Oversight Manager for Claims
+    managerName: 'Jessica Williams',
+    teamIds: ['2', '3', '4'], // Claims, Cyber Security, Management
+  },
+  {
+    managerId: 'tm22', // Emily Rodriguez - Oversight Manager for Cyber Security
+    managerName: 'Emily Rodriguez',
+    teamIds: ['3', '5', '1'], // Cyber Security, Risk, Accounts
+  },
 ];
 
 /**
