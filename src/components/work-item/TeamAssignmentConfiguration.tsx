@@ -220,7 +220,7 @@ const TeamCard = ({
             {config.roles.length === 0 && (
               <div className="flex items-center gap-2 mt-3 p-2 bg-destructive/10 text-destructive text-xs rounded-md">
                 <AlertCircle className="h-4 w-4" />
-                At least one role must be selected
+                Please select at least one role for this work item
               </div>
             )}
           </CollapsibleContent>
