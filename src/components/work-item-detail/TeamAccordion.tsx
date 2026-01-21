@@ -44,16 +44,22 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Calculate team-level assignment stats
+  // Count only primary chairs as "required" for team completion (1 per role)
   const teamStats = useMemo(() => {
-    const totalRoles = roles.reduce((sum, role) => sum + role.totalRoles, 0);
-    const assignedRoles = roles.reduce(
+    const totalRequired = roles.length; // 1 primary chair per role is required
+    const primaryAssigned = roles.filter(role => role.chairs[0]?.assignedMember).length;
+    const totalAssigned = roles.reduce(
       (sum, role) => sum + role.chairs.filter(c => c.assignedMember).length,
       0
     );
-    return { assigned: assignedRoles, total: totalRoles };
+    return { 
+      assigned: totalAssigned, 
+      required: totalRequired,
+      primaryAssigned 
+    };
   }, [roles]);
 
-  const isFullyAssigned = teamStats.assigned === teamStats.total;
+  const isFullyAssigned = teamStats.primaryAssigned === teamStats.required;
 
   return (
     <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
@@ -74,9 +80,9 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Roles Assigned:</span>
+          <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Primary Roles:</span>
           <span className={`text-sm font-bold ${isFullyAssigned ? 'text-primary' : 'text-accent'}`}>
-            {teamStats.assigned}/{teamStats.total}
+            {teamStats.primaryAssigned}/{teamStats.required}
           </span>
           <div className="w-24 h-2 bg-[hsl(var(--wq-bg-muted))] rounded-full overflow-hidden">
             <div 
@@ -85,9 +91,14 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
                   ? 'bg-[hsl(var(--wq-status-completed-text))]' 
                   : 'bg-accent'
               }`}
-              style={{ width: `${teamStats.total > 0 ? (teamStats.assigned / teamStats.total) * 100 : 0}%` }}
+              style={{ width: `${teamStats.required > 0 ? (teamStats.primaryAssigned / teamStats.required) * 100 : 0}%` }}
             />
           </div>
+          {teamStats.assigned > teamStats.primaryAssigned && (
+            <span className="text-[hsl(var(--wq-text-muted))] text-xs">
+              (+{teamStats.assigned - teamStats.primaryAssigned} optional)
+            </span>
+          )}
           {isExpanded ? (
             <ChevronDown className="w-5 h-5 text-[hsl(var(--wq-text-secondary))]" />
           ) : (

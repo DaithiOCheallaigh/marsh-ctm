@@ -13,6 +13,7 @@ import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
 import { TeamAccordion } from "@/components/work-item-detail/TeamAccordion";
 import { TeamMember } from "@/data/teamMembers";
+import { CHAIR_LABELS, MAX_CHAIRS } from "@/utils/chairLabels";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,8 +59,19 @@ const WorkItemDetail = () => {
   // Team-based assignment state
   const [teams, setTeams] = useState<TeamState[]>([]);
 
+  // Generate all 10 chairs for a role
+  const generateAllChairs = useCallback((): RoleAssignment[] => {
+    return CHAIR_LABELS.map((label) => ({
+      chairLabel: label,
+      assignedMember: undefined,
+      assignmentNotes: undefined,
+    }));
+  }, []);
+
   // Build teams from work item
   const buildTeamsFromWorkItem = useCallback((item: WorkItem): TeamState[] => {
+    const allChairs = generateAllChairs();
+    
     if (!item.teams || item.teams.length === 0) {
       // Default teams for work items without teams
       return [
@@ -71,20 +83,20 @@ const WorkItemDetail = () => {
             {
               roleId: 'role-account-exec',
               roleName: 'Account Executive',
-              chairs: [{ chairLabel: 'Primary' }],
-              totalRoles: 1,
+              chairs: [...allChairs],
+              totalRoles: MAX_CHAIRS,
             },
             {
               roleId: 'role-project-manager',
               roleName: 'Project Manager',
-              chairs: [{ chairLabel: 'Primary' }],
-              totalRoles: 1,
+              chairs: [...allChairs],
+              totalRoles: MAX_CHAIRS,
             },
             {
               roleId: 'role-risk-consultant',
               roleName: 'Risk Consultant',
-              chairs: [{ chairLabel: 'Primary' }],
-              totalRoles: 1,
+              chairs: [...allChairs],
+              totalRoles: MAX_CHAIRS,
             },
           ],
         },
@@ -99,11 +111,11 @@ const WorkItemDetail = () => {
       roles: team.roles.map((role) => ({
         roleId: role.roleId,
         roleName: role.roleName,
-        chairs: [{ chairLabel: 'Primary' }],
-        totalRoles: 1,
+        chairs: [...allChairs],
+        totalRoles: MAX_CHAIRS,
       })),
     }));
-  }, []);
+  }, [generateAllChairs]);
 
   useEffect(() => {
     const found = workItems.find((item) => item.id === id);
@@ -251,6 +263,7 @@ const WorkItemDetail = () => {
     });
   };
 
+  // Count total assigned chairs
   const getTotalAssigned = () => {
     return teams.reduce(
       (total, team) =>
@@ -264,6 +277,24 @@ const WorkItemDetail = () => {
     );
   };
 
+  // Count primary chairs assigned (minimum requirement)
+  const getPrimaryChairsAssigned = () => {
+    return teams.reduce(
+      (total, team) =>
+        total + team.roles.filter((role) => role.chairs[0]?.assignedMember).length,
+      0
+    );
+  };
+
+  // Count total required (1 primary chair per role)
+  const getTotalRequired = () => {
+    return teams.reduce(
+      (total, team) => total + team.roles.length,
+      0
+    );
+  };
+
+  // For display purposes
   const getTotalRoles = () => {
     return teams.reduce(
       (total, team) =>
@@ -282,13 +313,13 @@ const WorkItemDetail = () => {
   };
 
   const handleCompleteWorkItem = () => {
-    const totalAssigned = getTotalAssigned();
-    const totalRoles = getTotalRoles();
+    const primaryAssigned = getPrimaryChairsAssigned();
+    const totalRequired = getTotalRequired();
     
-    if (totalAssigned < totalRoles) {
+    if (primaryAssigned < totalRequired) {
       toast({
         title: "Cannot Complete",
-        description: `Please assign all ${totalRoles} roles before completing. Currently ${totalAssigned} of ${totalRoles} assigned.`,
+        description: `Please assign all primary chairs before completing. Currently ${primaryAssigned} of ${totalRequired} primary roles assigned.`,
         variant: "destructive",
       });
       return;
@@ -379,7 +410,7 @@ const WorkItemDetail = () => {
             {/* Work Details Card */}
             <WorkDetailsCard
               workItem={workItem}
-              rolesAssigned={{ current: getTotalAssigned(), total: getTotalRoles() }}
+              rolesAssigned={{ current: getPrimaryChairsAssigned(), total: getTotalRequired() }}
             />
 
             {/* Assignment Requirements Section */}
@@ -426,7 +457,7 @@ const WorkItemDetail = () => {
                     type="button"
                     onClick={handleCompleteWorkItem}
                     className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                    disabled={getTotalAssigned() < getTotalRoles()}
+                    disabled={getPrimaryChairsAssigned() < getTotalRequired()}
                   >
                     Complete Work Item
                   </Button>
