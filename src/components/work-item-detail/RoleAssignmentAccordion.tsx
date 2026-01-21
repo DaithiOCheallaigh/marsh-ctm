@@ -274,7 +274,6 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
         >
           <h4 className="text-primary font-bold text-sm">{roleTitle}</h4>
           <div className="flex items-center gap-2">
-            <span className="text-[hsl(var(--wq-text-secondary))] text-xs">Chairs Assigned</span>
             <span className={`text-sm font-medium ${primaryAssigned ? 'text-primary' : 'text-accent'}`}>
               {assignedCount}/{displayTotal}
             </span>
