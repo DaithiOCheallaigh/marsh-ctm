@@ -58,9 +58,11 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const [displayCount, setDisplayCount] = useState(3);
   const [showTable, setShowTable] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
-  const [warningType, setWarningType] = useState<'capacity' | 'location' | null>(null);
+  const [warningType, setWarningType] = useState<'capacity' | 'location' | 'overCapacity' | null>(null);
   const [pendingAssignment, setPendingAssignment] = useState<{ chairIndex: number; member: TeamMember; notes: string } | null>(null);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+  const [projectedCapacity, setProjectedCapacity] = useState<number>(0);
+  const CAPACITY_INCREASE = 20;
   const [unassignChairIndex, setUnassignChairIndex] = useState<number | null>(null);
 
   const filteredMembers = searchTeamMembers(searchQuery);
@@ -74,6 +76,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       setAssignmentNotes('');
       setDisplayCount(3);
       setShowTable(false);
+      setProjectedCapacity(0);
     }
   }, [isExpanded]);
 
@@ -97,8 +100,10 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     // Single-select behavior - clicking same member deselects
     if (selectedMember?.id === member.id) {
       setSelectedMember(null);
+      setProjectedCapacity(0);
     } else {
       setSelectedMember(member);
+      setProjectedCapacity(member.capacity + CAPACITY_INCREASE);
     }
   };
 
@@ -111,7 +116,15 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       return; // Parent will show toast
     }
 
-    // Check for capacity warning
+    // Check for over capacity warning (>100%)
+    if (projectedCapacity > 100) {
+      setWarningType('overCapacity');
+      setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
+      setShowWarningDialog(true);
+      return;
+    }
+
+    // Check for capacity warning (no capacity)
     if (!selectedMember.hasCapacity) {
       setWarningType('capacity');
       setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
@@ -160,6 +173,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     setAssignmentNotes('');
     setShowTable(false);
     setDisplayCount(3);
+    setProjectedCapacity(0);
   };
 
   const handleReset = () => {
@@ -170,6 +184,9 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   };
 
   const getWarningMessage = () => {
+    if (warningType === 'overCapacity') {
+      return `Assigning this work item will increase ${selectedMember?.name}'s workload to ${projectedCapacity}%, which exceeds 100% capacity. Are you sure you want to proceed?`;
+    }
     if (warningType === 'capacity') {
       return `${selectedMember?.name} has limited capacity (${selectedMember?.capacity}%). Are you sure you want to assign them to this role?`;
     }
@@ -177,6 +194,17 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       return `${selectedMember?.name} is located in ${selectedMember?.location}, which may not match the required location. Are you sure you want to proceed?`;
     }
     return '';
+  };
+
+  const getWarningTitle = () => {
+    if (warningType === 'overCapacity') return 'Over Capacity Warning';
+    if (warningType === 'capacity') return 'Capacity Warning';
+    if (warningType === 'location') return 'Location Mismatch Warning';
+    return '';
+  };
+
+  const handleCapacityChange = (newCapacity: number) => {
+    setProjectedCapacity(newCapacity);
   };
 
   return (
@@ -362,6 +390,8 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
                                 isSelected={true}
                                 onSelect={handleMemberSelect}
                                 showBestMatch={selectedMember.matchScore === 100}
+                                capacityIncrease={CAPACITY_INCREASE}
+                                onCapacityChange={handleCapacityChange}
                               />
                             </div>
                           )}
@@ -452,7 +482,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {warningType === 'capacity' ? 'Capacity Warning' : 'Location Mismatch Warning'}
+              {getWarningTitle()}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {getWarningMessage()}
