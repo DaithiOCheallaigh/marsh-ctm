@@ -15,5 +15,6 @@ export interface TeamMemberWorkload {
 }
 
 export const MIN_WORKLOAD_PERCENTAGE = 1;
-export const MAX_WORKLOAD_PERCENTAGE = 20;
+export const MAX_WORKLOAD_PERCENTAGE = 40;
+export const DEFAULT_WORKLOAD_PERCENTAGE = 20;
 export const MAX_CAPACITY = 100;

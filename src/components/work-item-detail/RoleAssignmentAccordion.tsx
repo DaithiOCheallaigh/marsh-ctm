@@ -4,7 +4,7 @@ import { TeamMemberCard } from './TeamMemberCard';
 import { TeamMember, searchTeamMembers } from '@/data/teamMembers';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
-import { MIN_WORKLOAD_PERCENTAGE, MAX_WORKLOAD_PERCENTAGE, MAX_CAPACITY } from '@/types/workload';
+import { MIN_WORKLOAD_PERCENTAGE, MAX_WORKLOAD_PERCENTAGE, MAX_CAPACITY, DEFAULT_WORKLOAD_PERCENTAGE } from '@/types/workload';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,7 +53,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [assignmentNotes, setAssignmentNotes] = useState('');
-  const [workloadPercentage, setWorkloadPercentage] = useState<number>(10);
+  const [workloadPercentage, setWorkloadPercentage] = useState<number>(DEFAULT_WORKLOAD_PERCENTAGE);
   const [workloadError, setWorkloadError] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(3);
   const [showTable, setShowTable] = useState(false);
@@ -79,7 +79,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       setSearchQuery('');
       setSelectedMember(null);
       setAssignmentNotes('');
-      setWorkloadPercentage(10);
+      setWorkloadPercentage(DEFAULT_WORKLOAD_PERCENTAGE);
       setWorkloadError(null);
       setDisplayCount(3);
       setShowTable(false);
@@ -92,7 +92,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     setSearchQuery('');
     setSelectedMember(null);
     setAssignmentNotes('');
-    setWorkloadPercentage(10);
+    setWorkloadPercentage(DEFAULT_WORKLOAD_PERCENTAGE);
     setWorkloadError(null);
     setDisplayCount(3);
     setShowTable(false);
@@ -107,14 +107,14 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     if (selectedMember?.id === member.id) {
       setSelectedMember(null);
       setProjectedCapacity(0);
-      setWorkloadPercentage(10);
+      setWorkloadPercentage(DEFAULT_WORKLOAD_PERCENTAGE);
       setWorkloadError(null);
     } else {
       setSelectedMember(member);
       const currentWorkload = getMemberTotalWorkload(member.id);
-      setProjectedCapacity(currentWorkload + 10);
-      setWorkloadPercentage(10);
-      validateWorkload(10, member.id);
+      setProjectedCapacity(currentWorkload + DEFAULT_WORKLOAD_PERCENTAGE);
+      setWorkloadPercentage(DEFAULT_WORKLOAD_PERCENTAGE);
+      validateWorkload(DEFAULT_WORKLOAD_PERCENTAGE, member.id);
     }
   };
 
