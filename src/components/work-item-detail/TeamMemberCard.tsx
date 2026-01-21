@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, AlertCircle, Check, AlertTriangle } from 'lucide-react';
 import { TeamMember } from '@/data/teamMembers';
-import { getCapacityColor, getCapacityColorClasses } from './WorkloadInput';
 
 interface TeamMemberCardProps {
   member: TeamMember;
@@ -10,7 +9,8 @@ interface TeamMemberCardProps {
   showBestMatch?: boolean;
   isDisabled?: boolean;
   disabledReason?: string;
-  projectedWorkload?: number;
+  capacityIncrease?: number;
+  onCapacityChange?: (newCapacity: number) => void;
 }
 
 export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
@@ -20,20 +20,20 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   showBestMatch = false,
   isDisabled = false,
   disabledReason,
-  projectedWorkload,
+  capacityIncrease = 20,
+  onCapacityChange,
 }) => {
-  // Current workload is 100 - capacity (capacity represents available %)
-  const currentWorkload = 100 - member.capacity;
-  const availableCapacity = member.capacity;
-  
-  // Calculate display values
-  const displayWorkload = projectedWorkload !== undefined ? projectedWorkload : currentWorkload;
-  const displayAvailable = 100 - displayWorkload;
-  const isOverCapacity = displayWorkload > 100;
-  const isHighUtilization = displayWorkload >= 86 && displayWorkload <= 100;
-  
-  const capacityColor = getCapacityColor(displayAvailable);
-  const colorClasses = getCapacityColorClasses(capacityColor);
+  // Calculate projected capacity when selected
+  const projectedCapacity = isSelected ? member.capacity + capacityIncrease : member.capacity;
+  const [editableCapacity, setEditableCapacity] = useState(projectedCapacity);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Update editable capacity when selection changes or member changes
+  useEffect(() => {
+    setEditableCapacity(isSelected ? member.capacity + capacityIncrease : member.capacity);
+  }, [isSelected, member.capacity, capacityIncrease]);
+
+  const isOverCapacity = isSelected && editableCapacity > 100;
 
   const getMatchScoreColor = (score: number) => {
     if (score >= 80) return 'text-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]';
@@ -41,31 +41,22 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
     return 'text-[hsl(var(--wq-text-secondary))] bg-[hsl(var(--wq-bg-muted))]';
   };
 
-  // Render 10-dot capacity visualization
-  const renderCapacityDots = () => {
-    const dots = [];
-    const totalDots = 10;
-    const filledDots = Math.ceil(displayWorkload / 10);
-    const currentFilledDots = Math.ceil(currentWorkload / 10);
-    
-    for (let i = 0; i < totalDots; i++) {
-      const isFilled = i < filledDots;
-      const isNew = isSelected && projectedWorkload !== undefined && i >= currentFilledDots && i < filledDots;
-      
-      dots.push(
-        <div
-          key={i}
-          className={`w-2 h-2 rounded-full transition-all ${
-            isFilled
-              ? isNew
-                ? `${colorClasses.bar} ring-1 ring-offset-1 ring-primary/50`
-                : colorClasses.bar
-              : 'bg-[hsl(var(--wq-bg-muted))]'
-          }`}
-        />
-      );
+  const handleCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value) && value >= 0 && value <= 200) {
+      setEditableCapacity(value);
+      onCapacityChange?.(value);
     }
-    return dots;
+  };
+
+  const handleCapacityBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleCapacityKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setIsEditing(false);
+    }
   };
 
   return (
@@ -146,15 +137,10 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
                 <span className="text-[hsl(var(--wq-status-pending-text))] text-xs">Expertise mismatch</span>
               </div>
             )}
-            {availableCapacity >= 30 ? (
+            {member.hasCapacity ? (
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[hsl(var(--wq-status-completed-text))]" />
                 <span className="text-[hsl(var(--wq-status-completed-text))] text-xs">Has capacity</span>
-              </div>
-            ) : availableCapacity > 0 ? (
-              <div className="flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-[hsl(var(--wq-status-pending-text))]" />
-                <span className="text-[hsl(var(--wq-status-pending-text))] text-xs">Limited capacity</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
@@ -164,46 +150,66 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             )}
           </div>
 
-          {/* Details row with capacity visualization */}
-          <div className="flex items-center gap-4 mt-3 text-xs text-[hsl(var(--wq-text-secondary))]">
+          {/* Details row */}
+          <div className="flex items-center gap-8 mt-2 text-xs text-[hsl(var(--wq-text-secondary))]">
             <span>Location: {member.location}</span>
-            <span>Expertise: {member.expertise.slice(0, 2).join(', ')}{member.expertise.length > 2 ? '...' : ''}</span>
-          </div>
-
-          {/* Capacity bar */}
-          <div className="mt-3 p-2 rounded-lg bg-[hsl(var(--wq-bg-muted))]">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-[hsl(var(--wq-text-muted))]">Workload</span>
-              <div className="flex items-center gap-2">
-                {isSelected && projectedWorkload !== undefined ? (
-                  <>
-                    <span className="text-xs text-[hsl(var(--wq-text-muted))] line-through">{currentWorkload}%</span>
-                    <span className="text-[hsl(var(--wq-text-secondary))]">→</span>
-                    <span className={`text-xs font-bold ${colorClasses.text}`}>{displayWorkload}%</span>
-                    {isOverCapacity && (
-                      <span className="flex items-center gap-1 text-destructive">
-                        <AlertTriangle className="w-3 h-3" />
-                        <span className="text-xs">Over capacity</span>
-                      </span>
-                    )}
-                    {isHighUtilization && !isOverCapacity && (
-                      <span className="flex items-center gap-1 text-[hsl(var(--wq-status-pending-text))]">
-                        <AlertTriangle className="w-3 h-3" />
-                        <span className="text-xs">High utilization</span>
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className={`text-xs font-medium ${colorClasses.text}`}>{currentWorkload}%</span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              {renderCapacityDots()}
-              <span className={`ml-2 text-xs ${colorClasses.text}`}>
-                {displayAvailable}% available
-              </span>
-            </div>
+            <span>Expertise: {member.expertise.join(', ')}</span>
+            <span className="flex items-center gap-1">
+              Capacity: 
+              {isSelected ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="text-[hsl(var(--wq-text-muted))] line-through">{member.capacity}%</span>
+                  <span className="text-[hsl(var(--wq-text-secondary))]">→</span>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={editableCapacity}
+                      onChange={handleCapacityChange}
+                      onBlur={handleCapacityBlur}
+                      onKeyDown={handleCapacityKeyDown}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                      min={0}
+                      max={200}
+                      className={`w-14 px-1.5 py-0.5 rounded text-center text-xs font-medium border focus:outline-none focus:ring-1 ${
+                        isOverCapacity
+                          ? 'bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))] border-[hsl(var(--wq-status-pending-text))] focus:ring-[hsl(var(--wq-status-pending-text))]'
+                          : 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))] border-[hsl(var(--wq-border))] focus:ring-accent'
+                      }`}
+                    />
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditing(true);
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-xs font-medium hover:ring-1 hover:ring-accent transition-all ${
+                        isOverCapacity
+                          ? 'bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))]'
+                          : 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))]'
+                      }`}
+                      title="Click to edit capacity"
+                    >
+                      {editableCapacity}%
+                    </button>
+                  )}
+                  {isOverCapacity && (
+                    <span className="flex items-center gap-1 text-[hsl(var(--wq-status-pending-text))]">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span className="text-xs">Over capacity</span>
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span className={`px-1.5 py-0.5 rounded ${
+                  member.hasCapacity 
+                    ? 'bg-[hsl(var(--wq-bg-muted))] text-[hsl(var(--wq-text-secondary))]'
+                    : 'bg-destructive/10 text-destructive'
+                }`}>
+                  {member.capacity}%
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </div>

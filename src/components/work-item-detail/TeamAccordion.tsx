@@ -7,7 +7,6 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
-  workloadPercentage?: number;
 }
 
 interface TeamRole {
@@ -22,7 +21,7 @@ interface TeamAccordionProps {
   teamName: string;
   isPrimary: boolean;
   roles: TeamRole[];
-  onAssign: (roleId: string, chairIndex: number, member: TeamMember, notes: string, workload: number) => void;
+  onAssign: (roleId: string, chairIndex: number, member: TeamMember, notes: string) => void;
   onUnassign: (roleId: string, chairIndex: number) => void;
   expandedRoleId: string | null;
   onToggleRole: (roleId: string) => void;
@@ -124,7 +123,7 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
                 total: role.totalRoles,
               }}
               chairs={role.chairs}
-              onAssign={(chairIndex, member, notes, workload) => onAssign(role.roleId, chairIndex, member, notes, workload)}
+              onAssign={(chairIndex, member, notes) => onAssign(role.roleId, chairIndex, member, notes)}
               onUnassign={(chairIndex) => onUnassign(role.roleId, chairIndex)}
               isExpanded={expandedRoleId === role.roleId && !isReadOnly}
               onToggleExpand={() => !isReadOnly && onToggleRole(role.roleId)}
