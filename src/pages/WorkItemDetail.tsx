@@ -29,6 +29,7 @@ interface RoleAssignment {
   chairLabel: string;
   assignedMember?: TeamMember;
   assignmentNotes?: string;
+  workloadPercentage?: number;
 }
 
 interface TeamRoleState {
@@ -176,7 +177,8 @@ const WorkItemDetail = () => {
     roleId: string,
     chairIndex: number,
     member: TeamMember,
-    notes: string
+    notes: string,
+    workload: number
   ) => {
     if (isReadOnly) return;
 
@@ -200,7 +202,7 @@ const WorkItemDetail = () => {
                 ...role,
                 chairs: role.chairs.map((chair, idx) =>
                   idx === chairIndex
-                    ? { ...chair, assignedMember: member, assignmentNotes: notes }
+                    ? { ...chair, assignedMember: member, assignmentNotes: notes, workloadPercentage: workload }
                     : chair
                 ),
               }
@@ -248,7 +250,7 @@ const WorkItemDetail = () => {
                 ...role,
                 chairs: role.chairs.map((chair, idx) =>
                   idx === chairIndex
-                    ? { ...chair, assignedMember: undefined, assignmentNotes: undefined }
+                    ? { ...chair, assignedMember: undefined, assignmentNotes: undefined, workloadPercentage: undefined }
                     : chair
                 ),
               }
@@ -426,8 +428,8 @@ const WorkItemDetail = () => {
                     teamName={team.teamName}
                     isPrimary={team.isPrimary}
                     roles={team.roles}
-                    onAssign={(roleId, chairIndex, member, notes) =>
-                      handleAssign(roleId, chairIndex, member, notes)
+                    onAssign={(roleId, chairIndex, member, notes, workload) =>
+                      handleAssign(roleId, chairIndex, member, notes, workload)
                     }
                     onUnassign={(roleId, chairIndex) => handleUnassign(roleId, chairIndex)}
                     expandedRoleId={expandedRoleId}
