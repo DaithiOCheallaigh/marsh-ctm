@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search, RotateCcw } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronRight, Search, RotateCcw, Plus } from 'lucide-react';
 import { TeamMemberCard } from './TeamMemberCard';
 import { TeamMember, searchTeamMembers } from '@/data/teamMembers';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   roleIndex,
   checkDuplicateAssignment,
 }) => {
+  const [expandedChairIndex, setExpandedChairIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
@@ -59,7 +60,6 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const [unassignChairIndex, setUnassignChairIndex] = useState<number | null>(null);
 
   // Memoized filtered members using debounced search query
-  // Filter out members that are already assigned to other roles
   const filteredMembers = useMemo(() => {
     const searchResults = searchTeamMembers(debouncedSearchQuery);
     return searchResults.filter(member => !checkDuplicateAssignment(member).isAssigned);
@@ -67,9 +67,10 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   
   const displayedMembers = showTable ? filteredMembers : filteredMembers.slice(0, displayCount);
 
-  // Reset search and selection when collapsing
+  // Reset when collapsing the main accordion
   useEffect(() => {
     if (!isExpanded) {
+      setExpandedChairIndex(null);
       setSearchQuery('');
       setSelectedMember(null);
       setAssignmentNotes('');
@@ -79,24 +80,21 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     }
   }, [isExpanded]);
 
-  // Pre-select assigned member when expanding
+  // Reset when switching expanded chair
   useEffect(() => {
-    if (isExpanded) {
-      // Find first unassigned chair's previously assigned member if any
-      const firstUnassignedChair = chairs.find(c => !c.assignedMember);
-      if (!firstUnassignedChair) {
-        // All chairs assigned, no need to pre-select
-        setSelectedMember(null);
-      }
-    }
-  }, [isExpanded, chairs]);
+    setSearchQuery('');
+    setSelectedMember(null);
+    setAssignmentNotes('');
+    setDisplayCount(3);
+    setShowTable(false);
+    setProjectedCapacity(0);
+  }, [expandedChairIndex]);
 
   const handleShowMore = () => {
     setShowTable(true);
   };
 
   const handleMemberSelect = (member: TeamMember) => {
-    // Single-select behavior - clicking same member deselects
     if (selectedMember?.id === member.id) {
       setSelectedMember(null);
       setProjectedCapacity(0);
@@ -109,13 +107,11 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const handleAssignClick = (chairIndex: number) => {
     if (!selectedMember) return;
 
-    // Check for duplicate assignment
     const duplicateCheck = checkDuplicateAssignment(selectedMember);
     if (duplicateCheck.isAssigned) {
-      return; // Parent will show toast
+      return;
     }
 
-    // Check for over capacity warning (>100%)
     if (projectedCapacity > 100) {
       setWarningType('overCapacity');
       setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
@@ -123,7 +119,6 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       return;
     }
 
-    // Check for capacity warning (no capacity)
     if (!selectedMember.hasCapacity) {
       setWarningType('capacity');
       setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
@@ -131,7 +126,6 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       return;
     }
 
-    // Check for location mismatch warning
     if (!selectedMember.locationMatch) {
       setWarningType('location');
       setPendingAssignment({ chairIndex, member: selectedMember, notes: assignmentNotes });
@@ -139,15 +133,16 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
       return;
     }
 
-    // No warnings, proceed with assignment
     onAssign(chairIndex, selectedMember, assignmentNotes);
     resetSelection();
+    setExpandedChairIndex(null);
   };
 
   const handleConfirmWarning = () => {
     if (pendingAssignment) {
       onAssign(pendingAssignment.chairIndex, pendingAssignment.member, pendingAssignment.notes);
       resetSelection();
+      setExpandedChairIndex(null);
     }
     setShowWarningDialog(false);
     setPendingAssignment(null);
@@ -206,6 +201,15 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
     setProjectedCapacity(newCapacity);
   };
 
+  const toggleChairExpand = (chairIndex: number) => {
+    setExpandedChairIndex(prev => prev === chairIndex ? null : chairIndex);
+  };
+
+  // Count logic: show assigned/1 until >1 assigned, then show assigned/10
+  const assignedCount = rolesCount.current;
+  const displayTotal = assignedCount > 1 ? chairs.length : 1;
+  const primaryAssigned = chairs[0]?.assignedMember !== undefined;
+
   return (
     <>
       <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
@@ -215,14 +219,14 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
         >
           <h4 className="text-primary font-bold text-sm">{roleTitle}</h4>
           <div className="flex items-center gap-2">
-            <span className="text-[hsl(var(--wq-text-secondary))] text-xs">Roles Assigned</span>
-            <span className={`text-sm font-medium ${rolesCount.current === rolesCount.total ? 'text-primary' : 'text-accent'}`}>
-              {rolesCount.current}/{rolesCount.total}
+            <span className="text-[hsl(var(--wq-text-secondary))] text-xs">Chairs Assigned</span>
+            <span className={`text-sm font-medium ${primaryAssigned ? 'text-primary' : 'text-accent'}`}>
+              {assignedCount}/{displayTotal}
             </span>
             <div className="w-16 h-1.5 bg-[hsl(var(--wq-bg-muted))] rounded-full overflow-hidden">
               <div 
                 className="h-full bg-[hsl(var(--wq-status-completed-text))] rounded-full transition-all duration-300"
-                style={{ width: `${rolesCount.total > 0 ? (rolesCount.current / rolesCount.total) * 100 : 0}%` }}
+                style={{ width: `${primaryAssigned ? 100 : 0}%` }}
               />
             </div>
             {isExpanded ? (
@@ -235,175 +239,207 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
 
         <div 
           className={`border-t border-[hsl(var(--wq-border))] overflow-hidden transition-all duration-300 ease-in-out ${
-            isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 border-t-0'
+            isExpanded ? 'max-h-[8000px] opacity-100' : 'max-h-0 opacity-0 border-t-0'
           }`}
         >
-          {chairs.map((chair, chairIndex) => (
-            <div key={chairIndex} className="p-5">
-              {chair.assignedMember ? (
-                // Show assigned member
-                <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
-                  <div className="mb-3">
-                    <p className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium">[{chair.chairLabel}]</p>
-                  </div>
-                  <div className="bg-card rounded-lg p-4 border border-[hsl(var(--wq-border))]">
-                    <p className="text-accent font-semibold text-sm">{chair.assignedMember.name}</p>
-                    <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{chair.assignedMember.role}</p>
-                  </div>
-                  {chair.assignmentNotes && (
-                    <div className="mt-3 bg-card rounded-lg p-3 border border-[hsl(var(--wq-border))]">
-                      <p className="text-accent text-xs font-medium mb-1">Assignment Notes</p>
-                      <p className="text-[hsl(var(--wq-text-secondary))] text-sm">{chair.assignmentNotes}</p>
+          <div className="p-3 space-y-2">
+            {chairs.map((chair, chairIndex) => {
+              const isRequired = chairIndex === 0;
+              const isChairExpanded = expandedChairIndex === chairIndex;
+              
+              return (
+                <div key={chairIndex}>
+                  {chair.assignedMember ? (
+                    // Assigned chair - collapsed view with checkmark
+                    <div className="bg-[hsl(var(--wq-status-completed-bg))] border border-[hsl(var(--wq-status-completed-text))]/20 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-full bg-[hsl(var(--wq-status-completed-text))] flex items-center justify-center flex-shrink-0">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <div>
+                            <span className="text-[hsl(var(--wq-text-secondary))] text-xs font-medium">[{chair.chairLabel}]</span>
+                            <span className="text-primary font-semibold text-sm ml-2">| {chair.assignedMember.name}</span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                      </div>
+                      <p className="text-[hsl(var(--wq-text-secondary))] text-xs mt-1 ml-8">
+                        Assigned: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                      {chair.assignmentNotes && (
+                        <div className="mt-2 ml-8 bg-card rounded p-2 border border-[hsl(var(--wq-border))]">
+                          <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{chair.assignmentNotes}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                // Show selection UI
-                <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
-                  {/* Header row with chair label, search, and reset */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium whitespace-nowrap">
-                      [{chair.chairLabel}] | Select Team Member
-                    </span>
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
-                      <input
-                        type="text"
-                        placeholder="Search Team Member"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-accent/40 rounded-lg text-sm placeholder:text-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent bg-card"
-                      />
-                    </div>
-                    <button 
-                      onClick={handleReset}
-                      className="p-2.5 bg-primary rounded-lg hover:bg-primary/90 transition-colors"
-                      title="Reset"
-                    >
-                      <RotateCcw className="w-4 h-4 text-primary-foreground" />
-                    </button>
-                  </div>
-
-                  {/* No results state */}
-                  {filteredMembers.length === 0 && (
-                    <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] p-8 text-center">
-                      <p className="text-[hsl(var(--wq-text-secondary))] text-sm">No team members found matching "{searchQuery}"</p>
+                  ) : (
+                    // Unassigned chair - expandable
+                    <div className="border border-[hsl(var(--wq-border))] rounded-lg overflow-hidden">
+                      {/* Chair header - clickable to expand */}
                       <button
-                        onClick={() => setSearchQuery('')}
-                        className="text-primary text-sm font-medium hover:underline mt-2"
+                        onClick={() => toggleChairExpand(chairIndex)}
+                        className="w-full flex items-center justify-between p-4 hover:bg-[hsl(var(--wq-bg-hover))] transition-colors bg-card"
                       >
-                        Clear search
+                        <div className="flex items-center gap-2">
+                          <span className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium">
+                            [{chair.chairLabel}]
+                          </span>
+                          <span className="text-[hsl(var(--wq-text-secondary))] text-sm">|</span>
+                          <span className="text-[hsl(var(--wq-text-muted))] text-sm">Select Team Member</span>
+                          {!isRequired && (
+                            <span className="text-[hsl(var(--wq-text-muted))] text-xs">(Optional)</span>
+                          )}
+                        </div>
+                        {isChairExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                        ) : (
+                          <Plus className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
+                        )}
                       </button>
-                    </div>
-                  )}
 
-                  {/* Team members list - always show as cards */}
-                  {filteredMembers.length > 0 && (
-                    <>
-                      {/* Selected member card */}
-                      {selectedMember && (
-                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden mb-3">
-                          <TeamMemberCard
-                            member={selectedMember}
-                            isSelected={true}
-                            onSelect={handleMemberSelect}
-                            showBestMatch={selectedMember.matchScore === 100}
-                            capacityIncrease={CAPACITY_INCREASE}
-                            onCapacityChange={handleCapacityChange}
-                          />
-                        </div>
-                      )}
-                      
-                      {/* Other members when no selection */}
-                      {!selectedMember && (
-                        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
-                          {displayedMembers.map((member, index) => (
-                            <TeamMemberCard
-                              key={member.id}
-                              member={member}
-                              isSelected={selectedMember?.id === member.id}
-                              onSelect={handleMemberSelect}
-                              showBestMatch={index === 0 && member.matchScore === 100}
+                      {/* Expanded selection UI */}
+                      {isChairExpanded && (
+                        <div className="border-t border-[hsl(var(--wq-border))] bg-accent/5 p-4">
+                          {/* Search bar */}
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="flex-1 relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
+                              <input
+                                type="text"
+                                placeholder="Search Team Member"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 border border-accent/40 rounded-lg text-sm placeholder:text-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent bg-card"
+                              />
+                            </div>
+                            <button 
+                              onClick={handleReset}
+                              className="p-2.5 bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+                              title="Reset"
+                            >
+                              <RotateCcw className="w-4 h-4 text-primary-foreground" />
+                            </button>
+                          </div>
+
+                          {/* No results state */}
+                          {filteredMembers.length === 0 && (
+                            <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] p-8 text-center">
+                              <p className="text-[hsl(var(--wq-text-secondary))] text-sm">No team members found matching "{searchQuery}"</p>
+                              <button
+                                onClick={() => setSearchQuery('')}
+                                className="text-primary text-sm font-medium hover:underline mt-2"
+                              >
+                                Clear search
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Team members list */}
+                          {filteredMembers.length > 0 && (
+                            <>
+                              {selectedMember && (
+                                <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden mb-3">
+                                  <TeamMemberCard
+                                    member={selectedMember}
+                                    isSelected={true}
+                                    onSelect={handleMemberSelect}
+                                    showBestMatch={selectedMember.matchScore === 100}
+                                    capacityIncrease={CAPACITY_INCREASE}
+                                    onCapacityChange={handleCapacityChange}
+                                  />
+                                </div>
+                              )}
+                              
+                              {!selectedMember && (
+                                <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
+                                  {displayedMembers.map((member, index) => (
+                                    <TeamMemberCard
+                                      key={member.id}
+                                      member={member}
+                                      isSelected={false}
+                                      onSelect={handleMemberSelect}
+                                      showBestMatch={index === 0 && member.matchScore === 100}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          )}
+
+                          {/* Show more / Show less */}
+                          {!selectedMember && filteredMembers.length > 0 && (
+                            <div className="flex flex-col items-center mt-3 gap-2">
+                              {!showTable && filteredMembers.length > displayCount && (
+                                <button
+                                  onClick={handleShowMore}
+                                  className="text-primary text-sm font-medium hover:underline"
+                                >
+                                  Show More
+                                </button>
+                              )}
+                              {showTable && (
+                                <button
+                                  onClick={() => setShowTable(false)}
+                                  className="text-primary text-sm font-medium hover:underline"
+                                >
+                                  Show Less
+                                </button>
+                              )}
+                              <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
+                                Displaying: {displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Assignment Notes */}
+                          <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-4">
+                            <p className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium mb-2">
+                              Assignment Notes <span className="text-[hsl(var(--wq-text-muted))]">(Optional)</span>
+                            </p>
+                            <textarea
+                              placeholder="Add text"
+                              value={assignmentNotes}
+                              onChange={(e) => setAssignmentNotes(e.target.value)}
+                              className="w-full p-2 text-sm border-none resize-none focus:outline-none placeholder:text-[hsl(var(--wq-text-muted))] bg-transparent"
+                              rows={2}
                             />
-                          ))}
+                          </div>
+
+                          {/* Assign button */}
+                          <div className="flex justify-end mt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => handleAssignClick(chairIndex)}
+                              disabled={!selectedMember}
+                              className="px-8 border-accent text-accent hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Assign
+                            </Button>
+                          </div>
                         </div>
                       )}
-                    </>
-                  )}
-
-                  {/* Show more / Show less */}
-                  {!selectedMember && filteredMembers.length > 0 && (
-                    <div className="flex flex-col items-center mt-3 gap-2">
-                      {!showTable && filteredMembers.length > displayCount && (
-                        <button
-                          onClick={handleShowMore}
-                          className="text-primary text-sm font-medium hover:underline"
-                        >
-                          Show More
-                        </button>
-                      )}
-                      {showTable && (
-                        <button
-                          onClick={() => setShowTable(false)}
-                          className="text-primary text-sm font-medium hover:underline"
-                        >
-                          Show Less
-                        </button>
-                      )}
-                      <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
-                        Displaying: {displayedMembers.length} of {filteredMembers.length.toString().padStart(4, '0')} Members
-                      </span>
                     </div>
                   )}
-
-                  {/* Assignment Notes */}
-                  <div className="mt-4 bg-card rounded-lg border border-[hsl(var(--wq-border))] p-4">
-                    <p className="text-[hsl(var(--wq-text-secondary))] text-sm font-medium mb-2">
-                      Assignment Notes <span className="text-[hsl(var(--wq-text-muted))]">(Optional)</span>
-                    </p>
-                    <textarea
-                      placeholder="Add text"
-                      value={assignmentNotes}
-                      onChange={(e) => setAssignmentNotes(e.target.value)}
-                      className="w-full p-2 text-sm border-none resize-none focus:outline-none placeholder:text-[hsl(var(--wq-text-muted))] bg-transparent"
-                      rows={2}
-                    />
-                  </div>
-
-                  {/* Assign button */}
-                  <div className="flex justify-end mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleAssignClick(chairIndex)}
-                      disabled={!selectedMember}
-                      className="px-8 border-accent text-accent hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Assign
-                    </Button>
-                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Warning Dialog for Capacity/Location */}
+      {/* Warning Dialog */}
       <AlertDialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {getWarningTitle()}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {getWarningMessage()}
-            </AlertDialogDescription>
+            <AlertDialogTitle>{getWarningTitle()}</AlertDialogTitle>
+            <AlertDialogDescription>{getWarningMessage()}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setPendingAssignment(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmWarning}>
-              Assign Anyway
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmWarning}>Assign Anyway</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
