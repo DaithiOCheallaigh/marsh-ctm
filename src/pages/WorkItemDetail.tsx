@@ -13,6 +13,7 @@ import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
 import { TeamAccordion } from "@/components/work-item-detail/TeamAccordion";
 import { TeamMember, teamMembers } from "@/data/teamMembers";
+import { ProgressiveAssignmentFlow, RoleDefinition, RoleAssignmentData } from "@/components/work-item-detail/ProgressiveAssignmentFlow";
 import { CHAIR_LABELS, MAX_CHAIRS } from "@/utils/chairLabels";
 import {
   AlertDialog,
@@ -439,10 +440,45 @@ const WorkItemDetail = () => {
               rolesAssigned={{ current: getPrimaryChairsAssigned(), total: getTotalRequired() }}
             />
 
-            {/* Assignment Requirements Section */}
+            {/* Assignment Requirements Section - Progressive Disclosure Flow */}
+            <div className="mt-6">
+              <ProgressiveAssignmentFlow
+                availableRoles={teams.flatMap(team => 
+                  team.roles.map(role => ({
+                    roleId: role.roleId,
+                    roleName: role.roleName,
+                    description: `${team.teamName} - ${role.roleName} role assignment`
+                  }))
+                )}
+                onComplete={(assignments: RoleAssignmentData[]) => {
+                  // Handle completed assignments
+                  assignments.forEach(assignment => {
+                    if (assignment.selectedPerson) {
+                      const teamRole = teams.flatMap(t => t.roles).find(r => r.roleId === assignment.roleId);
+                      if (teamRole) {
+                        handleAssign(
+                          assignment.roleId,
+                          0, // Primary chair index
+                          assignment.selectedPerson,
+                          `${assignment.chairType} Chair`,
+                          20 // Default workload
+                        );
+                      }
+                    }
+                  });
+                  toast({
+                    title: "Assignments Complete",
+                    description: `Successfully assigned ${assignments.length} roles.`,
+                  });
+                }}
+                isReadOnly={isReadOnly}
+              />
+            </div>
+
+            {/* Legacy Team Accordions (for detailed chair management) */}
             <div className="mt-6">
               <h3 className="text-primary font-bold text-base mb-4">
-                Assignment Requirements
+                Detailed Role Management
               </h3>
               <div className="space-y-4">
                 {teams.map((team) => (
