@@ -83,7 +83,7 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Primary Roles:</span>
+          <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Roles Assigned:</span>
           <span className={`text-sm font-bold ${isFullyAssigned ? 'text-primary' : 'text-accent'}`}>
             {teamStats.primaryAssigned}/{teamStats.required}
           </span>
