@@ -11,7 +11,7 @@ import { WorkTypeBadge } from "@/components/work-item-detail/WorkTypeBadge";
 import { StatusIndicator, getStatusFromDueDate } from "@/components/work-item-detail/StatusIndicator";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
-import { RoleAssignmentAccordion } from "@/components/work-item-detail/RoleAssignmentAccordion";
+import { TeamAccordion } from "@/components/work-item-detail/TeamAccordion";
 import { TeamMember } from "@/data/teamMembers";
 import {
   AlertDialog,
@@ -30,10 +30,18 @@ interface RoleAssignment {
   assignmentNotes?: string;
 }
 
-interface RoleConfig {
-  title: string;
+interface TeamRoleState {
+  roleId: string;
+  roleName: string;
   chairs: RoleAssignment[];
   totalRoles: number;
+}
+
+interface TeamState {
+  teamId: string;
+  teamName: string;
+  isPrimary: boolean;
+  roles: TeamRoleState[];
 }
 
 const WorkItemDetail = () => {
@@ -44,63 +52,70 @@ const WorkItemDetail = () => {
 
   const [workItem, setWorkItem] = useState<WorkItem | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-  const [expandedRoleIndex, setExpandedRoleIndex] = useState<number | null>(0);
+  const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
-  // Build roles from work item teams
-  const buildRolesFromWorkItem = useCallback((item: WorkItem): RoleConfig[] => {
+  // Team-based assignment state
+  const [teams, setTeams] = useState<TeamState[]>([]);
+
+  // Build teams from work item
+  const buildTeamsFromWorkItem = useCallback((item: WorkItem): TeamState[] => {
     if (!item.teams || item.teams.length === 0) {
-      // Default roles for work items without teams
+      // Default teams for work items without teams
       return [
         {
-          title: "Account Executive",
-          chairs: [{ chairLabel: "Primary Chair 1" }],
-          totalRoles: 1,
-        },
-        {
-          title: "Project Manager",
-          chairs: [{ chairLabel: "Primary Chair 1" }],
-          totalRoles: 1,
-        },
-        {
-          title: "Risk Consultant",
-          chairs: [
-            { chairLabel: "Primary Chair 1" },
-            { chairLabel: "Primary Chair 2" },
+          teamId: 'default-team',
+          teamName: 'General Assignment',
+          isPrimary: true,
+          roles: [
+            {
+              roleId: 'role-account-exec',
+              roleName: 'Account Executive',
+              chairs: [{ chairLabel: 'Primary' }],
+              totalRoles: 1,
+            },
+            {
+              roleId: 'role-project-manager',
+              roleName: 'Project Manager',
+              chairs: [{ chairLabel: 'Primary' }],
+              totalRoles: 1,
+            },
+            {
+              roleId: 'role-risk-consultant',
+              roleName: 'Risk Consultant',
+              chairs: [{ chairLabel: 'Primary' }],
+              totalRoles: 1,
+            },
           ],
-          totalRoles: 2,
         },
       ];
     }
 
-    // Build roles from teams configuration (simplified - no chair management in V1)
-    const roles: RoleConfig[] = [];
-    item.teams.forEach((team) => {
-      team.roles.forEach((roleConfig) => {
-        roles.push({
-          title: `${team.teamName} (${roleConfig.roleName})`,
-          chairs: [{ chairLabel: "Primary" }],
-          totalRoles: 1,
-        });
-      });
-    });
-    return roles;
+    // Build teams from work item teams configuration
+    return item.teams.map((team) => ({
+      teamId: team.teamId,
+      teamName: team.teamName,
+      isPrimary: team.isPrimary,
+      roles: team.roles.map((role) => ({
+        roleId: role.roleId,
+        roleName: role.roleName,
+        chairs: [{ chairLabel: 'Primary' }],
+        totalRoles: 1,
+      })),
+    }));
   }, []);
-
-  // Role assignments state
-  const [roles, setRoles] = useState<RoleConfig[]>([]);
 
   useEffect(() => {
     const found = workItems.find((item) => item.id === id);
     if (found) {
       setWorkItem(found);
-      if (roles.length === 0) {
-        setRoles(buildRolesFromWorkItem(found));
+      if (teams.length === 0) {
+        setTeams(buildTeamsFromWorkItem(found));
       }
     } else {
       navigate("/");
     }
-  }, [id, workItems, navigate, buildRolesFromWorkItem, roles.length]);
+  }, [id, workItems, navigate, buildTeamsFromWorkItem, teams.length]);
 
   // Calculate status based on due date
   const calculatedStatus = useMemo(() => {
@@ -111,39 +126,43 @@ const WorkItemDetail = () => {
   // Check if work item is read-only (completed)
   const isReadOnly = workItem?.status === 'Completed' || workItem?.isReadOnly;
 
-  // Get all currently assigned members across all roles
+  // Get all currently assigned members across all teams/roles
   const getAllAssignedMembers = useCallback((): TeamMember[] => {
-    return roles.flatMap((role) =>
-      role.chairs
-        .filter((chair) => chair.assignedMember)
-        .map((chair) => chair.assignedMember!)
+    return teams.flatMap((team) =>
+      team.roles.flatMap((role) =>
+        role.chairs
+          .filter((chair) => chair.assignedMember)
+          .map((chair) => chair.assignedMember!)
+      )
     );
-  }, [roles]);
+  }, [teams]);
 
   // Check if a member is already assigned to another role
   const isMemberAssignedElsewhere = useCallback(
-    (member: TeamMember, currentRoleIndex: number): { isAssigned: boolean; roleName?: string } => {
-      for (let i = 0; i < roles.length; i++) {
-        if (i === currentRoleIndex) continue;
-        const foundChair = roles[i].chairs.find(
-          (chair) => chair.assignedMember?.id === member.id
-        );
-        if (foundChair) {
-          return { isAssigned: true, roleName: roles[i].title };
+    (member: TeamMember, currentRoleId: string): { isAssigned: boolean; roleName?: string } => {
+      for (const team of teams) {
+        for (const role of team.roles) {
+          if (role.roleId === currentRoleId) continue;
+          const foundChair = role.chairs.find(
+            (chair) => chair.assignedMember?.id === member.id
+          );
+          if (foundChair) {
+            return { isAssigned: true, roleName: `${team.teamName} - ${role.roleName}` };
+          }
         }
       }
       return { isAssigned: false };
     },
-    [roles]
+    [teams]
   );
 
-  const handleExpandRole = (roleIndex: number) => {
+  const handleToggleRole = (roleId: string) => {
     if (isReadOnly) return;
-    setExpandedRoleIndex((prev) => (prev === roleIndex ? null : roleIndex));
+    setExpandedRoleId((prev) => (prev === roleId ? null : roleId));
   };
 
   const handleAssign = (
-    roleIndex: number,
+    roleId: string,
     chairIndex: number,
     member: TeamMember,
     notes: string
@@ -151,7 +170,7 @@ const WorkItemDetail = () => {
     if (isReadOnly) return;
 
     // Check for duplicate assignment
-    const duplicateCheck = isMemberAssignedElsewhere(member, roleIndex);
+    const duplicateCheck = isMemberAssignedElsewhere(member, roleId);
     if (duplicateCheck.isAssigned) {
       toast({
         title: "Warning: Duplicate Assignment",
@@ -161,62 +180,97 @@ const WorkItemDetail = () => {
       return;
     }
 
-    setRoles((prev) => {
-      const updated = [...prev];
-      updated[roleIndex] = {
-        ...updated[roleIndex],
-        chairs: updated[roleIndex].chairs.map((chair, idx) =>
-          idx === chairIndex
-            ? { ...chair, assignedMember: member, assignmentNotes: notes }
-            : chair
+    setTeams((prev) => {
+      return prev.map((team) => ({
+        ...team,
+        roles: team.roles.map((role) =>
+          role.roleId === roleId
+            ? {
+                ...role,
+                chairs: role.chairs.map((chair, idx) =>
+                  idx === chairIndex
+                    ? { ...chair, assignedMember: member, assignmentNotes: notes }
+                    : chair
+                ),
+              }
+            : role
         ),
-      };
-      return updated;
+      }));
     });
 
     // Collapse the current accordion after assignment
-    setExpandedRoleIndex(null);
+    setExpandedRoleId(null);
+
+    // Find the role name for the toast
+    const roleName = teams
+      .flatMap((t) => t.roles)
+      .find((r) => r.roleId === roleId)?.roleName || 'role';
 
     toast({
       title: "Member Assigned",
-      description: `${member.name} has been assigned to ${roles[roleIndex].title}.`,
+      description: `${member.name} has been assigned to ${roleName}.`,
     });
   };
 
-  const handleUnassign = (roleIndex: number, chairIndex: number) => {
+  const handleUnassign = (roleId: string, chairIndex: number) => {
     if (isReadOnly) return;
     
-    const memberName = roles[roleIndex].chairs[chairIndex].assignedMember?.name;
+    // Find the member name for the toast
+    let memberName = '';
+    let roleName = '';
+    for (const team of teams) {
+      for (const role of team.roles) {
+        if (role.roleId === roleId) {
+          memberName = role.chairs[chairIndex]?.assignedMember?.name || '';
+          roleName = role.roleName;
+          break;
+        }
+      }
+    }
     
-    setRoles((prev) => {
-      const updated = [...prev];
-      updated[roleIndex] = {
-        ...updated[roleIndex],
-        chairs: updated[roleIndex].chairs.map((chair, idx) =>
-          idx === chairIndex
-            ? { ...chair, assignedMember: undefined, assignmentNotes: undefined }
-            : chair
+    setTeams((prev) => {
+      return prev.map((team) => ({
+        ...team,
+        roles: team.roles.map((role) =>
+          role.roleId === roleId
+            ? {
+                ...role,
+                chairs: role.chairs.map((chair, idx) =>
+                  idx === chairIndex
+                    ? { ...chair, assignedMember: undefined, assignmentNotes: undefined }
+                    : chair
+                ),
+              }
+            : role
         ),
-      };
-      return updated;
+      }));
     });
 
     toast({
       title: "Member Unassigned",
-      description: `${memberName} has been removed from ${roles[roleIndex].title}.`,
+      description: `${memberName} has been removed from ${roleName}.`,
     });
   };
 
   const getTotalAssigned = () => {
-    return roles.reduce(
-      (total, role) =>
-        total + role.chairs.filter((c) => c.assignedMember).length,
+    return teams.reduce(
+      (total, team) =>
+        total +
+        team.roles.reduce(
+          (roleTotal, role) =>
+            roleTotal + role.chairs.filter((c) => c.assignedMember).length,
+          0
+        ),
       0
     );
   };
 
   const getTotalRoles = () => {
-    return roles.reduce((total, role) => total + role.totalRoles, 0);
+    return teams.reduce(
+      (total, team) =>
+        total + team.roles.reduce((roleTotal, role) => roleTotal + role.totalRoles, 0),
+      0
+    );
   };
 
   const handleSaveForLater = () => {
@@ -329,29 +383,29 @@ const WorkItemDetail = () => {
               rolesAssigned={{ current: getTotalAssigned(), total: getTotalRoles() }}
             />
 
-            {/* My Assignments Section */}
+            {/* Assignment Requirements Section */}
             <div className="mt-6">
               <h3 className="text-primary font-bold text-base mb-4">
                 Assignment Requirements
               </h3>
               <div className="space-y-4">
-                {roles.map((role, roleIndex) => (
-                  <RoleAssignmentAccordion
-                    key={role.title}
-                    roleTitle={role.title}
-                    rolesCount={{
-                      current: role.chairs.filter((c) => c.assignedMember).length,
-                      total: role.totalRoles,
-                    }}
-                    chairs={role.chairs}
-                    onAssign={(chairIndex, member, notes) =>
-                      handleAssign(roleIndex, chairIndex, member, notes)
+                {teams.map((team) => (
+                  <TeamAccordion
+                    key={team.teamId}
+                    teamId={team.teamId}
+                    teamName={team.teamName}
+                    isPrimary={team.isPrimary}
+                    roles={team.roles}
+                    onAssign={(roleId, chairIndex, member, notes) =>
+                      handleAssign(roleId, chairIndex, member, notes)
                     }
-                    onUnassign={(chairIndex) => handleUnassign(roleIndex, chairIndex)}
-                    isExpanded={expandedRoleIndex === roleIndex && !isReadOnly}
-                    onToggleExpand={() => handleExpandRole(roleIndex)}
-                    roleIndex={roleIndex}
-                    checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, roleIndex)}
+                    onUnassign={(roleId, chairIndex) => handleUnassign(roleId, chairIndex)}
+                    expandedRoleId={expandedRoleId}
+                    onToggleRole={handleToggleRole}
+                    checkDuplicateAssignment={(member, roleId) =>
+                      isMemberAssignedElsewhere(member, roleId)
+                    }
+                    isReadOnly={isReadOnly}
                   />
                 ))}
               </div>
