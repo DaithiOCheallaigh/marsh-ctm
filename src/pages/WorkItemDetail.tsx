@@ -154,19 +154,25 @@ const WorkItemDetail = () => {
     );
   }, [teams]);
 
-  // Calculate total workload for a team member across all assignments in this work item
+  // Calculate total workload for a team member (base workload from capacity + assignments in this work item)
   const getMemberTotalWorkload = useCallback((memberId: string): number => {
-    let totalWorkload = 0;
+    // Get base workload from team member data (capacity = available, so workload = 100 - capacity)
+    const { teamMembers } = require('@/data/teamMembers');
+    const member = teamMembers.find((m: TeamMember) => m.id === memberId);
+    const baseWorkload = member ? (100 - member.capacity) : 0;
+    
+    // Add workload from assignments in this work item
+    let assignmentWorkload = 0;
     for (const team of teams) {
       for (const role of team.roles) {
         for (const chair of role.chairs) {
           if (chair.assignedMember?.id === memberId && chair.workloadPercentage) {
-            totalWorkload += chair.workloadPercentage;
+            assignmentWorkload += chair.workloadPercentage;
           }
         }
       }
     }
-    return totalWorkload;
+    return baseWorkload + assignmentWorkload;
   }, [teams]);
 
   // Check if a member is already assigned to ANY role (including current role's other chairs)
