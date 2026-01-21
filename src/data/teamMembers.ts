@@ -20,7 +20,7 @@ export const teamMembers: TeamMember[] = [
     role: "Managing Director - Property & Casualty",
     location: "New York",
     expertise: ["Property Risk", "Manufacturing", "Large Accounts"],
-    capacity: 35,
+    capacity: 35, // 65% workload already assigned
     matchScore: 100,
     locationMatch: true,
     expertiseMatch: true,
@@ -33,7 +33,7 @@ export const teamMembers: TeamMember[] = [
     role: "Senior Vice President - Marine & Cargo",
     location: "Miami",
     expertise: ["Marine", "Cargo", "Transportation"],
-    capacity: 45,
+    capacity: 10, // 90% workload - almost at capacity!
     matchScore: 95,
     locationMatch: true,
     expertiseMatch: true,
@@ -46,11 +46,11 @@ export const teamMembers: TeamMember[] = [
     role: "VP - Human Capital Management",
     location: "New York",
     expertise: ["HR Operations", "Onboarding", "Team Development"],
-    capacity: 25,
+    capacity: 5, // 95% workload - will trigger over capacity warning
     matchScore: 90,
     locationMatch: true,
     expertiseMatch: true,
-    hasCapacity: true,
+    hasCapacity: false, // marked as no capacity
     isManager: true,
   },
   {
