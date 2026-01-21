@@ -73,14 +73,7 @@ export const TeamAccordion: React.FC<TeamAccordionProps> = ({
       >
         <div className="flex items-center gap-3">
           <Users className={`w-5 h-5 ${isExpanded ? 'text-primary' : 'text-[hsl(var(--wq-text-secondary))]'}`} />
-          <div className="flex items-center gap-2">
-            <h3 className="text-primary font-bold text-base">{teamName}</h3>
-            {isPrimary && (
-              <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full border border-primary/20">
-                Primary
-              </span>
-            )}
-          </div>
+          <h3 className="text-primary font-bold text-base">{teamName}</h3>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[hsl(var(--wq-text-secondary))] text-sm">Roles Assigned:</span>
