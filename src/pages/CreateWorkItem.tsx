@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Clock, Calendar as CalendarIcon, Check, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -35,14 +35,11 @@ type Priority = "high" | "medium" | "low";
 
 const CreateWorkItem = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const draftId = searchParams.get('draft');
   const { toast } = useToast();
-  const { addWorkItem, workItems, updateWorkItem } = useWorkItems();
+  const { addWorkItem, workItems } = useWorkItems();
   
   // Timestamps
   const [createdAt] = useState(() => new Date());
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   
   const formatTimestamp = (date: Date) => format(date, "dd MMM yyyy HH:mm") + " EST";
 
@@ -98,52 +95,6 @@ const CreateWorkItem = () => {
   const [offboardingReason, setOffboardingReason] = useState("");
   const [finalAssignmentDate, setFinalAssignmentDate] = useState<Date | undefined>();
 
-  // Load draft data if editing a draft
-  useEffect(() => {
-    if (draftId) {
-      const draft = workItems.find(item => item.id === draftId && item.status === 'Draft');
-      if (draft) {
-        // Map work type
-        const workTypeMap: Record<string, WorkType> = {
-          'Onboarding': 'onboarding',
-          'New Joiner': 'new-joiner',
-          'Leaver': 'leaver',
-          'Offboarding': 'offboarding',
-        };
-        setWorkType(workTypeMap[draft.workType] || '');
-        setPriority(draft.priority.toLowerCase() as Priority);
-        
-        // Find assignee id
-        const assignee = managers.find(m => m.name === draft.assignee);
-        if (assignee) setAssignTo(assignee.id);
-        
-        // Parse due date
-        if (draft.dueDate) {
-          const parsed = new Date(draft.dueDate);
-          if (!isNaN(parsed.getTime())) setDueDate(parsed);
-        }
-        
-        // Set type-specific fields
-        if (draft.workType === 'Onboarding') {
-          setOnboardingClientName(draft.clientName);
-          setOnboardingDescription(draft.description || '');
-          // Load teams from draft
-          if (draft.teams && draft.teams.length > 0) {
-            const primary = draft.teams.find(t => t.isPrimary) || draft.teams[0];
-            const additional = draft.teams.filter(t => !t.isPrimary && t.teamId !== primary.teamId);
-            setPrimaryTeam(primary);
-            setAdditionalTeams(additional);
-          }
-        } else if (draft.workType === 'New Joiner') {
-          setColleagueName(draft.clientName);
-        } else if (draft.workType === 'Leaver') {
-          setLeaverName(draft.clientName);
-        } else if (draft.workType === 'Offboarding') {
-          setOffboardingClientName(draft.clientName);
-        }
-      }
-    }
-  }, [draftId, workItems]);
 
   // Wrapper functions to track dirty state
   const handleWorkTypeChange = (value: WorkType) => {
@@ -260,6 +211,15 @@ const CreateWorkItem = () => {
 
   const handleSubmit = async () => {
     if (!canSubmit()) {
+      // Provide specific error message for role selection
+      if (workType === "onboarding" && (!primaryTeam || primaryTeam.roles.length === 0)) {
+        toast({
+          title: "Validation Error",
+          description: "Please select at least one role for this work item.",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -328,94 +288,14 @@ const CreateWorkItem = () => {
       attachments: attachmentsWithData,
     };
 
-    let workItemId: string;
-    
-    if (draftId) {
-      // Update existing draft to Pending status
-      updateWorkItem(draftId, { ...workItemData, status: 'Pending' });
-      workItemId = draftId;
-      toast({
-        title: "Work Item Submitted",
-        description: "Your draft has been submitted as a work item.",
-      });
-    } else {
-      workItemId = addWorkItem(workItemData);
-      toast({
-        title: "Work Item Created",
-        description: "Your work item has been successfully created.",
-      });
-    }
+    const workItemId = addWorkItem(workItemData);
+    toast({
+      title: "Work Item Created",
+      description: "Your work item has been successfully created.",
+    });
     navigate(`/work-item/${workItemId}`);
   };
 
-  const handleSaveForLater = async () => {
-    // Need at least work type selected to save as draft
-    if (!workType) {
-      toast({
-        title: "Cannot Save Draft",
-        description: "Please select a work type before saving.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const workTypeLabels: Record<string, string> = {
-      "onboarding": "Onboarding",
-      "new-joiner": "New Joiner",
-      "leaver": "Leaver",
-      "offboarding": "Offboarding",
-    };
-
-    // Build teams config for onboarding using new structure
-    const teams = workType === "onboarding" && primaryTeam ? [
-      primaryTeam,
-      ...additionalTeams
-    ] : undefined;
-
-    // Convert files to data URLs for persistence
-    const convertToDataUrl = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    };
-
-    let attachmentsWithData;
-    if (workType === "onboarding" && onboardingAttachments.length > 0) {
-      attachmentsWithData = await Promise.all(
-        onboardingAttachments.map(async (att) => ({
-          id: att.id,
-          name: att.name,
-          size: att.size,
-          type: att.type,
-          dataUrl: await convertToDataUrl(att.file),
-        }))
-      );
-    }
-
-    addWorkItem({
-      workType: workTypeLabels[workType] || workType,
-      clientName: getClientName(),
-      cnNumber: selectedClient?.cnNumber,
-      accountOwner: selectedClient?.accountOwner,
-      location: selectedClient?.location,
-      dueDate: dueDate ? format(dueDate, "dd MMM yyyy") : "",
-      assignee: getAssigneeName(),
-      priority: priority.charAt(0).toUpperCase() + priority.slice(1) as "High" | "Medium" | "Low",
-      description: onboardingDescription,
-      teams,
-      attachments: attachmentsWithData,
-    }, true); // Pass true to save as draft
-
-    setLastSavedAt(new Date());
-    toast({
-      title: "Draft Saved",
-      description: "Your work item has been saved as a draft.",
-    });
-    navigate("/");
-  };
 
   // Toggle section open/close
   const toggleSection = (sectionNumber: number) => {
@@ -518,7 +398,7 @@ const CreateWorkItem = () => {
               <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(0,0%,91%)] rounded-lg">
                 <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
                 <span className="text-[hsl(0,0%,25%)] text-xs font-medium">
-                  {lastSavedAt ? `Last saved: ${formatTimestamp(lastSavedAt)}` : `Created: ${formatTimestamp(createdAt)}`}
+                  Created: {formatTimestamp(createdAt)}
                 </span>
               </div>
             </div>
@@ -811,10 +691,10 @@ const CreateWorkItem = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleSaveForLater}
+                onClick={() => navigate('/')}
                 className="px-8 border-primary text-primary hover:bg-primary/5"
               >
-                Save For Later
+                Cancel
               </Button>
               <Button
                 type="button"
