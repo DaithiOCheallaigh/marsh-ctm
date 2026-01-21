@@ -137,12 +137,11 @@ const WorkItemDetail = () => {
     );
   }, [teams]);
 
-  // Check if a member is already assigned to another role
+  // Check if a member is already assigned to ANY role (including current role's other chairs)
   const isMemberAssignedElsewhere = useCallback(
     (member: TeamMember, currentRoleId: string): { isAssigned: boolean; roleName?: string } => {
       for (const team of teams) {
         for (const role of team.roles) {
-          if (role.roleId === currentRoleId) continue;
           const foundChair = role.chairs.find(
             (chair) => chair.assignedMember?.id === member.id
           );
