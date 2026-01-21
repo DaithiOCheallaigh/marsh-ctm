@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Search, RotateCcw, X } from 'lucide-react';
 import { TeamMemberCard } from './TeamMemberCard';
 import { TeamMember, teamMembers, searchTeamMembers } from '@/data/teamMembers';
 import { Button } from '@/components/ui/button';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Table,
   TableBody,
@@ -53,6 +54,7 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   checkDuplicateAssignment,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [assignmentNotes, setAssignmentNotes] = useState('');
   const [displayCount, setDisplayCount] = useState(3);
@@ -65,7 +67,11 @@ export const RoleAssignmentAccordion: React.FC<RoleAssignmentAccordionProps> = (
   const CAPACITY_INCREASE = 20;
   const [unassignChairIndex, setUnassignChairIndex] = useState<number | null>(null);
 
-  const filteredMembers = searchTeamMembers(searchQuery);
+  // Memoized filtered members using debounced search query
+  const filteredMembers = useMemo(() => 
+    searchTeamMembers(debouncedSearchQuery),
+    [debouncedSearchQuery]
+  );
   const displayedMembers = filteredMembers.slice(0, displayCount);
 
   // Reset search and selection when collapsing
