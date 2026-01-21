@@ -12,7 +12,7 @@ import { StatusIndicator, getStatusFromDueDate } from "@/components/work-item-de
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
 import { TeamAccordion } from "@/components/work-item-detail/TeamAccordion";
-import { TeamMember } from "@/data/teamMembers";
+import { TeamMember, teamMembers } from "@/data/teamMembers";
 import { CHAIR_LABELS, MAX_CHAIRS } from "@/utils/chairLabels";
 import {
   AlertDialog,
@@ -157,8 +157,7 @@ const WorkItemDetail = () => {
   // Calculate total workload for a team member (base workload from capacity + assignments in this work item)
   const getMemberTotalWorkload = useCallback((memberId: string): number => {
     // Get base workload from team member data (capacity = available, so workload = 100 - capacity)
-    const { teamMembers } = require('@/data/teamMembers');
-    const member = teamMembers.find((m: TeamMember) => m.id === memberId);
+    const member = teamMembers.find((m) => m.id === memberId);
     const baseWorkload = member ? (100 - member.capacity) : 0;
     
     // Add workload from assignments in this work item
