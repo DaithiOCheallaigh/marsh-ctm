@@ -638,7 +638,7 @@ export const SimplifiedAssignmentFlow = ({
                             type="number"
                             min={CAPACITY_CONFIG.MIN_WORKLOAD_PERCENTAGE}
                             max={CAPACITY_CONFIG.MAX_WORKLOAD_PERCENTAGE}
-                            step="0.1"
+                            step="any"
                             value={workloadPercentage}
                             onChange={(e) => handleWorkloadChange(e.target.value)}
                             className={cn(
