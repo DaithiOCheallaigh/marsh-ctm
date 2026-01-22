@@ -582,7 +582,7 @@ export const SimplifiedAssignmentFlow = ({
 
           {/* Step 3: Configure Assignment */}
           {currentStep === 3 && selectedMember && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {(() => {
                 const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
                 const currentAvailable = calculateAvailableCapacity(selectedMember, workItemWorkload);
@@ -592,52 +592,47 @@ export const SimplifiedAssignmentFlow = ({
                 
                 return (
                   <>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {selectedRole?.roleName}
-                        </Badge>
-                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                        <Badge variant="outline" className="text-xs">
-                          {selectedMember?.name}
-                        </Badge>
+                    {/* Header with breadcrumb */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span>{selectedRole?.roleName}</span>
+                        <ChevronRight className="h-3 w-3" />
+                        <span className="text-foreground font-medium">{selectedMember?.name}</span>
                       </div>
-                      <h4 className="font-medium">Configure Assignment Details</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Set the workload and chair for this assignment.
-                      </p>
+                      <h4 className="font-semibold text-base">Configure Assignment</h4>
                     </div>
 
-                    {/* Member Capacity Summary */}
+                    {/* Member Summary - Compact */}
                     <div className={cn(
-                      "rounded-lg p-4 border",
+                      "flex items-center justify-between rounded-lg px-4 py-3 border",
                       currentStatusInfo.bgClass,
                       currentStatusInfo.borderClass
                     )}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="h-4 w-4 text-primary" />
+                        </div>
                         <div>
                           <p className="text-sm font-medium">{selectedMember.name}</p>
                           <p className="text-xs text-muted-foreground">{selectedMember.role}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Available Capacity</p>
-                          <p className={cn("text-lg font-bold", currentStatusInfo.colorClass)}>
-                            {formatAvailableCapacity(currentAvailable)}
-                          </p>
-                          <Badge variant="outline" className={cn("text-xs", currentStatusInfo.colorClass, currentStatusInfo.borderClass)}>
-                            {currentStatusInfo.statusText}
-                          </Badge>
-                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={cn("text-lg font-bold", currentStatusInfo.colorClass)}>
+                          {formatAvailableCapacity(currentAvailable)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{currentStatusInfo.statusText}</p>
                       </div>
                     </div>
 
-                    <div className="grid gap-6">
+                    {/* Form Fields - 2 Column Grid */}
+                    <div className="grid grid-cols-2 gap-4">
                       {/* Workload Percentage */}
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label htmlFor="workload" className="text-sm font-medium">
-                          Workload Percentage <span className="text-destructive">*</span>
+                          Workload <span className="text-destructive">*</span>
                         </Label>
-                        <div className="flex items-center gap-3">
+                        <div className="relative">
                           <Input
                             id="workload"
                             type="number"
@@ -647,58 +642,29 @@ export const SimplifiedAssignmentFlow = ({
                             value={workloadPercentage}
                             onChange={(e) => handleWorkloadChange(e.target.value)}
                             className={cn(
-                              "w-24",
+                              "pr-8",
                               workloadError && "border-destructive focus:ring-destructive"
                             )}
                             disabled={isReadOnly}
                           />
-                          <span className="text-sm text-muted-foreground">%</span>
-                          <span className="text-xs text-muted-foreground">
-                            (Min: {CAPACITY_CONFIG.MIN_WORKLOAD_PERCENTAGE}%, Max: {CAPACITY_CONFIG.MAX_WORKLOAD_PERCENTAGE}%)
-                          </span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          This represents how much of the team member's capacity this assignment will consume.
-                        </p>
-                        
-                        {/* Validation Error */}
                         {workloadError && (
                           <p className="text-xs text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {workloadError}
                           </p>
                         )}
-                        
-                        {/* Warning (not blocking) */}
                         {workloadWarning && !workloadError && (
                           <p className="text-xs text-amber-600 flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" />
                             {workloadWarning}
                           </p>
                         )}
-
-                        {/* Projected Capacity Preview */}
-                        {workloadPercentage > 0 && !workloadError && (
-                          <div className={cn(
-                            "mt-3 p-3 rounded-lg border",
-                            projectedStatusInfo.bgClass,
-                            projectedStatusInfo.borderClass
-                          )}>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">After assignment:</span>
-                              <span className={cn("font-semibold", projectedStatusInfo.colorClass)}>
-                                {formatAvailableCapacity(projectedAvailable)} available
-                                {projectedStatusInfo.showWarningIcon && (
-                                  <AlertTriangle className="inline w-3.5 h-3.5 ml-1" />
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        )}
                       </div>
 
                       {/* Chair Selection */}
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label htmlFor="chair" className="text-sm font-medium">
                           Chair <span className="text-destructive">*</span>
                         </Label>
@@ -706,11 +672,10 @@ export const SimplifiedAssignmentFlow = ({
                           <SelectTrigger 
                             id="chair" 
                             className={cn(
-                              "w-full max-w-xs",
                               chairError && "border-destructive focus:ring-destructive"
                             )}
                           >
-                            <SelectValue placeholder="Select a chair..." />
+                            <SelectValue placeholder="Select chair..." />
                           </SelectTrigger>
                           <SelectContent>
                             {CHAIR_OPTIONS.map((chair) => (
@@ -729,11 +694,30 @@ export const SimplifiedAssignmentFlow = ({
                       </div>
                     </div>
 
-                    <div className="flex justify-between pt-4 border-t">
-                      <Button variant="outline" onClick={() => goToStep(2)} disabled={isReadOnly}>
+                    {/* Projected Capacity - Only show when valid */}
+                    {workloadPercentage > 0 && !workloadError && (
+                      <div className={cn(
+                        "flex items-center justify-between rounded-lg px-4 py-2.5 border text-sm",
+                        projectedStatusInfo.bgClass,
+                        projectedStatusInfo.borderClass
+                      )}>
+                        <span className="text-muted-foreground">After assignment</span>
+                        <span className={cn("font-semibold flex items-center gap-1", projectedStatusInfo.colorClass)}>
+                          {formatAvailableCapacity(projectedAvailable)} available
+                          {projectedStatusInfo.showWarningIcon && (
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex justify-between pt-3 border-t">
+                      <Button variant="outline" size="sm" onClick={() => goToStep(2)} disabled={isReadOnly}>
                         Back
                       </Button>
                       <Button 
+                        size="sm"
                         onClick={handleProceedToComplete} 
                         disabled={isReadOnly || !!workloadError}
                       >
