@@ -333,13 +333,8 @@ const WorkItemDetail = () => {
     );
   };
 
-  const handleSaveForLater = () => {
-    if (isReadOnly) return;
-    setLastSavedAt(new Date());
-    toast({
-      title: "Draft Saved",
-      description: "Your assignments have been saved as a draft.",
-    });
+  const handleCancel = () => {
+    navigate("/");
   };
 
   const handleCompleteWorkItem = () => {
@@ -469,6 +464,12 @@ const WorkItemDetail = () => {
                       assignment.workloadPercentage
                     );
                   }
+                  // Autosave and update timestamp
+                  setLastSavedAt(new Date());
+                  toast({
+                    title: "Progress Saved",
+                    description: `${assignment.roleName} assignment has been saved.`,
+                  });
                 }}
                 isReadOnly={isReadOnly}
               />
@@ -481,10 +482,10 @@ const WorkItemDetail = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleSaveForLater}
+                    onClick={handleCancel}
                     className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
                   >
-                    Save For Later
+                    Cancel
                   </Button>
                   <Button
                     type="button"
