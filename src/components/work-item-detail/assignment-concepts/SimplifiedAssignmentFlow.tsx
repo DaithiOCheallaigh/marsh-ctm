@@ -244,7 +244,7 @@ const TeamMemberCard = ({
         </span>
         {/* CRITICAL: Display "Available Capacity", NOT "Workload" */}
         <span className="flex items-center gap-1">
-          <span className="font-medium">Available:</span>
+          <span className="font-medium">Available Capacity:</span>
           <Badge 
             variant="outline" 
             className={cn("text-xs font-semibold", statusInfo.colorClass, statusInfo.bgClass, statusInfo.borderClass)}
