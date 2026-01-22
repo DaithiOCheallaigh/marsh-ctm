@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -157,101 +157,124 @@ const TeamMemberCard = ({
       onClick={onSelect}
       disabled={effectivelyDisabled}
       className={cn(
-        "w-full p-4 rounded-lg border text-left transition-all bg-white",
+        "group w-full rounded-xl border-2 text-left transition-all duration-200",
         isSelected
-          ? "border-primary ring-2 ring-primary/20"
-          : "border-[hsl(var(--wq-border))] hover:border-primary/50",
-        effectivelyDisabled && "opacity-50 cursor-not-allowed"
+          ? "border-primary bg-primary/5 shadow-md"
+          : "border-border bg-card hover:border-primary/40 hover:bg-accent/30 hover:shadow-sm",
+        effectivelyDisabled && "opacity-50 cursor-not-allowed hover:border-border hover:bg-card"
       )}
     >
-      {/* Header Row */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-3">
-          <div
-            className={cn(
-              "w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0",
-              isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))] bg-white"
+      <div className="p-4">
+        {/* Top Section: Avatar, Name, Match Score */}
+        <div className="flex items-center gap-4">
+          {/* Selection Indicator & Avatar */}
+          <div className="relative flex-shrink-0">
+            <div className={cn(
+              "h-12 w-12 rounded-full flex items-center justify-center text-lg font-semibold transition-colors",
+              isSelected 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+            )}>
+              {member.name.split(' ').map(n => n[0]).join('')}
+            </div>
+            {isSelected && (
+              <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center ring-2 ring-background">
+                <Check className="h-3 w-3 text-primary-foreground" />
+              </div>
             )}
-          >
-            {isSelected && <Check className="w-3 h-3 text-white" />}
           </div>
-          <div>
-            <div className="font-semibold text-primary">{member.name}</div>
-            <div className="text-sm text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
+
+          {/* Name & Role */}
+          <div className="flex-1 min-w-0">
+            <h4 className={cn(
+              "font-semibold truncate transition-colors",
+              isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
+            )}>
+              {member.name}
+            </h4>
+            <p className="text-sm text-muted-foreground truncate">{member.role}</p>
+          </div>
+
+          {/* Match Score */}
+          <div className="flex-shrink-0 text-right">
+            <div className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold",
+              matchBadge.label === 'Best Match' 
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : matchBadge.label === 'Good Match'
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                : "bg-muted text-muted-foreground"
+            )}>
+              <span className="text-xs font-medium opacity-70">Score</span>
+              <span>{member.matchScore}</span>
+            </div>
+            {matchBadge.label && (
+              <p className={cn(
+                "text-xs mt-1 font-medium",
+                matchBadge.label === 'Best Match' ? "text-emerald-600" : "text-blue-600"
+              )}>
+                {matchBadge.label}
+              </p>
+            )}
           </div>
         </div>
-        <div className="text-right flex-shrink-0">
-          <div className="text-sm text-[hsl(var(--wq-text-secondary))]">
-            Match Score: <span className="font-semibold text-primary">{member.matchScore}</span>
+
+        {/* Divider */}
+        <div className="my-3 border-t border-border/50" />
+
+        {/* Bottom Section: Match Indicators & Capacity */}
+        <div className="flex items-center justify-between gap-4">
+          {/* Match Indicators */}
+          <div className="flex items-center gap-3 text-xs">
+            <span className={cn(
+              "inline-flex items-center gap-1 px-2 py-1 rounded-md",
+              member.locationMatch 
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" 
+                : "bg-muted text-muted-foreground"
+            )}>
+              {member.locationMatch ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <MapPin className="h-3.5 w-3.5 opacity-50" />
+              )}
+              {member.location}
+            </span>
+            <span className={cn(
+              "inline-flex items-center gap-1 px-2 py-1 rounded-md",
+              member.expertiseMatch 
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400" 
+                : "bg-muted text-muted-foreground"
+            )}>
+              {member.expertiseMatch ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <Briefcase className="h-3.5 w-3.5 opacity-50" />
+              )}
+              {member.expertise.length} skills
+            </span>
           </div>
-          {matchBadge.label && (
-            <Badge className={cn("text-xs mt-1", matchBadge.className)}>
-              {matchBadge.label}
-            </Badge>
-          )}
+
+          {/* Available Capacity - Prominent */}
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg border",
+            statusInfo.bgClass,
+            statusInfo.borderClass
+          )}>
+            {statusInfo.status === 'available' || statusInfo.status === 'fully_available' ? (
+              <CheckCircle2 className={cn("h-4 w-4", statusInfo.colorClass)} />
+            ) : statusInfo.status === 'at_capacity' || statusInfo.status === 'over_assigned' ? (
+              <AlertCircle className={cn("h-4 w-4", statusInfo.colorClass)} />
+            ) : (
+              <AlertTriangle className={cn("h-4 w-4", statusInfo.colorClass)} />
+            )}
+            <div className="text-right">
+              <p className={cn("text-sm font-bold leading-none", statusInfo.colorClass)}>
+                {formatAvailableCapacity(availableCapacity)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">available</p>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Match Indicators Row */}
-      <div className="flex items-center gap-4 mb-3 text-sm">
-        <span className={cn(
-          "flex items-center gap-1",
-          member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
-        )}>
-          <CheckCircle2 className={cn(
-            "w-4 h-4",
-            member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
-          )} />
-          Location match
-        </span>
-        <span className={cn(
-          "flex items-center gap-1",
-          member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
-        )}>
-          <CheckCircle2 className={cn(
-            "w-4 h-4",
-            member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
-          )} />
-          Expertise match
-        </span>
-        {/* Capacity indicator with status-based styling */}
-        <span className={cn(
-          "flex items-center gap-1",
-          statusInfo.status === 'available' || statusInfo.status === 'fully_available'
-            ? "text-[hsl(var(--wq-status-completed-text))]"
-            : statusInfo.status === 'limited' || statusInfo.status === 'low'
-            ? "text-amber-600"
-            : "text-destructive"
-        )}>
-          {statusInfo.status === 'available' || statusInfo.status === 'fully_available' ? (
-            <CheckCircle2 className="w-4 h-4" />
-          ) : statusInfo.status === 'at_capacity' || statusInfo.status === 'over_assigned' ? (
-            <AlertCircle className="w-4 h-4" />
-          ) : (
-            <AlertTriangle className="w-4 h-4" />
-          )}
-          {statusInfo.statusText}
-        </span>
-      </div>
-
-      {/* Details Row */}
-      <div className="flex items-center gap-6 text-sm text-[hsl(var(--wq-text-secondary))]">
-        <span>
-          <span className="font-medium">Location:</span> {member.location}
-        </span>
-        <span>
-          <span className="font-medium">Expertise:</span> {member.expertise.slice(0, 3).join(", ")}
-        </span>
-        {/* CRITICAL: Display "Available Capacity", NOT "Workload" */}
-        <span className="flex items-center gap-1">
-          <span className="font-medium">Available Capacity:</span>
-          <Badge 
-            variant="outline" 
-            className={cn("text-xs font-semibold", statusInfo.colorClass, statusInfo.bgClass, statusInfo.borderClass)}
-          >
-            {formatAvailableCapacity(availableCapacity)}
-          </Badge>
-        </span>
       </div>
     </button>
   );
