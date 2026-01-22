@@ -621,6 +621,7 @@ export const SimplifiedAssignmentFlow = ({
                             step="any"
                             value={workloadPercentage}
                             onChange={(e) => handleWorkloadChange(e.target.value)}
+                            onFocus={(e) => e.target.select()}
                             className="pr-8"
                             disabled={isReadOnly}
                           />
