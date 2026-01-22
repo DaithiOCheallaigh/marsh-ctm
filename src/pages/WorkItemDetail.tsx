@@ -57,13 +57,14 @@ const WorkItemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { workItems, completeWorkItem } = useWorkItems();
+  const { workItems, completeWorkItem, updateWorkItem } = useWorkItems();
 
   const [workItem, setWorkItem] = useState<WorkItem | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [conceptAssignments, setConceptAssignments] = useState<AssignmentData[]>([]);
+  const [hasInitializedAssignments, setHasInitializedAssignments] = useState(false);
 
   // Team-based assignment state
   const [teams, setTeams] = useState<TeamState[]>([]);
@@ -133,10 +134,15 @@ const WorkItemDetail = () => {
       if (teams.length === 0) {
         setTeams(buildTeamsFromWorkItem(found));
       }
+      // Initialize assignments from saved data (only once)
+      if (!hasInitializedAssignments && found.savedAssignments && found.savedAssignments.length > 0) {
+        setConceptAssignments(found.savedAssignments as AssignmentData[]);
+        setHasInitializedAssignments(true);
+      }
     } else {
       navigate("/");
     }
-  }, [id, workItems, navigate, buildTeamsFromWorkItem, teams.length]);
+  }, [id, workItems, navigate, buildTeamsFromWorkItem, teams.length, hasInitializedAssignments]);
 
   // Calculate status based on due date
   const calculatedStatus = useMemo(() => {
@@ -451,10 +457,12 @@ const WorkItemDetail = () => {
                 )}
                 existingAssignments={conceptAssignments}
                 onComplete={(assignment) => {
-                  setConceptAssignments(prev => {
-                    const filtered = prev.filter(a => a.roleId !== assignment.roleId);
-                    return [...filtered, assignment];
-                  });
+                  const updatedAssignments = [
+                    ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
+                    assignment
+                  ];
+                  setConceptAssignments(updatedAssignments);
+                  
                   if (assignment.selectedPerson) {
                     handleAssign(
                       assignment.roleId,
@@ -464,7 +472,14 @@ const WorkItemDetail = () => {
                       assignment.workloadPercentage
                     );
                   }
-                  // Autosave and update timestamp
+                  
+                  // Autosave to context
+                  if (workItem) {
+                    updateWorkItem(workItem.id, {
+                      savedAssignments: updatedAssignments,
+                    });
+                  }
+                  
                   setLastSavedAt(new Date());
                   toast({
                     title: "Progress Saved",

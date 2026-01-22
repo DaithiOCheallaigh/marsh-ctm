@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { WorkItemTeamConfig, RoleConfig } from '@/types/teamAssignment';
+import { TeamMember } from '@/data/teamMembers';
 
 // Re-export for backward compatibility
 export type TeamConfig = WorkItemTeamConfig;
@@ -16,6 +17,16 @@ export interface Attachment {
   size: number;
   type: string;
   dataUrl?: string; // Base64 data URL for download/preview
+}
+
+export interface SavedAssignment {
+  roleId: string;
+  roleName: string;
+  teamName?: string;
+  selectedPerson?: TeamMember;
+  chairType: 'Primary' | 'Secondary';
+  workloadPercentage: number;
+  notes?: string;
 }
 
 export interface WorkItem {
@@ -36,6 +47,7 @@ export interface WorkItem {
   attachments?: Attachment[];
   isReadOnly?: boolean;
   lastModified?: string;
+  savedAssignments?: SavedAssignment[];
 }
 
 interface WorkItemsContextType {
