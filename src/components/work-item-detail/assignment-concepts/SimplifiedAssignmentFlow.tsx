@@ -602,11 +602,11 @@ export const SimplifiedAssignmentFlow = ({
                       <h4 className="font-semibold text-base">Configure Assignment</h4>
                     </div>
 
-                    {/* Member Summary - Compact */}
+                    {/* Member Summary - Compact (shows projected capacity after assignment) */}
                     <div className={cn(
                       "flex items-center justify-between rounded-lg px-4 py-3 border",
-                      currentStatusInfo.bgClass,
-                      currentStatusInfo.borderClass
+                      projectedStatusInfo.bgClass,
+                      projectedStatusInfo.borderClass
                     )}>
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
@@ -618,10 +618,10 @@ export const SimplifiedAssignmentFlow = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={cn("text-lg font-bold", currentStatusInfo.colorClass)}>
-                          {formatAvailableCapacity(currentAvailable)}
+                        <p className={cn("text-lg font-bold", projectedStatusInfo.colorClass)}>
+                          {formatAvailableCapacity(projectedAvailable)}
                         </p>
-                        <p className="text-xs text-muted-foreground">{currentStatusInfo.statusText}</p>
+                        <p className="text-xs text-muted-foreground">{projectedStatusInfo.statusText}</p>
                       </div>
                     </div>
 
