@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, MapPin, Gauge } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RoleDefinition, AssignmentData, getMatchScoreColor, getMatchBadge, getCapacityBarColor } from "./types";
+import { RoleDefinition, AssignmentData, getMatchBadge } from "./types";
 import { teamMembers, TeamMember } from "@/data/teamMembers";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface SimplifiedAssignmentFlowProps {
   availableRoles: RoleDefinition[];
@@ -102,8 +103,6 @@ const TeamMemberCard = ({
   onSelect: () => void;
   isDisabled?: boolean;
 }) => {
-  // Current workload (capacity field represents available capacity in the data)
-  const currentWorkload = 100 - member.capacity;
   const matchBadge = getMatchBadge(member.matchScore);
 
   return (
@@ -112,72 +111,91 @@ const TeamMemberCard = ({
       onClick={onSelect}
       disabled={isDisabled}
       className={cn(
-        "w-full p-3 rounded-lg border-2 text-left transition-all",
+        "w-full p-4 rounded-lg border text-left transition-all bg-white",
         isSelected
-          ? "border-primary bg-white shadow-md"
-          : "border-transparent bg-white hover:border-[hsl(var(--wq-border))]",
+          ? "border-primary ring-2 ring-primary/20"
+          : "border-[hsl(var(--wq-border))] hover:border-primary/50",
         isDisabled && "opacity-50 cursor-not-allowed"
       )}
     >
       {/* Header Row */}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start gap-3">
           <div
             className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))]"
+              "w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0",
+              isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))] bg-white"
             )}
           >
             {isSelected && <Check className="w-3 h-3 text-white" />}
           </div>
           <div>
-            <div className="font-medium text-primary text-sm">{member.name}</div>
-            <div className="text-xs text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
+            <div className="font-semibold text-primary">{member.name}</div>
+            <div className="text-sm text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
           </div>
         </div>
-        <div className="text-right">
-          <div className={cn("font-semibold text-sm", getMatchScoreColor(member.matchScore))}>
-            {member.matchScore}
+        <div className="text-right flex-shrink-0">
+          <div className="text-sm text-[hsl(var(--wq-text-secondary))]">
+            Match Score: <span className="font-semibold text-primary">{member.matchScore}</span>
           </div>
           {matchBadge.label && (
-            <Badge className={cn("text-[10px]", matchBadge.className)}>
+            <Badge className={cn("text-xs mt-1", matchBadge.className)}>
               {matchBadge.label}
             </Badge>
           )}
         </div>
       </div>
 
-      {/* Match Indicators */}
-      <div className="flex items-center gap-3 text-xs mb-2">
-        <span className={member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"}>
-          <MapPin className="w-3 h-3 inline mr-1" />
-          {member.locationMatch ? "✓" : "○"}
+      {/* Match Indicators Row */}
+      <div className="flex items-center gap-4 mb-3 text-sm">
+        <span className={cn(
+          "flex items-center gap-1",
+          member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
+        )}>
+          <CheckCircle2 className={cn(
+            "w-4 h-4",
+            member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
+          )} />
+          Location match
         </span>
-        <span className={member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"}>
-          <Briefcase className="w-3 h-3 inline mr-1" />
-          {member.expertiseMatch ? "✓" : "○"}
+        <span className={cn(
+          "flex items-center gap-1",
+          member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
+        )}>
+          <CheckCircle2 className={cn(
+            "w-4 h-4",
+            member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
+          )} />
+          Expertise match
         </span>
-        <span className={member.hasCapacity ? "text-[hsl(var(--wq-status-completed-text))]" : "text-[hsl(var(--wq-priority-medium))]"}>
-          <Gauge className="w-3 h-3 inline mr-1" />
-          {member.capacity}%
-        </span>
+        {member.hasCapacity ? (
+          <span className="flex items-center gap-1 text-[hsl(var(--wq-status-completed-text))]">
+            <CheckCircle2 className="w-4 h-4" />
+            Has capacity
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-destructive">
+            <AlertCircle className="w-4 h-4" />
+            Low capacity
+          </span>
+        )}
       </div>
 
-      {/* Capacity Bar */}
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className={cn("h-full transition-all", getCapacityBarColor(currentWorkload))}
-          style={{ width: `${currentWorkload}%` }}
-        />
+      {/* Details Row */}
+      <div className="flex items-center gap-6 text-sm text-[hsl(var(--wq-text-secondary))]">
+        <span>
+          <span className="font-medium">Location:</span> {member.location}
+        </span>
+        <span>
+          <span className="font-medium">Expertise:</span> {member.expertise.slice(0, 3).join(", ")}
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="font-medium">Capacity:</span>
+          <Badge variant="outline" className="text-xs font-semibold">
+            {member.capacity}%
+          </Badge>
+        </span>
       </div>
-      
-      {/* Capacity Warning */}
-      {member.capacity <= 10 && (
-        <div className="text-xs text-destructive mt-1 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
-          Near or at capacity
-        </div>
-      )}
     </button>
   );
 };
@@ -195,11 +213,34 @@ export const SimplifiedAssignmentFlow = ({
   const [workloadPercentage, setWorkloadPercentage] = useState<number>(20);
   const [selectedChair, setSelectedChair] = useState<string>("");
   const [chairError, setChairError] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // Filter members based on selected role (simplified - show all for now)
+  // Filter members based on search
   const eligibleMembers = useMemo(() => {
-    return teamMembers.filter(m => !m.isManager);
-  }, []);
+    let members = teamMembers.filter(m => !m.isManager);
+    
+    if (debouncedSearch) {
+      const query = debouncedSearch.toLowerCase();
+      members = members.filter(m =>
+        m.name.toLowerCase().includes(query) ||
+        m.role.toLowerCase().includes(query) ||
+        m.location.toLowerCase().includes(query) ||
+        m.expertise.some(e => e.toLowerCase().includes(query))
+      );
+    }
+    
+    // Sort by match score
+    members = members.sort((a, b) => b.matchScore - a.matchScore);
+    
+    // Limit to 4 unless showAll is true
+    if (!showAll && !debouncedSearch) {
+      return members.slice(0, 4);
+    }
+    
+    return members;
+  }, [debouncedSearch, showAll]);
 
   // Get unassigned roles
   const unassignedRoles = useMemo(() => {
@@ -264,11 +305,17 @@ export const SimplifiedAssignmentFlow = ({
     setWorkloadPercentage(20);
     setSelectedChair("");
     setChairError("");
+    setSearchQuery("");
+    setShowAll(false);
   };
 
   const goToStep = (step: Step) => {
     if (step < currentStep) {
       setCurrentStep(step);
+      if (step === 1) {
+        setSearchQuery("");
+        setShowAll(false);
+      }
     }
   };
 
@@ -380,7 +427,19 @@ export const SimplifiedAssignmentFlow = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, role, location, or expertise..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {/* Team Member Cards - Single Column */}
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                 {eligibleMembers.map((member) => {
                   const isAtCapacity = member.capacity <= 0;
                   
@@ -395,6 +454,19 @@ export const SimplifiedAssignmentFlow = ({
                   );
                 })}
               </div>
+
+              {/* Show More Button */}
+              {!showAll && !debouncedSearch && teamMembers.filter(m => !m.isManager).length > 4 && (
+                <div className="text-center">
+                  <Button
+                    variant="link"
+                    onClick={() => setShowAll(true)}
+                    className="text-primary font-semibold"
+                  >
+                    Show More
+                  </Button>
+                </div>
+              )}
 
               <div className="flex justify-between pt-4 border-t">
                 <Button variant="outline" onClick={() => goToStep(1)} disabled={isReadOnly}>
