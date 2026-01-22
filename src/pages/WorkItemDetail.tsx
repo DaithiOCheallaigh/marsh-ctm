@@ -11,15 +11,10 @@ import { WorkTypeBadge } from "@/components/work-item-detail/WorkTypeBadge";
 import { StatusIndicator, getStatusFromDueDate } from "@/components/work-item-detail/StatusIndicator";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { WorkDetailsCard } from "@/components/work-item-detail/WorkDetailsCard";
-import { TeamAccordion } from "@/components/work-item-detail/TeamAccordion";
 import { TeamMember, teamMembers } from "@/data/teamMembers";
-import { ProgressiveAssignmentFlow, RoleDefinition, RoleAssignmentData } from "@/components/work-item-detail/ProgressiveAssignmentFlow";
 import { CHAIR_LABELS, MAX_CHAIRS } from "@/utils/chairLabels";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Concept1TableView,
-  Concept2SplitPanel,
-  Concept3KanbanBoard,
+  SimplifiedAssignmentFlow,
   AssignmentData,
 } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -448,202 +443,35 @@ const WorkItemDetail = () => {
               rolesAssigned={{ current: getPrimaryChairsAssigned(), total: getTotalRequired() }}
             />
 
-            {/* Assignment Requirements Section - Three Concept Views */}
+            {/* Assignment Requirements Section - Simplified 4-Step Flow */}
             <div className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-primary font-bold text-base">
-                  Assignment Requirements
-                </h3>
-                <span className="text-xs text-[hsl(var(--wq-text-secondary))] bg-amber-100 text-amber-700 px-2 py-1 rounded">
-                  ⚠ Client Feedback Mode: Showing all 3 concepts
-                </span>
-              </div>
-
-              <Tabs defaultValue="concept1" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-4">
-                  <TabsTrigger value="concept1" className="text-xs">
-                    Concept 1: Table View
-                  </TabsTrigger>
-                  <TabsTrigger value="concept2" className="text-xs">
-                    Concept 2: Split Panel
-                  </TabsTrigger>
-                  <TabsTrigger value="concept3" className="text-xs">
-                    Concept 3: Kanban
-                  </TabsTrigger>
-                  <TabsTrigger value="legacy" className="text-xs">
-                    Original Flow
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* Concept 1: Hybrid Table View */}
-                <TabsContent value="concept1">
-                  <Concept1TableView
-                    roles={teams.flatMap(team =>
-                      team.roles.map(role => ({
-                        roleId: role.roleId,
-                        roleName: role.roleName,
-                        teamName: team.teamName,
-                        description: `${team.teamName} - ${role.roleName}`,
-                      }))
-                    )}
-                    assignments={conceptAssignments}
-                    onAssign={(assignment) => {
-                      setConceptAssignments(prev => {
-                        const filtered = prev.filter(a => a.roleId !== assignment.roleId);
-                        return [...filtered, assignment];
-                      });
-                      if (assignment.selectedPerson) {
-                        handleAssign(
-                          assignment.roleId,
-                          0,
-                          assignment.selectedPerson,
-                          assignment.notes || '',
-                          assignment.workloadPercentage
-                        );
-                      }
-                    }}
-                    onUnassign={(roleId) => {
-                      setConceptAssignments(prev => prev.filter(a => a.roleId !== roleId));
-                      handleUnassign(roleId, 0);
-                    }}
-                    isReadOnly={isReadOnly}
-                    getMemberTotalWorkload={getMemberTotalWorkload}
-                    checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, '')}
-                  />
-                </TabsContent>
-
-                {/* Concept 2: Side-by-Side Split Panel */}
-                <TabsContent value="concept2">
-                  <Concept2SplitPanel
-                    roles={teams.flatMap(team =>
-                      team.roles.map(role => ({
-                        roleId: role.roleId,
-                        roleName: role.roleName,
-                        teamName: team.teamName,
-                        description: `${team.teamName} - ${role.roleName}`,
-                      }))
-                    )}
-                    assignments={conceptAssignments}
-                    onAssign={(assignment) => {
-                      setConceptAssignments(prev => {
-                        const filtered = prev.filter(a => a.roleId !== assignment.roleId);
-                        return [...filtered, assignment];
-                      });
-                      if (assignment.selectedPerson) {
-                        handleAssign(
-                          assignment.roleId,
-                          0,
-                          assignment.selectedPerson,
-                          assignment.notes || '',
-                          assignment.workloadPercentage
-                        );
-                      }
-                    }}
-                    onUnassign={(roleId) => {
-                      setConceptAssignments(prev => prev.filter(a => a.roleId !== roleId));
-                      handleUnassign(roleId, 0);
-                    }}
-                    isReadOnly={isReadOnly}
-                    getMemberTotalWorkload={getMemberTotalWorkload}
-                    checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, '')}
-                  />
-                </TabsContent>
-
-                {/* Concept 3: Kanban Board */}
-                <TabsContent value="concept3">
-                  <Concept3KanbanBoard
-                    roles={teams.flatMap(team =>
-                      team.roles.map(role => ({
-                        roleId: role.roleId,
-                        roleName: role.roleName,
-                        teamName: team.teamName,
-                        description: `${team.teamName} - ${role.roleName}`,
-                      }))
-                    )}
-                    assignments={conceptAssignments}
-                    onAssign={(assignment) => {
-                      setConceptAssignments(prev => {
-                        const filtered = prev.filter(a => a.roleId !== assignment.roleId);
-                        return [...filtered, assignment];
-                      });
-                      if (assignment.selectedPerson) {
-                        handleAssign(
-                          assignment.roleId,
-                          0,
-                          assignment.selectedPerson,
-                          assignment.notes || '',
-                          assignment.workloadPercentage
-                        );
-                      }
-                    }}
-                    onUnassign={(roleId) => {
-                      setConceptAssignments(prev => prev.filter(a => a.roleId !== roleId));
-                      handleUnassign(roleId, 0);
-                    }}
-                    isReadOnly={isReadOnly}
-                    getMemberTotalWorkload={getMemberTotalWorkload}
-                    checkDuplicateAssignment={(member) => isMemberAssignedElsewhere(member, '')}
-                  />
-                </TabsContent>
-
-                {/* Original Progressive Flow */}
-                <TabsContent value="legacy">
-                  <ProgressiveAssignmentFlow
-                    availableRoles={teams.flatMap(team =>
-                      team.roles.map(role => ({
-                        roleId: role.roleId,
-                        roleName: role.roleName,
-                        description: `${team.teamName} - ${role.roleName} role assignment`,
-                      }))
-                    )}
-                    onComplete={(assignments: RoleAssignmentData[]) => {
-                      assignments.forEach(assignment => {
-                        if (assignment.selectedPerson) {
-                          handleAssign(
-                            assignment.roleId,
-                            0,
-                            assignment.selectedPerson,
-                            `${assignment.chairType} Chair`,
-                            20
-                          );
-                        }
-                      });
-                      toast({
-                        title: "Assignments Complete",
-                        description: `Successfully assigned ${assignments.length} roles.`,
-                      });
-                    }}
-                    isReadOnly={isReadOnly}
-                  />
-
-                  {/* Legacy Team Accordions */}
-                  <div className="mt-6">
-                    <h4 className="text-primary font-semibold text-sm mb-3">Detailed Role Management</h4>
-                    <div className="space-y-4">
-                      {teams.map((team) => (
-                        <TeamAccordion
-                          key={team.teamId}
-                          teamId={team.teamId}
-                          teamName={team.teamName}
-                          isPrimary={team.isPrimary}
-                          roles={team.roles}
-                          onAssign={(roleId, chairIndex, member, notes, workloadPercentage) =>
-                            handleAssign(roleId, chairIndex, member, notes, workloadPercentage)
-                          }
-                          onUnassign={(roleId, chairIndex) => handleUnassign(roleId, chairIndex)}
-                          expandedRoleId={expandedRoleId}
-                          onToggleRole={handleToggleRole}
-                          checkDuplicateAssignment={(member, roleId) =>
-                            isMemberAssignedElsewhere(member, roleId)
-                          }
-                          getMemberTotalWorkload={getMemberTotalWorkload}
-                          isReadOnly={isReadOnly}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <SimplifiedAssignmentFlow
+                availableRoles={teams.flatMap(team =>
+                  team.roles.map(role => ({
+                    roleId: role.roleId,
+                    roleName: role.roleName,
+                    teamName: team.teamName,
+                    description: `${team.teamName} - ${role.roleName}`,
+                  }))
+                )}
+                existingAssignments={conceptAssignments}
+                onComplete={(assignment) => {
+                  setConceptAssignments(prev => {
+                    const filtered = prev.filter(a => a.roleId !== assignment.roleId);
+                    return [...filtered, assignment];
+                  });
+                  if (assignment.selectedPerson) {
+                    handleAssign(
+                      assignment.roleId,
+                      0,
+                      assignment.selectedPerson,
+                      `${assignment.chairType} Chair`,
+                      assignment.workloadPercentage
+                    );
+                  }
+                }}
+                isReadOnly={isReadOnly}
+              />
             </div>
 
             {/* Action Buttons */}
