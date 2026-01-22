@@ -59,9 +59,6 @@ const MyTeamAssignment: React.FC = () => {
                 <Clock className="w-4 h-4 text-[hsl(0,0%,25%)]" />
                 <span className="text-[hsl(0,0%,25%)] text-xs font-medium">26 Feb 2024 13:42 EST</span>
               </div>
-              <Button className="bg-[hsl(220,100%,24%)] hover:bg-[hsl(220,100%,20%)] text-white">
-                <UserPlus className="w-4 h-4" />
-              </Button>
             </div>
           </div>
           
