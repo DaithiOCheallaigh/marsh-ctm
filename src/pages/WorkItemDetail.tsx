@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Clock, Lock } from "lucide-react";
+import { Clock, Lock, LayoutGrid, LayoutList } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkItems, WorkItem } from "@/context/WorkItemsContext";
 import { useToast } from "@/hooks/use-toast";
 import { WorkTypeBadge } from "@/components/work-item-detail/WorkTypeBadge";
@@ -15,6 +16,7 @@ import { TeamMember, teamMembers } from "@/data/teamMembers";
 import { CHAIR_LABELS, MAX_CHAIRS } from "@/utils/chairLabels";
 import {
   SimplifiedAssignmentFlow,
+  VerticalAssignmentFlow,
   AssignmentData,
 } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -65,6 +67,7 @@ const WorkItemDetail = () => {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [conceptAssignments, setConceptAssignments] = useState<AssignmentData[]>([]);
   const [hasInitializedAssignments, setHasInitializedAssignments] = useState(false);
+  const [assignmentView, setAssignmentView] = useState<"horizontal" | "vertical">("horizontal");
 
   // Team-based assignment state
   const [teams, setTeams] = useState<TeamState[]>([]);
@@ -444,50 +447,113 @@ const WorkItemDetail = () => {
               rolesAssigned={{ current: getPrimaryChairsAssigned(), total: getTotalRequired() }}
             />
 
-            {/* Assignment Requirements Section - Simplified 4-Step Flow */}
+            {/* Assignment Requirements Section - With View Toggle */}
             <div className="mt-6">
-              <SimplifiedAssignmentFlow
-                availableRoles={teams.flatMap(team =>
-                  team.roles.map(role => ({
-                    roleId: role.roleId,
-                    roleName: role.roleName,
-                    teamName: team.teamName,
-                    description: `${team.teamName} - ${role.roleName}`,
-                  }))
-                )}
-                existingAssignments={conceptAssignments}
-                onComplete={(assignment) => {
-                  const updatedAssignments = [
-                    ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
-                    assignment
-                  ];
-                  setConceptAssignments(updatedAssignments);
-                  
-                  if (assignment.selectedPerson) {
-                    handleAssign(
-                      assignment.roleId,
-                      0,
-                      assignment.selectedPerson,
-                      `${assignment.chairType} Chair`,
-                      assignment.workloadPercentage
-                    );
-                  }
-                  
-                  // Autosave to context
-                  if (workItem) {
-                    updateWorkItem(workItem.id, {
-                      savedAssignments: updatedAssignments,
+              {/* View Toggle Tabs */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-primary">Assignment Requirements</h3>
+                <Tabs value={assignmentView} onValueChange={(v) => setAssignmentView(v as "horizontal" | "vertical")}>
+                  <TabsList className="grid grid-cols-2 w-[200px]">
+                    <TabsTrigger value="horizontal" className="flex items-center gap-1.5">
+                      <LayoutGrid className="h-4 w-4" />
+                      Horizontal
+                    </TabsTrigger>
+                    <TabsTrigger value="vertical" className="flex items-center gap-1.5">
+                      <LayoutList className="h-4 w-4" />
+                      Vertical
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Assignment Flow Component based on selected view */}
+              {assignmentView === "horizontal" ? (
+                <SimplifiedAssignmentFlow
+                  availableRoles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignment) => {
+                    const updatedAssignments = [
+                      ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
+                      assignment
+                    ];
+                    setConceptAssignments(updatedAssignments);
+                    
+                    if (assignment.selectedPerson) {
+                      handleAssign(
+                        assignment.roleId,
+                        0,
+                        assignment.selectedPerson,
+                        `${assignment.chairType} Chair`,
+                        assignment.workloadPercentage
+                      );
+                    }
+                    
+                    // Autosave to context
+                    if (workItem) {
+                      updateWorkItem(workItem.id, {
+                        savedAssignments: updatedAssignments,
+                      });
+                    }
+                    
+                    setLastSavedAt(new Date());
+                    toast({
+                      title: "Progress Saved",
+                      description: `${assignment.roleName} assignment has been saved.`,
                     });
-                  }
-                  
-                  setLastSavedAt(new Date());
-                  toast({
-                    title: "Progress Saved",
-                    description: `${assignment.roleName} assignment has been saved.`,
-                  });
-                }}
-                isReadOnly={isReadOnly}
-              />
+                  }}
+                  isReadOnly={isReadOnly}
+                />
+              ) : (
+                <VerticalAssignmentFlow
+                  availableRoles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignment) => {
+                    const updatedAssignments = [
+                      ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
+                      assignment
+                    ];
+                    setConceptAssignments(updatedAssignments);
+                    
+                    if (assignment.selectedPerson) {
+                      handleAssign(
+                        assignment.roleId,
+                        0,
+                        assignment.selectedPerson,
+                        `${assignment.chairType} Chair`,
+                        assignment.workloadPercentage
+                      );
+                    }
+                    
+                    // Autosave to context
+                    if (workItem) {
+                      updateWorkItem(workItem.id, {
+                        savedAssignments: updatedAssignments,
+                      });
+                    }
+                    
+                    setLastSavedAt(new Date());
+                    toast({
+                      title: "Progress Saved",
+                      description: `${assignment.roleName} assignment has been saved.`,
+                    });
+                  }}
+                  isReadOnly={isReadOnly}
+                />
+              )}
             </div>
 
             {/* Action Buttons */}
