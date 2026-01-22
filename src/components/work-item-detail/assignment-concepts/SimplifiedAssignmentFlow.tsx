@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { RoleDefinition, AssignmentData, getMatchBadge } from "./types";
 import { teamMembers, TeamMember } from "@/data/teamMembers";
 import { useDebounce } from "@/hooks/useDebounce";
+import {
+  CAPACITY_CONFIG,
+  calculateAvailableCapacity,
+  getCapacityStatus,
+  validateAssignmentWorkload,
+  formatAvailableCapacity,
+  getOverCapacityConfirmationMessage,
+  CapacityStatusInfo,
+} from "@/utils/capacityManagement";
 
 interface SimplifiedAssignmentFlowProps {
   availableRoles: RoleDefinition[];
@@ -92,30 +111,57 @@ const StepIndicator = ({
   );
 };
 
+const CapacityIndicator = ({
+  availableCapacity,
+  statusInfo,
+}: {
+  availableCapacity: number;
+  statusInfo: CapacityStatusInfo;
+}) => {
+  return (
+    <div className={cn("flex items-center gap-1.5", statusInfo.colorClass)}>
+      {statusInfo.showWarningIcon && <AlertTriangle className="w-3.5 h-3.5" />}
+      <span className="font-semibold text-xs">
+        {formatAvailableCapacity(availableCapacity)} available
+      </span>
+    </div>
+  );
+};
+
 const TeamMemberCard = ({
   member,
   isSelected,
   onSelect,
   isDisabled,
+  workItemAssignmentWorkload = 0,
 }: {
   member: TeamMember;
   isSelected: boolean;
   onSelect: () => void;
   isDisabled?: boolean;
+  workItemAssignmentWorkload?: number;
 }) => {
   const matchBadge = getMatchBadge(member.matchScore);
+  
+  // Calculate available capacity (CRITICAL: Show available, not workload)
+  const availableCapacity = calculateAvailableCapacity(member, workItemAssignmentWorkload);
+  const statusInfo = getCapacityStatus(availableCapacity);
+  
+  // Determine if disabled due to capacity
+  const isCapacityDisabled = statusInfo.isDisabled;
+  const effectivelyDisabled = isDisabled || isCapacityDisabled;
 
   return (
     <button
       type="button"
       onClick={onSelect}
-      disabled={isDisabled}
+      disabled={effectivelyDisabled}
       className={cn(
         "w-full p-4 rounded-lg border text-left transition-all bg-white",
         isSelected
           ? "border-primary ring-2 ring-primary/20"
           : "border-[hsl(var(--wq-border))] hover:border-primary/50",
-        isDisabled && "opacity-50 cursor-not-allowed"
+        effectivelyDisabled && "opacity-50 cursor-not-allowed"
       )}
     >
       {/* Header Row */}
@@ -168,17 +214,24 @@ const TeamMemberCard = ({
           )} />
           Expertise match
         </span>
-        {member.hasCapacity ? (
-          <span className="flex items-center gap-1 text-[hsl(var(--wq-status-completed-text))]">
+        {/* Capacity indicator with status-based styling */}
+        <span className={cn(
+          "flex items-center gap-1",
+          statusInfo.status === 'available' || statusInfo.status === 'fully_available'
+            ? "text-[hsl(var(--wq-status-completed-text))]"
+            : statusInfo.status === 'limited' || statusInfo.status === 'low'
+            ? "text-amber-600"
+            : "text-destructive"
+        )}>
+          {statusInfo.status === 'available' || statusInfo.status === 'fully_available' ? (
             <CheckCircle2 className="w-4 h-4" />
-            Has capacity
-          </span>
-        ) : (
-          <span className="flex items-center gap-1 text-destructive">
+          ) : statusInfo.status === 'at_capacity' || statusInfo.status === 'over_assigned' ? (
             <AlertCircle className="w-4 h-4" />
-            Low capacity
-          </span>
-        )}
+          ) : (
+            <AlertTriangle className="w-4 h-4" />
+          )}
+          {statusInfo.statusText}
+        </span>
       </div>
 
       {/* Details Row */}
@@ -189,10 +242,14 @@ const TeamMemberCard = ({
         <span>
           <span className="font-medium">Expertise:</span> {member.expertise.slice(0, 3).join(", ")}
         </span>
+        {/* CRITICAL: Display "Available Capacity", NOT "Workload" */}
         <span className="flex items-center gap-1">
-          <span className="font-medium">Capacity:</span>
-          <Badge variant="outline" className="text-xs font-semibold">
-            {member.capacity}%
+          <span className="font-medium">Available:</span>
+          <Badge 
+            variant="outline" 
+            className={cn("text-xs font-semibold", statusInfo.colorClass, statusInfo.bgClass, statusInfo.borderClass)}
+          >
+            {formatAvailableCapacity(availableCapacity)}
           </Badge>
         </span>
       </div>
@@ -210,12 +267,22 @@ export const SimplifiedAssignmentFlow = ({
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [workloadPercentage, setWorkloadPercentage] = useState<number>(20);
+  const [workloadPercentage, setWorkloadPercentage] = useState<number>(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
   const [selectedChair, setSelectedChair] = useState<string>("");
   const [chairError, setChairError] = useState<string>("");
+  const [workloadError, setWorkloadError] = useState<string>("");
+  const [workloadWarning, setWorkloadWarning] = useState<string>("");
+  const [showOverCapacityConfirm, setShowOverCapacityConfirm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  // Calculate workload from existing assignments for this work item
+  const getMemberWorkItemWorkload = (memberId: string): number => {
+    return existingAssignments
+      .filter(a => a.selectedPerson?.id === memberId)
+      .reduce((sum, a) => sum + (a.workloadPercentage || 0), 0);
+  };
 
   // Filter members based on search
   const eligibleMembers = useMemo(() => {
@@ -257,13 +324,27 @@ export const SimplifiedAssignmentFlow = ({
   const handleMemberSelect = (member: TeamMember) => {
     if (isReadOnly) return;
     setSelectedMember(member);
+    // Reset workload validation when selecting new member
+    setWorkloadError("");
+    setWorkloadWarning("");
+    setWorkloadPercentage(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
     setCurrentStep(3);
   };
 
   const handleWorkloadChange = (value: string) => {
-    const num = parseInt(value, 10);
+    const num = parseFloat(value);
     if (!isNaN(num) && num >= 0 && num <= 100) {
       setWorkloadPercentage(num);
+      
+      // Validate workload against available capacity
+      if (selectedMember) {
+        const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
+        const availableCapacity = calculateAvailableCapacity(selectedMember, workItemWorkload);
+        const validation = validateAssignmentWorkload(num, availableCapacity);
+        
+        setWorkloadError(validation.errorMessage || "");
+        setWorkloadWarning(validation.warningMessage || "");
+      }
     }
   };
 
@@ -277,9 +358,30 @@ export const SimplifiedAssignmentFlow = ({
       setChairError("Chair selection is required");
       return;
     }
-    if (workloadPercentage <= 0) {
+    
+    if (!selectedMember) return;
+    
+    // Validate workload
+    const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
+    const availableCapacity = calculateAvailableCapacity(selectedMember, workItemWorkload);
+    const validation = validateAssignmentWorkload(workloadPercentage, availableCapacity);
+    
+    if (!validation.isValid) {
+      setWorkloadError(validation.errorMessage || "Invalid workload");
       return;
     }
+    
+    // If requires confirmation (over-capacity with ALLOW_OVER_ALLOCATION=true)
+    if (validation.requiresConfirmation) {
+      setShowOverCapacityConfirm(true);
+      return;
+    }
+    
+    setCurrentStep(4);
+  };
+
+  const handleConfirmOverCapacity = () => {
+    setShowOverCapacityConfirm(false);
     setCurrentStep(4);
   };
 
@@ -302,9 +404,11 @@ export const SimplifiedAssignmentFlow = ({
     setCurrentStep(1);
     setSelectedRole(null);
     setSelectedMember(null);
-    setWorkloadPercentage(20);
+    setWorkloadPercentage(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
     setSelectedChair("");
     setChairError("");
+    setWorkloadError("");
+    setWorkloadWarning("");
     setSearchQuery("");
     setShowAll(false);
   };
@@ -477,143 +581,256 @@ export const SimplifiedAssignmentFlow = ({
           )}
 
           {/* Step 3: Configure Assignment */}
-          {currentStep === 3 && (
+          {currentStep === 3 && selectedMember && (
             <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedRole?.roleName}
-                  </Badge>
-                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                  <Badge variant="outline" className="text-xs">
-                    {selectedMember?.name}
-                  </Badge>
-                </div>
-                <h4 className="font-medium">Configure Assignment Details</h4>
-                <p className="text-sm text-muted-foreground">
-                  Set the workload and chair for this assignment.
-                </p>
-              </div>
+              {(() => {
+                const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
+                const currentAvailable = calculateAvailableCapacity(selectedMember, workItemWorkload);
+                const projectedAvailable = currentAvailable - workloadPercentage;
+                const currentStatusInfo = getCapacityStatus(currentAvailable);
+                const projectedStatusInfo = getCapacityStatus(projectedAvailable);
+                
+                return (
+                  <>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {selectedRole?.roleName}
+                        </Badge>
+                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                        <Badge variant="outline" className="text-xs">
+                          {selectedMember?.name}
+                        </Badge>
+                      </div>
+                      <h4 className="font-medium">Configure Assignment Details</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Set the workload and chair for this assignment.
+                      </p>
+                    </div>
 
-              <div className="grid gap-6">
-                {/* Workload Percentage */}
-                <div className="space-y-2">
-                  <Label htmlFor="workload" className="text-sm font-medium">
-                    Workload Percentage <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="flex items-center gap-3">
-                    <Input
-                      id="workload"
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={workloadPercentage}
-                      onChange={(e) => handleWorkloadChange(e.target.value)}
-                      className="w-24"
-                      disabled={isReadOnly}
-                    />
-                    <span className="text-sm text-muted-foreground">%</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    This represents how much of the team member's capacity this assignment will consume.
-                  </p>
-                  {workloadPercentage <= 0 && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      Workload must be greater than 0%
-                    </p>
-                  )}
-                </div>
+                    {/* Member Capacity Summary */}
+                    <div className={cn(
+                      "rounded-lg p-4 border",
+                      currentStatusInfo.bgClass,
+                      currentStatusInfo.borderClass
+                    )}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{selectedMember.name}</p>
+                          <p className="text-xs text-muted-foreground">{selectedMember.role}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Available Capacity</p>
+                          <p className={cn("text-lg font-bold", currentStatusInfo.colorClass)}>
+                            {formatAvailableCapacity(currentAvailable)}
+                          </p>
+                          <Badge variant="outline" className={cn("text-xs", currentStatusInfo.colorClass, currentStatusInfo.borderClass)}>
+                            {currentStatusInfo.statusText}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Chair Selection */}
-                <div className="space-y-2">
-                  <Label htmlFor="chair" className="text-sm font-medium">
-                    Chair <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value={selectedChair} onValueChange={handleChairChange} disabled={isReadOnly}>
-                    <SelectTrigger 
-                      id="chair" 
-                      className={cn(
-                        "w-full max-w-xs",
-                        chairError && "border-destructive focus:ring-destructive"
-                      )}
-                    >
-                      <SelectValue placeholder="Select a chair..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CHAIR_OPTIONS.map((chair) => (
-                        <SelectItem key={chair.id} value={chair.id}>
-                          {chair.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {chairError && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {chairError}
-                    </p>
-                  )}
-                </div>
-              </div>
+                    <div className="grid gap-6">
+                      {/* Workload Percentage */}
+                      <div className="space-y-2">
+                        <Label htmlFor="workload" className="text-sm font-medium">
+                          Workload Percentage <span className="text-destructive">*</span>
+                        </Label>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            id="workload"
+                            type="number"
+                            min={CAPACITY_CONFIG.MIN_WORKLOAD_PERCENTAGE}
+                            max={CAPACITY_CONFIG.MAX_WORKLOAD_PERCENTAGE}
+                            step="0.1"
+                            value={workloadPercentage}
+                            onChange={(e) => handleWorkloadChange(e.target.value)}
+                            className={cn(
+                              "w-24",
+                              workloadError && "border-destructive focus:ring-destructive"
+                            )}
+                            disabled={isReadOnly}
+                          />
+                          <span className="text-sm text-muted-foreground">%</span>
+                          <span className="text-xs text-muted-foreground">
+                            (Min: {CAPACITY_CONFIG.MIN_WORKLOAD_PERCENTAGE}%, Max: {CAPACITY_CONFIG.MAX_WORKLOAD_PERCENTAGE}%)
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This represents how much of the team member's capacity this assignment will consume.
+                        </p>
+                        
+                        {/* Validation Error */}
+                        {workloadError && (
+                          <p className="text-xs text-destructive flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {workloadError}
+                          </p>
+                        )}
+                        
+                        {/* Warning (not blocking) */}
+                        {workloadWarning && !workloadError && (
+                          <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            {workloadWarning}
+                          </p>
+                        )}
 
-              <div className="flex justify-between pt-4 border-t">
-                <Button variant="outline" onClick={() => goToStep(2)} disabled={isReadOnly}>
-                  Back
-                </Button>
-                <Button onClick={handleProceedToComplete} disabled={isReadOnly}>
-                  Continue
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
+                        {/* Projected Capacity Preview */}
+                        {workloadPercentage > 0 && !workloadError && (
+                          <div className={cn(
+                            "mt-3 p-3 rounded-lg border",
+                            projectedStatusInfo.bgClass,
+                            projectedStatusInfo.borderClass
+                          )}>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">After assignment:</span>
+                              <span className={cn("font-semibold", projectedStatusInfo.colorClass)}>
+                                {formatAvailableCapacity(projectedAvailable)} available
+                                {projectedStatusInfo.showWarningIcon && (
+                                  <AlertTriangle className="inline w-3.5 h-3.5 ml-1" />
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Chair Selection */}
+                      <div className="space-y-2">
+                        <Label htmlFor="chair" className="text-sm font-medium">
+                          Chair <span className="text-destructive">*</span>
+                        </Label>
+                        <Select value={selectedChair} onValueChange={handleChairChange} disabled={isReadOnly}>
+                          <SelectTrigger 
+                            id="chair" 
+                            className={cn(
+                              "w-full max-w-xs",
+                              chairError && "border-destructive focus:ring-destructive"
+                            )}
+                          >
+                            <SelectValue placeholder="Select a chair..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CHAIR_OPTIONS.map((chair) => (
+                              <SelectItem key={chair.id} value={chair.id}>
+                                {chair.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {chairError && (
+                          <p className="text-xs text-destructive flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {chairError}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between pt-4 border-t">
+                      <Button variant="outline" onClick={() => goToStep(2)} disabled={isReadOnly}>
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={handleProceedToComplete} 
+                        disabled={isReadOnly || !!workloadError}
+                      >
+                        Continue
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
 
           {/* Step 4: Complete Assignment */}
-          {currentStep === 4 && (
+          {currentStep === 4 && selectedMember && (
             <div className="space-y-6">
-              <div>
-                <h4 className="font-medium">Review & Complete</h4>
-                <p className="text-sm text-muted-foreground">
-                  Review the assignment details before completing.
-                </p>
-              </div>
+              {(() => {
+                const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
+                const currentAvailable = calculateAvailableCapacity(selectedMember, workItemWorkload);
+                const projectedAvailable = currentAvailable - workloadPercentage;
+                const projectedStatusInfo = getCapacityStatus(projectedAvailable);
+                
+                return (
+                  <>
+                    <div>
+                      <h4 className="font-medium">Review & Complete</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Review the assignment details before completing.
+                      </p>
+                    </div>
 
-              {/* Summary Card */}
-              <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Role</span>
-                  <span className="font-medium">{selectedRole?.roleName}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Team Member</span>
-                  <span className="font-medium">{selectedMember?.name}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Workload</span>
-                  <span className="font-medium">{workloadPercentage}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Chair</span>
-                  <Badge variant="secondary">
-                    {CHAIR_OPTIONS.find(c => c.id === selectedChair)?.name}
-                  </Badge>
-                </div>
-              </div>
+                    {/* Summary Card */}
+                    <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Role</span>
+                        <span className="font-medium">{selectedRole?.roleName}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Team Member</span>
+                        <span className="font-medium">{selectedMember?.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Workload</span>
+                        <span className="font-medium">{workloadPercentage}%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Chair</span>
+                        <Badge variant="secondary">
+                          {CHAIR_OPTIONS.find(c => c.id === selectedChair)?.name}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <span className="text-sm text-muted-foreground">Available Capacity (After)</span>
+                        <Badge 
+                          variant="outline" 
+                          className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
+                        >
+                          {formatAvailableCapacity(projectedAvailable)}
+                          {projectedStatusInfo.showWarningIcon && (
+                            <AlertTriangle className="inline w-3 h-3 ml-1" />
+                          )}
+                        </Badge>
+                      </div>
+                    </div>
 
-              <div className="flex justify-between pt-4 border-t">
-                <Button variant="outline" onClick={() => goToStep(3)} disabled={isReadOnly}>
-                  Back
-                </Button>
-                <Button 
-                  onClick={handleCompleteAssignment}
-                  className="bg-[hsl(var(--wq-status-completed-text))] hover:bg-[hsl(var(--wq-status-completed-text))]/90"
-                  disabled={isReadOnly}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Complete Assignment
-                </Button>
-              </div>
+                    {/* Over-capacity warning if applicable */}
+                    {projectedAvailable < 0 && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5" />
+                          <div className="text-sm text-red-700">
+                            <p className="font-medium">Over-assigned Warning</p>
+                            <p className="text-xs mt-1">
+                              This team member will be over-assigned after this assignment. 
+                              They will be marked with an "Over Assigned" status.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between pt-4 border-t">
+                      <Button variant="outline" onClick={() => goToStep(3)} disabled={isReadOnly}>
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={handleCompleteAssignment}
+                        className="bg-[hsl(var(--wq-status-completed-text))] hover:bg-[hsl(var(--wq-status-completed-text))]/90"
+                        disabled={isReadOnly}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Complete Assignment
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
         </CardContent>
@@ -648,6 +865,30 @@ export const SimplifiedAssignmentFlow = ({
           </div>
         </div>
       )}
+
+      {/* Over-Capacity Confirmation Dialog */}
+      <AlertDialog open={showOverCapacityConfirm} onOpenChange={setShowOverCapacityConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Over-Capacity Assignment
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {getOverCapacityConfirmationMessage()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmOverCapacity}
+              className="bg-amber-500 hover:bg-amber-600"
+            >
+              Proceed Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
