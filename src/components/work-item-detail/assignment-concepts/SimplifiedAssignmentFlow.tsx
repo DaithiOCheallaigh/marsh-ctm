@@ -284,9 +284,19 @@ export const SimplifiedAssignmentFlow = ({
       .reduce((sum, a) => sum + (a.workloadPercentage || 0), 0);
   };
 
-  // Filter members based on search
+  // Get IDs of members already assigned in this work item
+  const assignedMemberIds = useMemo(() => {
+    return new Set(
+      existingAssignments
+        .filter(a => a.selectedPerson)
+        .map(a => a.selectedPerson!.id)
+    );
+  }, [existingAssignments]);
+
+  // Filter members based on search and exclude already assigned members
   const eligibleMembers = useMemo(() => {
-    let members = teamMembers.filter(m => !m.isManager);
+    // First, filter out managers and already-assigned members
+    let members = teamMembers.filter(m => !m.isManager && !assignedMemberIds.has(m.id));
     
     if (debouncedSearch) {
       const query = debouncedSearch.toLowerCase();
@@ -307,7 +317,7 @@ export const SimplifiedAssignmentFlow = ({
     }
     
     return members;
-  }, [debouncedSearch, showAll]);
+  }, [debouncedSearch, showAll, assignedMemberIds]);
 
   // Get unassigned roles
   const unassignedRoles = useMemo(() => {
