@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, MapPin, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RoleDefinition, AssignmentData } from "./types";
+import { RoleDefinition, AssignmentData, getMatchScoreColor, getMatchBadge, getCapacityBarColor } from "./types";
 import { teamMembers, TeamMember } from "@/data/teamMembers";
 
 interface SimplifiedAssignmentFlowProps {
@@ -91,34 +91,6 @@ const StepIndicator = ({
   );
 };
 
-const CapacityIndicator = ({ availableCapacity }: { availableCapacity: number }) => {
-  const getCapacityColor = (capacity: number) => {
-    if (capacity <= 10) return "text-destructive bg-destructive/10";
-    if (capacity <= 30) return "text-[hsl(var(--wq-priority-medium))] bg-[hsl(var(--wq-priority-medium))]/10";
-    return "text-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]";
-  };
-
-  const getCapacityBarColor = (capacity: number) => {
-    if (capacity <= 10) return "bg-destructive";
-    if (capacity <= 30) return "bg-[hsl(var(--wq-priority-medium))]";
-    return "bg-[hsl(var(--wq-status-completed-text))]";
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-        <div
-          className={cn("h-full rounded-full transition-all", getCapacityBarColor(availableCapacity))}
-          style={{ width: `${availableCapacity}%` }}
-        />
-      </div>
-      <span className={cn("text-xs font-medium px-2 py-0.5 rounded", getCapacityColor(availableCapacity))}>
-        {availableCapacity}% available
-      </span>
-    </div>
-  );
-};
-
 const TeamMemberCard = ({
   member,
   isSelected,
@@ -130,8 +102,9 @@ const TeamMemberCard = ({
   onSelect: () => void;
   isDisabled?: boolean;
 }) => {
-  // Calculate available capacity (inverse of current capacity usage)
-  const availableCapacity = 100 - member.capacity;
+  // Current workload (capacity field represents available capacity in the data)
+  const currentWorkload = 100 - member.capacity;
+  const matchBadge = getMatchBadge(member.matchScore);
 
   return (
     <button
@@ -139,47 +112,72 @@ const TeamMemberCard = ({
       onClick={onSelect}
       disabled={isDisabled}
       className={cn(
-        "w-full p-4 rounded-lg border-2 text-left transition-all",
-        isSelected && "border-primary bg-primary/5",
-        !isSelected && !isDisabled && "border-border hover:border-primary/50 hover:bg-muted/30",
-        isDisabled && "opacity-50 cursor-not-allowed border-border bg-muted/20"
+        "w-full p-3 rounded-lg border-2 text-left transition-all",
+        isSelected
+          ? "border-primary bg-white shadow-md"
+          : "border-transparent bg-white hover:border-[hsl(var(--wq-border))]",
+        isDisabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0",
-            isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-          )}>
-            {member.name.split(' ').map(n => n[0]).join('')}
+      {/* Header Row */}
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+              isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))]"
+            )}
+          >
+            {isSelected && <Check className="w-3 h-3 text-white" />}
           </div>
-          <div className="min-w-0">
-            <p className={cn(
-              "font-medium truncate",
-              isSelected && "text-primary"
-            )}>
-              {member.name}
-            </p>
-            <p className="text-sm text-muted-foreground truncate">{member.role}</p>
+          <div>
+            <div className="font-medium text-primary text-sm">{member.name}</div>
+            <div className="text-xs text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
           </div>
         </div>
-        <div className="flex-shrink-0">
-          {isSelected && (
-            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-              <Check className="h-4 w-4 text-primary-foreground" />
-            </div>
+        <div className="text-right">
+          <div className={cn("font-semibold text-sm", getMatchScoreColor(member.matchScore))}>
+            {member.matchScore}
+          </div>
+          {matchBadge.label && (
+            <Badge className={cn("text-[10px]", matchBadge.className)}>
+              {matchBadge.label}
+            </Badge>
           )}
         </div>
       </div>
-      <div className="mt-3">
-        <CapacityIndicator availableCapacity={availableCapacity} />
-        {availableCapacity <= 10 && (
-          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Near or at capacity
-          </p>
-        )}
+
+      {/* Match Indicators */}
+      <div className="flex items-center gap-3 text-xs mb-2">
+        <span className={member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"}>
+          <MapPin className="w-3 h-3 inline mr-1" />
+          {member.locationMatch ? "✓" : "○"}
+        </span>
+        <span className={member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"}>
+          <Briefcase className="w-3 h-3 inline mr-1" />
+          {member.expertiseMatch ? "✓" : "○"}
+        </span>
+        <span className={member.hasCapacity ? "text-[hsl(var(--wq-status-completed-text))]" : "text-[hsl(var(--wq-priority-medium))]"}>
+          <Gauge className="w-3 h-3 inline mr-1" />
+          {member.capacity}%
+        </span>
       </div>
+
+      {/* Capacity Bar */}
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div
+          className={cn("h-full transition-all", getCapacityBarColor(currentWorkload))}
+          style={{ width: `${currentWorkload}%` }}
+        />
+      </div>
+      
+      {/* Capacity Warning */}
+      {member.capacity <= 10 && (
+        <div className="text-xs text-destructive mt-1 flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" />
+          Near or at capacity
+        </div>
+      )}
     </button>
   );
 };
@@ -382,10 +380,9 @@ export const SimplifiedAssignmentFlow = ({
                 </div>
               </div>
 
-              <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2">
+              <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
                 {eligibleMembers.map((member) => {
-                  const availableCapacity = 100 - member.capacity;
-                  const isAtCapacity = availableCapacity <= 0;
+                  const isAtCapacity = member.capacity <= 0;
                   
                   return (
                     <TeamMemberCard
