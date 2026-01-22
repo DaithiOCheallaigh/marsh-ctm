@@ -649,16 +649,6 @@ export const SimplifiedAssignmentFlow = ({
                       </div>
                     </div>
 
-                    {/* Projected Capacity - Only show when valid */}
-                    {workloadPercentage > 0 && (
-                      <div className="flex items-center justify-between rounded-lg px-4 py-2.5 border border-border bg-muted/30 text-sm">
-                        <span className="text-muted-foreground">After assignment</span>
-                        <span className="font-semibold text-foreground">
-                          {formatAvailableCapacity(projectedAvailable)} available
-                        </span>
-                      </div>
-                    )}
-
                     {/* Actions */}
                     <div className="flex justify-between pt-3 border-t">
                       <Button variant="outline" size="sm" onClick={() => goToStep(2)} disabled={isReadOnly}>
