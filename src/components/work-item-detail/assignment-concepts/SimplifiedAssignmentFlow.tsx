@@ -335,16 +335,6 @@ export const SimplifiedAssignmentFlow = ({
     const num = parseFloat(value);
     if (!isNaN(num) && num >= 0 && num <= 100) {
       setWorkloadPercentage(num);
-      
-      // Validate workload against available capacity
-      if (selectedMember) {
-        const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
-        const availableCapacity = calculateAvailableCapacity(selectedMember, workItemWorkload);
-        const validation = validateAssignmentWorkload(num, availableCapacity);
-        
-        setWorkloadError(validation.errorMessage || "");
-        setWorkloadWarning(validation.warningMessage || "");
-      }
     }
   };
 
@@ -360,22 +350,6 @@ export const SimplifiedAssignmentFlow = ({
     }
     
     if (!selectedMember) return;
-    
-    // Validate workload
-    const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
-    const availableCapacity = calculateAvailableCapacity(selectedMember, workItemWorkload);
-    const validation = validateAssignmentWorkload(workloadPercentage, availableCapacity);
-    
-    if (!validation.isValid) {
-      setWorkloadError(validation.errorMessage || "Invalid workload");
-      return;
-    }
-    
-    // If requires confirmation (over-capacity with ALLOW_OVER_ALLOCATION=true)
-    if (validation.requiresConfirmation) {
-      setShowOverCapacityConfirm(true);
-      return;
-    }
     
     setCurrentStep(4);
   };
@@ -603,11 +577,7 @@ export const SimplifiedAssignmentFlow = ({
                     </div>
 
                     {/* Member Summary - Compact (shows projected capacity after assignment) */}
-                    <div className={cn(
-                      "flex items-center justify-between rounded-lg px-4 py-3 border",
-                      projectedStatusInfo.bgClass,
-                      projectedStatusInfo.borderClass
-                    )}>
+                    <div className="flex items-center justify-between rounded-lg px-4 py-3 border border-border bg-muted/30">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                           <User className="h-4 w-4 text-primary" />
@@ -618,10 +588,10 @@ export const SimplifiedAssignmentFlow = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={cn("text-lg font-bold", projectedStatusInfo.colorClass)}>
+                        <p className="text-lg font-bold text-foreground">
                           {formatAvailableCapacity(projectedAvailable)}
                         </p>
-                        <p className="text-xs text-muted-foreground">{projectedStatusInfo.statusText}</p>
+                        <p className="text-xs text-muted-foreground">Available Capacity</p>
                       </div>
                     </div>
 
@@ -641,26 +611,11 @@ export const SimplifiedAssignmentFlow = ({
                             step="any"
                             value={workloadPercentage}
                             onChange={(e) => handleWorkloadChange(e.target.value)}
-                            className={cn(
-                              "pr-8",
-                              workloadError && "border-destructive focus:ring-destructive"
-                            )}
+                            className="pr-8"
                             disabled={isReadOnly}
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
                         </div>
-                        {workloadError && (
-                          <p className="text-xs text-destructive flex items-center gap-1">
-                            <AlertCircle className="h-3 w-3" />
-                            {workloadError}
-                          </p>
-                        )}
-                        {workloadWarning && !workloadError && (
-                          <p className="text-xs text-amber-600 flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" />
-                            {workloadWarning}
-                          </p>
-                        )}
                       </div>
 
                       {/* Chair Selection */}
@@ -695,18 +650,11 @@ export const SimplifiedAssignmentFlow = ({
                     </div>
 
                     {/* Projected Capacity - Only show when valid */}
-                    {workloadPercentage > 0 && !workloadError && (
-                      <div className={cn(
-                        "flex items-center justify-between rounded-lg px-4 py-2.5 border text-sm",
-                        projectedStatusInfo.bgClass,
-                        projectedStatusInfo.borderClass
-                      )}>
+                    {workloadPercentage > 0 && (
+                      <div className="flex items-center justify-between rounded-lg px-4 py-2.5 border border-border bg-muted/30 text-sm">
                         <span className="text-muted-foreground">After assignment</span>
-                        <span className={cn("font-semibold flex items-center gap-1", projectedStatusInfo.colorClass)}>
+                        <span className="font-semibold text-foreground">
                           {formatAvailableCapacity(projectedAvailable)} available
-                          {projectedStatusInfo.showWarningIcon && (
-                            <AlertTriangle className="h-3.5 w-3.5" />
-                          )}
                         </span>
                       </div>
                     )}
