@@ -1,18 +1,10 @@
 import { useState, useMemo } from "react";
 import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,11 +22,11 @@ import {
   CAPACITY_CONFIG,
   calculateAvailableCapacity,
   getCapacityStatus,
-  validateAssignmentWorkload,
   formatAvailableCapacity,
   getOverCapacityConfirmationMessage,
   CapacityStatusInfo,
 } from "@/utils/capacityManagement";
+import { ChairSelectionToggle, Chair, SAMPLE_CHAIRS } from "./chair-selection";
 
 interface SimplifiedAssignmentFlowProps {
   availableRoles: RoleDefinition[];
@@ -43,12 +35,6 @@ interface SimplifiedAssignmentFlowProps {
   onCancel?: () => void;
   isReadOnly?: boolean;
 }
-
-// Chair options - in real app would come from team data
-const CHAIR_OPTIONS = [
-  { id: "primary", name: "Primary Chair", value: "Primary" as const },
-  { id: "secondary", name: "Secondary Chair", value: "Secondary" as const },
-];
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -268,7 +254,7 @@ export const SimplifiedAssignmentFlow = ({
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [workloadPercentage, setWorkloadPercentage] = useState<number>(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
-  const [selectedChair, setSelectedChair] = useState<string>("");
+  const [selectedChair, setSelectedChair] = useState<Chair | null>(null);
   const [chairError, setChairError] = useState<string>("");
   const [workloadError, setWorkloadError] = useState<string>("");
   const [workloadWarning, setWorkloadWarning] = useState<string>("");
@@ -341,15 +327,14 @@ export const SimplifiedAssignmentFlow = ({
     setCurrentStep(3);
   };
 
-  const handleWorkloadChange = (value: string) => {
-    const num = parseFloat(value);
-    if (!isNaN(num) && num >= 0 && num <= 100) {
-      setWorkloadPercentage(num);
+  const handleWorkloadChange = (value: number) => {
+    if (value >= 0 && value <= 100) {
+      setWorkloadPercentage(value);
     }
   };
 
-  const handleChairChange = (value: string) => {
-    setSelectedChair(value);
+  const handleChairChange = (chair: Chair | null) => {
+    setSelectedChair(chair);
     setChairError("");
   };
 
@@ -372,13 +357,14 @@ export const SimplifiedAssignmentFlow = ({
   const handleCompleteAssignment = () => {
     if (!selectedRole || !selectedMember || !selectedChair) return;
 
-    const chairOption = CHAIR_OPTIONS.find(c => c.id === selectedChair);
+    // Map chair type to the expected format
+    const chairType = selectedChair.type === 'primary' ? 'Primary' : 'Secondary';
     const assignment: AssignmentData = {
       roleId: selectedRole.roleId,
       roleName: selectedRole.roleName,
       teamName: selectedRole.teamName,
       selectedPerson: selectedMember,
-      chairType: chairOption?.value || "Primary",
+      chairType,
       workloadPercentage,
     };
 
@@ -389,7 +375,7 @@ export const SimplifiedAssignmentFlow = ({
     setSelectedRole(null);
     setSelectedMember(null);
     setWorkloadPercentage(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
-    setSelectedChair("");
+    setSelectedChair(null);
     setChairError("");
     setWorkloadError("");
     setWorkloadWarning("");
@@ -564,15 +550,12 @@ export const SimplifiedAssignmentFlow = ({
             </div>
           )}
 
-          {/* Step 3: Configure Assignment */}
-          {currentStep === 3 && selectedMember && (
+          {/* Step 3: Configure Assignment - New Chair Selection UI */}
+          {currentStep === 3 && selectedMember && selectedRole && (
             <div className="space-y-5">
               {(() => {
                 const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
                 const currentAvailable = calculateAvailableCapacity(selectedMember, workItemWorkload);
-                const projectedAvailable = currentAvailable - workloadPercentage;
-                const currentStatusInfo = getCapacityStatus(currentAvailable);
-                const projectedStatusInfo = getCapacityStatus(projectedAvailable);
                 
                 return (
                   <>
@@ -584,81 +567,31 @@ export const SimplifiedAssignmentFlow = ({
                         <span className="text-foreground font-medium">{selectedMember?.name}</span>
                       </div>
                       <h4 className="font-semibold text-base">Configure Assignment</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Step 3 of 4 — Configure Assignment
+                      </p>
                     </div>
 
-                    {/* Member Summary - Compact (shows projected capacity after assignment) */}
-                    <div className="flex items-center justify-between rounded-lg px-4 py-3 border border-border bg-muted/30">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{selectedMember.name}</p>
-                          <p className="text-xs text-muted-foreground">{selectedMember.role}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-foreground">
-                          {formatAvailableCapacity(projectedAvailable)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Available Capacity</p>
-                      </div>
-                    </div>
+                    {/* Chair Selection with Toggle (Guided vs List View) */}
+                    <ChairSelectionToggle
+                      chairs={SAMPLE_CHAIRS}
+                      selectedChair={selectedChair}
+                      onSelectChair={handleChairChange}
+                      workloadPercentage={workloadPercentage}
+                      onWorkloadChange={handleWorkloadChange}
+                      currentCapacity={currentAvailable}
+                      memberName={selectedMember.name}
+                      roleName={selectedRole.roleName}
+                      isReadOnly={isReadOnly}
+                    />
 
-                    {/* Form Fields - 2 Column Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Workload Percentage */}
-                      <div className="space-y-1.5">
-                        <Label htmlFor="workload" className="text-sm font-medium">
-                          Workload <span className="text-destructive">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            id="workload"
-                            type="number"
-                            min={CAPACITY_CONFIG.MIN_WORKLOAD_PERCENTAGE}
-                            max={CAPACITY_CONFIG.MAX_WORKLOAD_PERCENTAGE}
-                            step="any"
-                            value={workloadPercentage}
-                            onChange={(e) => handleWorkloadChange(e.target.value)}
-                            onFocus={(e) => e.target.select()}
-                            className="pr-8"
-                            disabled={isReadOnly}
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                        </div>
-                      </div>
-
-                      {/* Chair Selection */}
-                      <div className="space-y-1.5">
-                        <Label htmlFor="chair" className="text-sm font-medium">
-                          Chair <span className="text-destructive">*</span>
-                        </Label>
-                        <Select value={selectedChair} onValueChange={handleChairChange} disabled={isReadOnly}>
-                          <SelectTrigger 
-                            id="chair" 
-                            className={cn(
-                              chairError && "border-destructive focus:ring-destructive"
-                            )}
-                          >
-                            <SelectValue placeholder="Select chair..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CHAIR_OPTIONS.map((chair) => (
-                              <SelectItem key={chair.id} value={chair.id}>
-                                {chair.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {chairError && (
-                          <p className="text-xs text-destructive flex items-center gap-1">
-                            <AlertCircle className="h-3 w-3" />
-                            {chairError}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    {/* Chair error message */}
+                    {chairError && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {chairError}
+                      </p>
+                    )}
 
                     {/* Actions */}
                     <div className="flex justify-between pt-3 border-t">
@@ -668,9 +601,9 @@ export const SimplifiedAssignmentFlow = ({
                       <Button 
                         size="sm"
                         onClick={handleProceedToComplete} 
-                        disabled={isReadOnly || !!workloadError}
+                        disabled={isReadOnly || !selectedChair}
                       >
-                        Continue
+                        Next: Review
                         <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
                     </div>
@@ -715,7 +648,7 @@ export const SimplifiedAssignmentFlow = ({
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Chair</span>
                         <Badge variant="secondary">
-                          {CHAIR_OPTIONS.find(c => c.id === selectedChair)?.name}
+                          {selectedChair?.name || 'Not selected'}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t">
