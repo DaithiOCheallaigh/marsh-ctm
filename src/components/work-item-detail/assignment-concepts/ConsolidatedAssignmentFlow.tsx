@@ -510,7 +510,7 @@ export const ConsolidatedAssignmentFlow = ({
 
   const steps = [
     { number: 1, label: "Select Role", icon: Briefcase },
-    { number: 2, label: "Select Member & Configure", icon: User },
+    { number: 2, label: "Select Member & Chair", icon: User },
     { number: 3, label: "Review & Complete", icon: CheckCircle2 },
   ];
 
