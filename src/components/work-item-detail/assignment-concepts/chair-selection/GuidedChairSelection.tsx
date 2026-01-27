@@ -107,21 +107,10 @@ export const GuidedChairSelection = ({
             <SelectTrigger id="chair-type" className="w-full max-w-xs bg-background">
               <SelectValue placeholder="Select chair type..." />
             </SelectTrigger>
-            <SelectContent className="bg-background z-50">
+          <SelectContent className="bg-background z-50">
               {CHAIR_TYPE_CONFIGS.map((typeConfig) => (
                 <SelectItem key={typeConfig.id} value={typeConfig.id}>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{typeConfig.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      - {typeConfig.description}
-                    </span>
-                    <span className={cn(
-                      "text-[10px] ml-1",
-                      typeConfig.isRequired ? "text-primary font-medium" : "text-muted-foreground"
-                    )}>
-                      ({typeConfig.isRequired ? 'Required' : 'Optional'})
-                    </span>
-                  </div>
+                  {typeConfig.name}
                 </SelectItem>
               ))}
             </SelectContent>
