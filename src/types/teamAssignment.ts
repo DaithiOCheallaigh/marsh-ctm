@@ -1,12 +1,11 @@
 // Team Assignment Types for Work Item Creation
 
 /**
- * Role configuration for a team with optional chair count
+ * Role configuration for a team (simplified - no chair management in V1)
  */
 export interface RoleConfig {
   roleId: string;
   roleName: string;
-  chairCount?: number; // Number of chairs to create for this role (default: 1)
 }
 
 /**

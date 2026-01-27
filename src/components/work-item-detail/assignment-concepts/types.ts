@@ -7,7 +7,6 @@ export interface RoleDefinition {
   roleName: string;
   teamName?: string;
   description?: string;
-  chairCount?: number; // Number of chairs to create for this role (default: 1)
 }
 
 export interface AssignmentData {
