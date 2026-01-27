@@ -59,12 +59,13 @@ const WorkItemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { workItems, completeWorkItem, updateWorkItem } = useWorkItems();
+  const { workItems, completeWorkItem, updateWorkItem, deleteWorkItem } = useWorkItems();
 
   const [workItem, setWorkItem] = useState<WorkItem | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showInactiveDialog, setShowInactiveDialog] = useState(false);
   const [conceptAssignments, setConceptAssignments] = useState<AssignmentData[]>([]);
   const [hasInitializedAssignments, setHasInitializedAssignments] = useState(false);
   const [assignmentView, setAssignmentView] = useState<"horizontal" | "vertical">("horizontal");
@@ -570,6 +571,14 @@ const WorkItemDetail = () => {
                   </Button>
                   <Button
                     type="button"
+                    variant="outline"
+                    onClick={() => setShowInactiveDialog(true)}
+                    className="px-6 py-2 border-destructive text-destructive hover:bg-destructive/5 font-medium"
+                  >
+                    Inactive
+                  </Button>
+                  <Button
+                    type="button"
                     onClick={handleCompleteWorkItem}
                     className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     disabled={getPrimaryChairsAssigned() < getTotalRequired()}
@@ -607,6 +616,37 @@ const WorkItemDetail = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmComplete}>
               Complete Work Item
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Inactive Confirmation Dialog */}
+      <AlertDialog open={showInactiveDialog} onOpenChange={setShowInactiveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark Work Item as Inactive?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to mark this work item as inactive? This will permanently remove the work item from the work queue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (workItem) {
+                  deleteWorkItem(workItem.id);
+                  toast({
+                    title: "Work Item Deleted",
+                    description: "The work item has been marked as inactive and removed from the work queue.",
+                  });
+                  setShowInactiveDialog(false);
+                  navigate("/");
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Mark Inactive
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
