@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -243,6 +243,116 @@ const TeamMemberCard = ({
   );
 };
 
+// Role card with chair count selector
+const RoleCardWithChairs = ({
+  role,
+  onSelect,
+  isReadOnly,
+}: {
+  role: RoleDefinition;
+  onSelect: (role: RoleDefinition) => void;
+  isReadOnly?: boolean;
+}) => {
+  const [chairCount, setChairCount] = useState(1);
+  const maxChairs = 10;
+  const minChairs = 1;
+
+  const handleIncrement = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (chairCount < maxChairs) {
+      setChairCount(chairCount + 1);
+    }
+  };
+
+  const handleDecrement = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (chairCount > minChairs) {
+      setChairCount(chairCount - 1);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value) && value >= minChairs && value <= maxChairs) {
+      setChairCount(value);
+    }
+  };
+
+  const handleSelect = () => {
+    // Pass the role with chairCount info attached
+    onSelect({ ...role, chairCount } as RoleDefinition & { chairCount: number });
+  };
+
+  return (
+    <div className={cn(
+      "flex items-center justify-between p-4 rounded-lg border-2 border-border hover:border-primary transition-all bg-white",
+      isReadOnly && "opacity-50 cursor-not-allowed"
+    )}>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Briefcase className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <p className="font-medium text-foreground">
+            {role.roleName}
+          </p>
+          {role.description && (
+            <p className="text-sm text-muted-foreground">{role.description}</p>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        {/* Chair Count Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Chairs:</span>
+          <div className="flex items-center border border-border rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={handleDecrement}
+              disabled={isReadOnly || chairCount <= minChairs}
+              className="p-1.5 hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <input
+              type="number"
+              value={chairCount}
+              onChange={handleInputChange}
+              onClick={(e) => e.stopPropagation()}
+              min={minChairs}
+              max={maxChairs}
+              className="w-10 text-center text-sm font-medium border-x border-border py-1.5 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              disabled={isReadOnly}
+            />
+            <button
+              type="button"
+              onClick={handleIncrement}
+              disabled={isReadOnly || chairCount >= maxChairs}
+              className="p-1.5 hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Select Button */}
+        <Button
+          type="button"
+          size="sm"
+          onClick={handleSelect}
+          disabled={isReadOnly}
+          className="px-4"
+        >
+          Select
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export const SimplifiedAssignmentFlow = ({
   availableRoles,
   existingAssignments = [],
@@ -441,7 +551,7 @@ export const SimplifiedAssignmentFlow = ({
               <div>
                 <h4 className="font-medium mb-1">Select a Role</h4>
                 <p className="text-sm text-muted-foreground">
-                  Choose a role to assign a team member to.
+                  Choose a role and specify the number of chairs to create.
                 </p>
               </div>
 
@@ -454,30 +564,14 @@ export const SimplifiedAssignmentFlow = ({
                   </p>
                 </div>
               ) : (
-                <div className="grid gap-2">
+                <div className="grid gap-3">
                   {unassignedRoles.map((role) => (
-                    <button
+                    <RoleCardWithChairs
                       key={role.roleId}
-                      type="button"
-                      onClick={() => handleRoleSelect(role)}
-                      disabled={isReadOnly}
-                      className="flex items-center justify-between p-4 rounded-lg border-2 border-border hover:border-primary hover:bg-primary/5 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Briefcase className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium group-hover:text-primary transition-colors">
-                            {role.roleName}
-                          </p>
-                          {role.description && (
-                            <p className="text-sm text-muted-foreground">{role.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </button>
+                      role={role}
+                      onSelect={handleRoleSelect}
+                      isReadOnly={isReadOnly}
+                    />
                   ))}
                 </div>
               )}
