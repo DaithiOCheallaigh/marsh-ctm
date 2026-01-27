@@ -1,6 +1,6 @@
 // Types for chair selection UI concepts
 
-export type ChairType = 'primary' | 'secondary' | 'specialty';
+export type ChairType = 'primary' | 'secondary';
 
 export interface Chair {
   id: string;
@@ -36,14 +36,6 @@ export const CHAIR_TYPE_CONFIGS: ChairTypeConfig[] = [
     description: 'Support role',
     isRequired: false,
     badgeClassName: 'bg-gray-100 text-gray-600 border-gray-200',
-  },
-  {
-    id: 'specialty',
-    name: 'Specialty',
-    label: 'SPECIALTY',
-    description: 'Special func',
-    isRequired: false,
-    badgeClassName: 'bg-purple-100 text-purple-700 border-purple-200',
   },
 ];
 
@@ -90,15 +82,6 @@ export const SAMPLE_CHAIRS: Chair[] = [
     type: 'secondary',
     isRequired: false,
     assignedTo: 'Emily Watson',
-  },
-  // Specialty Chairs
-  {
-    id: 'training-lead',
-    name: 'Training Lead',
-    description: 'Onboard new team members, knowledge transfer',
-    type: 'specialty',
-    isRequired: false,
-    assignedTo: undefined,
   },
 ];
 

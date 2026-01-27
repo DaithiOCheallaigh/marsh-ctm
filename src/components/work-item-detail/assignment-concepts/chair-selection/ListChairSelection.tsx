@@ -30,7 +30,6 @@ export const ListChairSelection = ({
     const grouped: Record<ChairType, Chair[]> = {
       primary: [],
       secondary: [],
-      specialty: [],
     };
     chairs.forEach((chair) => {
       grouped[chair.type].push(chair);
