@@ -55,6 +55,7 @@ interface WorkItemsContextType {
   addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>) => string;
   updateWorkItem: (id: string, updates: Partial<WorkItem>) => void;
   completeWorkItem: (id: string) => void;
+  deleteWorkItem: (id: string) => void;
 }
 
 const WorkItemsContext = createContext<WorkItemsContextType | undefined>(undefined);
@@ -519,8 +520,12 @@ export const WorkItemsProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const deleteWorkItem = (id: string) => {
+    setWorkItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
   return (
-    <WorkItemsContext.Provider value={{ workItems, addWorkItem, updateWorkItem, completeWorkItem }}>
+    <WorkItemsContext.Provider value={{ workItems, addWorkItem, updateWorkItem, completeWorkItem, deleteWorkItem }}>
       {children}
     </WorkItemsContext.Provider>
   );
