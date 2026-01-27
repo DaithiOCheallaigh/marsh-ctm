@@ -236,6 +236,7 @@ const InlineConfigurationPanel = ({
   onChairChange,
   currentCapacity,
   isReadOnly,
+  onAssign,
 }: {
   member: TeamMember;
   roleName: string;
@@ -247,6 +248,7 @@ const InlineConfigurationPanel = ({
   onChairChange: (chair: Chair) => void;
   currentCapacity: number;
   isReadOnly?: boolean;
+  onAssign: () => void;
 }) => {
   const projectedCapacity = currentCapacity - workloadPercentage;
   const projectedStatusInfo = getCapacityStatus(projectedCapacity);
@@ -257,16 +259,39 @@ const InlineConfigurationPanel = ({
     return SAMPLE_CHAIRS.filter(chair => chair.type === selectedChairType && !chair.assignedTo);
   }, [selectedChairType]);
 
+  // Check if all required fields are complete
+  const isComplete = selectedChairType && selectedChair && workloadPercentage > 0;
+
   return (
     <div className="mt-4 p-5 bg-muted/30 rounded-lg border-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[hsl(var(--wq-border))]">
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-          <User className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <p className="font-semibold text-primary">{member.name}</p>
-          <p className="text-sm text-muted-foreground">{roleName}</p>
+      {/* Header with Capacity Impact */}
+      <div className="flex items-center justify-between mb-5 pb-4 border-b border-[hsl(var(--wq-border))]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-primary">{member.name}</p>
+            <p className="text-sm text-muted-foreground">{roleName}</p>
+          </div>
+          {/* Capacity Impact Badge - Moved here */}
+          <div className="flex items-center gap-2 ml-4">
+            <Badge 
+              variant="outline" 
+              className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
+            >
+              {formatAvailableCapacity(currentCapacity)} → {formatAvailableCapacity(projectedCapacity)}
+              {projectedStatusInfo.showWarningIcon && (
+                <AlertTriangle className="inline w-3 h-3 ml-1" />
+              )}
+            </Badge>
+            {projectedCapacity < 0 && (
+              <span className="text-xs text-destructive flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                Over-assigned
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -347,28 +372,16 @@ const InlineConfigurationPanel = ({
           </div>
         </div>
 
-        {/* Capacity Impact */}
+        {/* Assign Button */}
         <div className="pt-4 border-t border-[hsl(var(--wq-border))]">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Capacity Impact:</span>
-            <div className="flex items-center gap-2">
-              <Badge 
-                variant="outline" 
-                className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
-              >
-                {formatAvailableCapacity(currentCapacity)} → {formatAvailableCapacity(projectedCapacity)}
-                {projectedStatusInfo.showWarningIcon && (
-                  <AlertTriangle className="inline w-3 h-3 ml-1" />
-                )}
-              </Badge>
-              {projectedCapacity < 0 && (
-                <span className="text-xs text-destructive flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  Over-assigned
-                </span>
-              )}
-            </div>
-          </div>
+          <Button
+            onClick={onAssign}
+            disabled={!isComplete || isReadOnly}
+            className="w-full bg-primary hover:bg-primary/90"
+          >
+            <ChevronRight className="w-4 h-4 mr-2" />
+            Assign
+          </Button>
         </div>
       </div>
     </div>
@@ -650,6 +663,7 @@ export const ConsolidatedAssignmentFlow = ({
                           onChairChange={setSelectedChair}
                           currentCapacity={getCurrentCapacity()}
                           isReadOnly={isReadOnly}
+                          onAssign={handleProceedToReview}
                         />
                       )}
                     </div>
