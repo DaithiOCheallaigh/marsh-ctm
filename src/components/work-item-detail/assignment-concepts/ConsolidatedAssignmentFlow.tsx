@@ -15,6 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RoleDefinition, AssignmentData, getMatchBadge } from "./types";
 import { teamMembers, TeamMember } from "@/data/teamMembers";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -251,46 +258,79 @@ const InlineConfigurationPanel = ({
   }, [selectedChairType]);
 
   return (
-    <div className="mt-4 p-4 bg-muted/30 rounded-lg border-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
+    <div className="mt-4 p-5 bg-muted/30 rounded-lg border-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <User className="w-4 h-4 text-primary" />
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[hsl(var(--wq-border))]">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <p className="font-medium text-primary">{member.name}</p>
-          <p className="text-xs text-muted-foreground">{roleName}</p>
+          <p className="font-semibold text-primary">{member.name}</p>
+          <p className="text-sm text-muted-foreground">{roleName}</p>
         </div>
       </div>
 
-      {/* Configuration Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        {/* Chair Type Selection */}
+      {/* Stacked Configuration Layout */}
+      <div className="space-y-5">
+        {/* Chair Type Dropdown */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Chair Type</label>
-          <div className="flex gap-2">
-            {CHAIR_TYPE_CONFIGS.map((config) => (
-              <button
-                key={config.id}
-                type="button"
-                onClick={() => onChairTypeChange(config.id)}
-                disabled={isReadOnly}
-                className={cn(
-                  "flex-1 px-3 py-2 rounded-lg border text-sm font-medium transition-all",
-                  selectedChairType === config.id
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-white border-[hsl(var(--wq-border))] hover:border-primary/50"
-                )}
-              >
-                {config.name}
-              </button>
-            ))}
-          </div>
+          <label className="text-sm font-medium text-foreground">Chair Type</label>
+          <Select
+            value={selectedChairType || undefined}
+            onValueChange={(value) => onChairTypeChange(value as ChairType)}
+            disabled={isReadOnly}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Select chair type..." />
+            </SelectTrigger>
+            <SelectContent className="bg-background">
+              {CHAIR_TYPE_CONFIGS.map((config) => (
+                <SelectItem key={config.id} value={config.id}>
+                  <span className="font-medium">{config.name}</span>
+                  <span className="text-muted-foreground ml-2">— {config.description}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
+        {/* Select Chair - Row-based for up to 10 chairs */}
+        {selectedChairType && (
+          <div className="space-y-2 animate-in slide-in-from-top-1 duration-150">
+            <label className="text-sm font-medium text-foreground">Select Chair</label>
+            <div className="space-y-2">
+              {availableChairs.length > 0 ? (
+                availableChairs.map((chair) => (
+                  <button
+                    key={chair.id}
+                    type="button"
+                    onClick={() => onChairChange(chair)}
+                    disabled={isReadOnly}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-lg border text-left transition-all flex items-center justify-between",
+                      selectedChair?.id === chair.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-[hsl(var(--wq-border))] hover:border-primary/50 hover:bg-[hsl(var(--wq-bg-muted))]"
+                    )}
+                  >
+                    <span className="font-medium">{chair.name}</span>
+                    {selectedChair?.id === chair.id && (
+                      <Check className="w-4 h-4" />
+                    )}
+                  </button>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground py-3 px-4 bg-muted/50 rounded-lg">
+                  No available chairs for this type
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Workload Input */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Workload %</label>
+          <label className="text-sm font-medium text-foreground">Workload %</label>
           <div className="flex items-center gap-2">
             <Input
               type="number"
@@ -301,64 +341,35 @@ const InlineConfigurationPanel = ({
               onChange={(e) => onWorkloadChange(parseFloat(e.target.value) || 0)}
               onFocus={(e) => e.target.select()}
               disabled={isReadOnly}
-              className="w-24"
+              className="w-28 bg-background"
             />
             <span className="text-sm text-muted-foreground">%</span>
           </div>
         </div>
-      </div>
 
-      {/* Available Chairs - Progressive disclosure after chair type selection */}
-      {selectedChairType && (
-        <div className="space-y-2 mb-4 animate-in slide-in-from-top-1 duration-150">
-          <label className="text-sm font-medium">Select Chair</label>
-          <div className="grid grid-cols-2 gap-2">
-            {availableChairs.length > 0 ? (
-              availableChairs.map((chair) => (
-                <button
-                  key={chair.id}
-                  type="button"
-                  onClick={() => onChairChange(chair)}
-                  disabled={isReadOnly}
-                  className={cn(
-                    "px-3 py-2 rounded-lg border text-sm text-left transition-all",
-                    selectedChair?.id === chair.id
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-white border-[hsl(var(--wq-border))] hover:border-primary/50"
-                  )}
-                >
-                  {chair.name}
-                </button>
-              ))
-            ) : (
-              <p className="col-span-2 text-sm text-muted-foreground py-2">
-                No available chairs for this type
-              </p>
-            )}
+        {/* Capacity Impact */}
+        <div className="pt-4 border-t border-[hsl(var(--wq-border))]">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Capacity Impact:</span>
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant="outline" 
+                className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
+              >
+                {formatAvailableCapacity(currentCapacity)} → {formatAvailableCapacity(projectedCapacity)}
+                {projectedStatusInfo.showWarningIcon && (
+                  <AlertTriangle className="inline w-3 h-3 ml-1" />
+                )}
+              </Badge>
+              {projectedCapacity < 0 && (
+                <span className="text-xs text-destructive flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Over-assigned
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Live Capacity Preview */}
-      <div className="pt-3 border-t flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Capacity Impact:</span>
-          <Badge 
-            variant="outline" 
-            className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
-          >
-            {formatAvailableCapacity(currentCapacity)} → {formatAvailableCapacity(projectedCapacity)}
-            {projectedStatusInfo.showWarningIcon && (
-              <AlertTriangle className="inline w-3 h-3 ml-1" />
-            )}
-          </Badge>
-        </div>
-        {projectedCapacity < 0 && (
-          <span className="text-xs text-destructive flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3" />
-            Over-assigned
-          </span>
-        )}
       </div>
     </div>
   );
