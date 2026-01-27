@@ -264,34 +264,14 @@ const InlineConfigurationPanel = ({
 
   return (
     <div className="mt-4 p-5 bg-muted/30 rounded-lg border-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
-      {/* Header with Capacity Impact */}
-      <div className="flex items-center justify-between mb-5 pb-4 border-b border-[hsl(var(--wq-border))]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="font-semibold text-primary">{member.name}</p>
-            <p className="text-sm text-muted-foreground">{roleName}</p>
-          </div>
-          {/* Capacity Impact Badge - Moved here */}
-          <div className="flex items-center gap-2 ml-4">
-            <Badge 
-              variant="outline" 
-              className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
-            >
-              {formatAvailableCapacity(currentCapacity)} → {formatAvailableCapacity(projectedCapacity)}
-              {projectedStatusInfo.showWarningIcon && (
-                <AlertTriangle className="inline w-3 h-3 ml-1" />
-              )}
-            </Badge>
-            {projectedCapacity < 0 && (
-              <span className="text-xs text-destructive flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" />
-                Over-assigned
-              </span>
-            )}
-          </div>
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[hsl(var(--wq-border))]">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <p className="font-semibold text-primary">{member.name}</p>
+          <p className="text-sm text-muted-foreground">{roleName}</p>
         </div>
       </div>
 
@@ -311,8 +291,7 @@ const InlineConfigurationPanel = ({
             <SelectContent className="bg-background">
               {CHAIR_TYPE_CONFIGS.map((config) => (
                 <SelectItem key={config.id} value={config.id}>
-                  <span className="font-medium">{config.name}</span>
-                  <span className="text-muted-foreground ml-2">— {config.description}</span>
+                  {config.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -372,15 +351,34 @@ const InlineConfigurationPanel = ({
           </div>
         </div>
 
-        {/* Assign Button */}
-        <div className="pt-4 border-t border-[hsl(var(--wq-border))]">
+        {/* Capacity Impact & Assign Button */}
+        <div className="pt-4 border-t border-[hsl(var(--wq-border))] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Capacity Impact:</span>
+            <Badge 
+              variant="outline" 
+              className={cn("font-semibold", projectedStatusInfo.colorClass, projectedStatusInfo.borderClass)}
+            >
+              {formatAvailableCapacity(currentCapacity)} → {formatAvailableCapacity(projectedCapacity)}
+              {projectedStatusInfo.showWarningIcon && (
+                <AlertTriangle className="inline w-3 h-3 ml-1" />
+              )}
+            </Badge>
+            {projectedCapacity < 0 && (
+              <span className="text-xs text-destructive flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                Over-assigned
+              </span>
+            )}
+          </div>
           <Button
+            size="sm"
             onClick={onAssign}
             disabled={!isComplete || isReadOnly}
-            className="w-full bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90"
           >
-            <ChevronRight className="w-4 h-4 mr-2" />
             Assign
+            <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
       </div>
