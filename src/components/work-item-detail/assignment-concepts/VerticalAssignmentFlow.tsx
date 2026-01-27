@@ -1,18 +1,10 @@
 import { useState, useMemo } from "react";
 import { Check, ChevronRight, ChevronDown, User, Briefcase, Settings, CheckCircle2, AlertCircle, Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,8 +29,8 @@ import {
   getCapacityStatus,
   formatAvailableCapacity,
   getOverCapacityConfirmationMessage,
-  CapacityStatusInfo,
 } from "@/utils/capacityManagement";
+import { ChairSelectionToggle, Chair, SAMPLE_CHAIRS } from "./chair-selection";
 
 interface VerticalAssignmentFlowProps {
   availableRoles: RoleDefinition[];
@@ -47,11 +39,6 @@ interface VerticalAssignmentFlowProps {
   onCancel?: () => void;
   isReadOnly?: boolean;
 }
-
-const CHAIR_OPTIONS = [
-  { id: "primary", name: "Primary Chair", value: "Primary" as const },
-  { id: "secondary", name: "Secondary Chair", value: "Secondary" as const },
-];
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -272,7 +259,7 @@ export const VerticalAssignmentFlow = ({
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [workloadPercentage, setWorkloadPercentage] = useState<number>(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
-  const [selectedChair, setSelectedChair] = useState<string>("");
+  const [selectedChair, setSelectedChair] = useState<Chair | null>(null);
   const [chairError, setChairError] = useState<string>("");
   const [showOverCapacityConfirm, setShowOverCapacityConfirm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -333,15 +320,14 @@ export const VerticalAssignmentFlow = ({
     setCurrentStep(3);
   };
 
-  const handleWorkloadChange = (value: string) => {
-    const num = parseFloat(value);
-    if (!isNaN(num) && num >= 0 && num <= 100) {
-      setWorkloadPercentage(num);
+  const handleWorkloadChange = (value: number) => {
+    if (value >= 0 && value <= 100) {
+      setWorkloadPercentage(value);
     }
   };
 
-  const handleChairChange = (value: string) => {
-    setSelectedChair(value);
+  const handleChairChange = (chair: Chair | null) => {
+    setSelectedChair(chair);
     setChairError("");
   };
 
@@ -362,13 +348,13 @@ export const VerticalAssignmentFlow = ({
   const handleCompleteAssignment = () => {
     if (!selectedRole || !selectedMember || !selectedChair) return;
 
-    const chairOption = CHAIR_OPTIONS.find(c => c.id === selectedChair);
+    const chairType = selectedChair.type === 'primary' ? 'Primary' : 'Secondary';
     const assignment: AssignmentData = {
       roleId: selectedRole.roleId,
       roleName: selectedRole.roleName,
       teamName: selectedRole.teamName,
       selectedPerson: selectedMember,
-      chairType: chairOption?.value || "Primary",
+      chairType,
       workloadPercentage,
     };
 
@@ -379,7 +365,7 @@ export const VerticalAssignmentFlow = ({
     setSelectedRole(null);
     setSelectedMember(null);
     setWorkloadPercentage(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
-    setSelectedChair("");
+    setSelectedChair(null);
     setChairError("");
     setSearchQuery("");
     setShowAll(false);
@@ -563,12 +549,11 @@ export const VerticalAssignmentFlow = ({
             isExpanded={currentStep === 3}
             onClick={() => currentStep > 3 ? goToStep(3) : undefined}
           >
-            {selectedMember && (
+            {selectedMember && selectedRole && (
               <div className="space-y-5 pt-2">
                 {(() => {
                   const workItemWorkload = getMemberWorkItemWorkload(selectedMember.id);
                   const currentAvailable = calculateAvailableCapacity(selectedMember, workItemWorkload);
-                  const currentStatusInfo = getCapacityStatus(currentAvailable);
                   
                   return (
                     <>
@@ -580,78 +565,39 @@ export const VerticalAssignmentFlow = ({
                           <span className="text-foreground font-medium">{selectedMember?.name}</span>
                         </div>
                         <h4 className="font-semibold text-base">Configure Assignment</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Step 3 of 4 — Configure Assignment
+                        </p>
                       </div>
 
-                      {/* Member Summary */}
-                      <div className="flex items-center justify-between rounded-lg px-4 py-3 border border-border bg-muted/30">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{selectedMember.name}</p>
-                            <p className="text-xs text-muted-foreground">{selectedMember.role}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Available Capacity</p>
-                          <p className={cn("text-sm font-semibold", currentStatusInfo.colorClass)}>
-                            {formatAvailableCapacity(currentAvailable)}
-                          </p>
-                        </div>
-                      </div>
+                      {/* Chair Selection with Toggle (Guided vs List View) */}
+                      <ChairSelectionToggle
+                        chairs={SAMPLE_CHAIRS}
+                        selectedChair={selectedChair}
+                        onSelectChair={handleChairChange}
+                        workloadPercentage={workloadPercentage}
+                        onWorkloadChange={handleWorkloadChange}
+                        currentCapacity={currentAvailable}
+                        memberName={selectedMember.name}
+                        roleName={selectedRole.roleName}
+                        isReadOnly={isReadOnly}
+                      />
 
-                      {/* Configuration Form */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="workload" className="text-sm font-medium">Workload Percentage</Label>
-                          <div className="relative">
-                            <Input
-                              id="workload"
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.5"
-                              value={workloadPercentage}
-                              onChange={(e) => handleWorkloadChange(e.target.value)}
-                              onFocus={(e) => e.target.select()}
-                              className="pr-8"
-                              disabled={isReadOnly}
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="chair" className="text-sm font-medium">Chair Assignment *</Label>
-                          <Select 
-                            value={selectedChair} 
-                            onValueChange={handleChairChange}
-                            disabled={isReadOnly}
-                          >
-                            <SelectTrigger id="chair" className={chairError ? "border-destructive" : ""}>
-                              <SelectValue placeholder="Select a chair..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {CHAIR_OPTIONS.map((option) => (
-                                <SelectItem key={option.id} value={option.id}>
-                                  {option.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {chairError && (
-                            <p className="text-xs text-destructive">{chairError}</p>
-                          )}
-                        </div>
-                      </div>
+                      {/* Chair error message */}
+                      {chairError && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {chairError}
+                        </p>
+                      )}
 
                       <div className="flex justify-between pt-4 border-t">
                         <Button variant="outline" onClick={() => goToStep(2)} disabled={isReadOnly}>
                           Back
                         </Button>
-                        <Button onClick={handleProceedToComplete} disabled={isReadOnly}>
-                          Continue
+                        <Button onClick={handleProceedToComplete} disabled={isReadOnly || !selectedChair}>
+                          Next: Review
+                          <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
                       </div>
                     </>
@@ -692,7 +638,7 @@ export const VerticalAssignmentFlow = ({
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Chair:</span>
                     <span className="font-medium">
-                      {CHAIR_OPTIONS.find(c => c.id === selectedChair)?.name}
+                      {selectedChair?.name || 'Not selected'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
