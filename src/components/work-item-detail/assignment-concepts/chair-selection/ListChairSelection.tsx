@@ -150,7 +150,7 @@ export const ListChairSelection = ({
       </div>
 
       {/* Chair Groups */}
-      <div className="space-y-4 max-h-[320px] overflow-y-auto pr-1">
+      <div className="space-y-4">
         {CHAIR_TYPE_CONFIGS.map((config) => renderChairGroup(config.id))}
       </div>
 
