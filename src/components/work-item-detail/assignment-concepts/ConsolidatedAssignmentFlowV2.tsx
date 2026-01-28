@@ -136,17 +136,9 @@ const TeamMemberCard = ({
       )}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            "w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0",
-            isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))] bg-white"
-          )}>
-            {isSelected && <Check className="w-3 h-3 text-white" />}
-          </div>
-          <div>
-            <div className="font-semibold text-primary">{member.name}</div>
-            <div className="text-sm text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
-          </div>
+        <div>
+          <div className="font-semibold text-primary">{member.name}</div>
+          <div className="text-sm text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
         </div>
         <div className="text-right flex-shrink-0">
           <div className="text-sm text-[hsl(var(--wq-text-secondary))]">
