@@ -31,6 +31,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Simplified person type for assignments
 interface AssignedPerson {
@@ -721,15 +727,28 @@ const WorkItemDetail = () => {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowDeleteDialog(true)}
-                    disabled={!canDelete}
-                    className="px-6 py-2 border-destructive text-destructive hover:bg-destructive/5 font-medium disabled:opacity-50"
-                  >
-                    Delete Work Item
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className={!canDelete ? 'cursor-not-allowed' : ''}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowDeleteDialog(true)}
+                            disabled={!canDelete}
+                            className="px-6 py-2 border-destructive text-destructive hover:bg-destructive/5 font-medium disabled:opacity-50 disabled:pointer-events-none"
+                          >
+                            Delete Work Item
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {!canDelete && (
+                        <TooltipContent>
+                          <p>Cannot delete work item with existing assignments</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                   <Button
                     type="button"
                     onClick={handleCompleteWorkItem}
