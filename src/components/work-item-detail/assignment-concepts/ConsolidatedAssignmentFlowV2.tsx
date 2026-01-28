@@ -607,7 +607,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                         {/* Chair Selection - All chairs in one list */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-foreground">Select Chair</label>
-                          <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                          <div className="space-y-2">
                             {allChairs.map(({
                               chair,
                               isDisabled,
