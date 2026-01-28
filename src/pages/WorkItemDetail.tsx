@@ -18,6 +18,7 @@ import {
   SimplifiedAssignmentFlow,
   VerticalAssignmentFlow,
   ConsolidatedAssignmentFlow,
+  ConsolidatedAssignmentFlowV2,
   AssignmentData,
 } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -575,8 +576,8 @@ const WorkItemDetail = () => {
                   />
                 )
               ) : (
-                // Option 2: Consolidated 3-step flow with progressive disclosure
-                <ConsolidatedAssignmentFlow
+                // Option 2: V2 Consolidated flow with shopping cart behavior
+                <ConsolidatedAssignmentFlowV2
                   availableRoles={teams.flatMap(team =>
                     team.roles.map(role => ({
                       roleId: role.roleId,
@@ -586,22 +587,26 @@ const WorkItemDetail = () => {
                     }))
                   )}
                   existingAssignments={conceptAssignments}
-                  onComplete={(assignment) => {
+                  onComplete={(assignments) => {
+                    // Handle array of assignments (shopping cart)
                     const updatedAssignments = [
-                      ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
-                      assignment
+                      ...conceptAssignments.filter(a => !assignments.some(newA => newA.roleId === a.roleId)),
+                      ...assignments
                     ];
                     setConceptAssignments(updatedAssignments);
                     
-                    if (assignment.selectedPerson) {
-                      handleAssign(
-                        assignment.roleId,
-                        0,
-                        assignment.selectedPerson,
-                        `${assignment.chairType} Chair`,
-                        assignment.workloadPercentage
-                      );
-                    }
+                    // Apply each assignment
+                    assignments.forEach((assignment, index) => {
+                      if (assignment.selectedPerson) {
+                        handleAssign(
+                          assignment.roleId,
+                          index,
+                          assignment.selectedPerson,
+                          assignment.notes || `${assignment.chairType} Chair`,
+                          assignment.workloadPercentage
+                        );
+                      }
+                    });
                     
                     if (workItem) {
                       updateWorkItem(workItem.id, {
@@ -611,8 +616,8 @@ const WorkItemDetail = () => {
                     
                     setLastSavedAt(new Date());
                     toast({
-                      title: "Progress Saved",
-                      description: `${assignment.roleName} assignment has been saved.`,
+                      title: "Assignments Saved",
+                      description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved successfully.`,
                     });
                   }}
                   isReadOnly={isReadOnly}
