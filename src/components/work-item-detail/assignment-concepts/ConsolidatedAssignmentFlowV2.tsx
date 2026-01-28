@@ -577,7 +577,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                               <div>
                                 <p className="font-medium text-primary">{selectedMember.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Available: {formatAvailableCapacity(getMemberAvailableCapacity(selectedMember))}
+                                  After assignment: {formatAvailableCapacity(Math.max(0, getMemberAvailableCapacity(selectedMember) - workloadPercentage))}
                                 </p>
                               </div>
                             </div>
