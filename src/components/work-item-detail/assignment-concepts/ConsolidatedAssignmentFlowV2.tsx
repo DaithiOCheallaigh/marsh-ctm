@@ -618,11 +618,13 @@ export const ConsolidatedAssignmentFlowV2 = ({
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-foreground">Select Chair</label>
                           <div className="space-y-2">
-                            {allChairs.map(({
-                              chair,
-                              isDisabled,
-                              disableReason
-                            }) => (
+                            {allChairs
+                              .filter(({ isDisabled }) => !isDisabled)
+                              .map(({
+                                chair,
+                                isDisabled,
+                                disableReason
+                              }) => (
                               <ChairCard 
                                 key={chair.id} 
                                 chair={chair} 
