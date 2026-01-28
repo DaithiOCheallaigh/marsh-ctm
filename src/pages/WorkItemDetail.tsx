@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Clock, Lock, LayoutGrid, LayoutList } from "lucide-react";
+import { Clock, Lock, LayoutGrid, LayoutList, AlertTriangle, MessageSquareText } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
@@ -543,6 +543,29 @@ const WorkItemDetail = () => {
 
             {/* Assignment Requirements Section - With View Toggle */}
             <div className="mt-6">
+              {/* Partial Completion Justification Banner */}
+              {workItem.backendStatus === 'Partially Completed' && workItem.partialCompletionJustification && (
+                <div className="mb-4 p-4 bg-[hsl(var(--wq-status-warning-bg))] border border-[hsl(var(--wq-status-warning-border))] rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[hsl(var(--wq-status-warning-border)/0.2)] flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 text-[hsl(var(--wq-status-warning-text))]" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-sm font-semibold text-[hsl(var(--wq-status-warning-text))]">Partial Completion</h4>
+                        <span className="text-xs text-[hsl(var(--wq-status-warning-text))] bg-[hsl(var(--wq-status-warning-border)/0.2)] px-2 py-0.5 rounded-full">
+                          Not all roles assigned
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-2 mt-2">
+                        <MessageSquareText className="w-4 h-4 text-[hsl(var(--wq-status-warning-text))] mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-[hsl(var(--wq-status-warning-text))]">{workItem.partialCompletionJustification}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* View Toggle Tabs */}
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-primary">Assignment Requirements</h3>

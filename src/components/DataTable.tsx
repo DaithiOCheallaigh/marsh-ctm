@@ -179,7 +179,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 <td className="px-3 py-4">
                   <StatusBadge 
                     status={item.status} 
-                    isPartiallyCompleted={item.backendStatus === 'Partially Completed'} 
+                    isPartiallyCompleted={item.backendStatus === 'Partially Completed'}
+                    justification={item.partialCompletionJustification}
                   />
                 </td>
               </tr>

@@ -12,6 +12,7 @@ interface StatusBadgeProps {
   isPartiallyCompleted?: boolean;
   assignedCount?: number;
   totalCount?: number;
+  justification?: string;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   isPartiallyCompleted = false, 
   assignedCount,
   totalCount,
+  justification,
   className = '' 
 }) => {
   const statusConfig = {
@@ -52,8 +54,13 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   const config = statusConfig[status];
   const Icon = config.icon;
 
+  // Truncate justification for tooltip preview (max 100 chars)
+  const truncatedJustification = justification && justification.length > 100 
+    ? `${justification.substring(0, 100)}...` 
+    : justification;
+
   const tooltipContent = isPartiallyCompleted 
-    ? `Partially Completed${assignedCount !== undefined && totalCount !== undefined ? ` - ${assignedCount} of ${totalCount} roles assigned` : ' - Not all roles were assigned'}`
+    ? `Partially Completed${assignedCount !== undefined && totalCount !== undefined ? ` - ${assignedCount} of ${totalCount} roles assigned` : ' - Not all roles were assigned'}${truncatedJustification ? `\n\nReason: ${truncatedJustification}` : ''}`
     : status === 'Completed' 
       ? 'Fully Completed - All required roles assigned'
       : undefined;
