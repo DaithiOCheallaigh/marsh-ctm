@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Clock, Lock, LayoutGrid, LayoutList, AlertTriangle, MessageSquareText } from "lucide-react";
+import { Clock, Lock, AlertTriangle, MessageSquareText } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { useWorkItems, WorkItem } from "@/context/WorkItemsContext";
 import { useToast } from "@/hooks/use-toast";
 import { WorkTypeBadge } from "@/components/work-item-detail/WorkTypeBadge";
@@ -566,38 +566,9 @@ const WorkItemDetail = () => {
                 </div>
               )}
 
-              {/* View Toggle Tabs */}
+              {/* Assignment Requirements Header */}
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-primary">Assignment Requirements</h3>
-                <div className="flex items-center gap-4">
-                  {/* Option 1 / Option 2 Switcher */}
-                  <Tabs value={assignmentOption} onValueChange={(v) => setAssignmentOption(v as "option1" | "option2")}>
-                    <TabsList className="grid grid-cols-2 w-[180px]">
-                      <TabsTrigger value="option1" className="text-xs">
-                        Option 1
-                      </TabsTrigger>
-                      <TabsTrigger value="option2" className="text-xs">
-                        Option 2
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                  
-                  {/* Horizontal / Vertical Switcher - Only show for Option 1 */}
-                  {assignmentOption === "option1" && (
-                    <Tabs value={assignmentView} onValueChange={(v) => setAssignmentView(v as "horizontal" | "vertical")}>
-                      <TabsList className="grid grid-cols-2 w-[200px]">
-                        <TabsTrigger value="horizontal" className="flex items-center gap-1.5">
-                          <LayoutGrid className="h-4 w-4" />
-                          Horizontal
-                        </TabsTrigger>
-                        <TabsTrigger value="vertical" className="flex items-center gap-1.5">
-                          <LayoutList className="h-4 w-4" />
-                          Vertical
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  )}
-                </div>
               </div>
 
               {/* Assignment Flow Component based on selected option and view */}
