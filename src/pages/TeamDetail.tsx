@@ -119,167 +119,191 @@ export default function TeamDetail() {
               </CollapsibleSection>
             </div>
 
-            {/* Roles Section - Only show if roles are configured */}
-            {team.roles.length > 0 && (
-              <div className="mb-4">
-                <CollapsibleSection 
-                  title="Roles" 
-                  onEdit={() => navigate(`/team-setup/${id}/edit-roles`)}
-                >
-                  {/* Search */}
-                  <div className="relative mb-4 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--wq-accent))]" />
-                    <Input
-                      type="text"
-                      placeholder="Search Roles"
-                      value={rolesSearchQuery}
-                      onChange={(e) => setRolesSearchQuery(e.target.value)}
-                      className="
-                        pl-10 pr-4 py-2
-                        border-[hsl(var(--wq-accent))]
-                        focus:border-[hsl(var(--wq-accent))]
-                        focus:ring-[hsl(var(--wq-accent))]
-                        rounded-lg
-                      "
-                    />
-                  </div>
+            {/* Roles Section - Always show with edit capability */}
+            <div className="mb-4">
+              <CollapsibleSection 
+                title="Roles" 
+                onEdit={() => navigate(`/team-setup/${id}/edit-roles`)}
+              >
+                {team.roles.length > 0 ? (
+                  <>
+                    {/* Search */}
+                    <div className="relative mb-4 max-w-md">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--wq-accent))]" />
+                      <Input
+                        type="text"
+                        placeholder="Search Roles"
+                        value={rolesSearchQuery}
+                        onChange={(e) => setRolesSearchQuery(e.target.value)}
+                        className="
+                          pl-10 pr-4 py-2
+                          border-[hsl(var(--wq-accent))]
+                          focus:border-[hsl(var(--wq-accent))]
+                          focus:ring-[hsl(var(--wq-accent))]
+                          rounded-lg
+                        "
+                      />
+                    </div>
 
-                  {/* Roles Table */}
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-[hsl(216,100%,97%)] border-b border-[hsl(var(--wq-border))]">
-                        {['roleName', 'chairName', 'chairType', 'order'].map((key) => (
-                          <th 
-                            key={key}
-                            className="px-4 py-3 text-left text-sm font-semibold text-[hsl(var(--wq-primary))]"
-                          >
-                            <button 
-                              onClick={() => handleSort(key)}
-                              className="flex items-center gap-1 hover:text-[hsl(var(--wq-accent))]"
+                    {/* Roles Table */}
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-[hsl(216,100%,97%)] border-b border-[hsl(var(--wq-border))]">
+                          {['roleName', 'chairName', 'chairType', 'order'].map((key) => (
+                            <th 
+                              key={key}
+                              className="px-4 py-3 text-left text-sm font-semibold text-[hsl(var(--wq-primary))]"
                             >
-                              {key === 'roleName' && 'Role Name'}
-                              {key === 'chairName' && 'Chair Name'}
-                              {key === 'chairType' && 'Chair Type'}
-                              {key === 'order' && 'Order'}
-                              <ChevronsUpDown className="w-4 h-4" />
-                            </button>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedRoles.map((role) => (
-                        <tr 
-                          key={role.id}
-                          className="border-b border-[hsl(var(--wq-border))] last:border-b-0"
-                        >
-                          <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.roleName}</td>
-                          <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.chairName}</td>
-                          <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.chairType}</td>
-                          <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.order}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Pagination */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-[hsl(var(--wq-border))]">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setRolesCurrentPage(1)}
-                        disabled={rolesCurrentPage === 1}
-                        className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
-                      >
-                        ⟨⟨
-                      </button>
-                      <button
-                        onClick={() => setRolesCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={rolesCurrentPage === 1}
-                        className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
-                      >
-                        ⟨
-                      </button>
-                      <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
-                        Page{' '}
-                        <select
-                          value={rolesCurrentPage}
-                          onChange={(e) => setRolesCurrentPage(parseInt(e.target.value))}
-                          className="mx-1 px-2 py-1 border border-[hsl(var(--wq-border))] rounded bg-white"
-                        >
-                          {Array.from({ length: totalRolesPages }, (_, i) => i + 1).map(page => (
-                            <option key={page} value={page}>{page}</option>
+                              <button 
+                                onClick={() => handleSort(key)}
+                                className="flex items-center gap-1 hover:text-[hsl(var(--wq-accent))]"
+                              >
+                                {key === 'roleName' && 'Role Name'}
+                                {key === 'chairName' && 'Chair Name'}
+                                {key === 'chairType' && 'Chair Type'}
+                                {key === 'order' && 'Order'}
+                                <ChevronsUpDown className="w-4 h-4" />
+                              </button>
+                            </th>
                           ))}
-                        </select>
-                        {' '}of {totalRolesPages || 1}
-                      </span>
-                      <button
-                        onClick={() => setRolesCurrentPage(prev => Math.min(totalRolesPages, prev + 1))}
-                        disabled={rolesCurrentPage === totalRolesPages}
-                        className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
-                      >
-                        ⟩
-                      </button>
-                      <button
-                        onClick={() => setRolesCurrentPage(totalRolesPages)}
-                        disabled={rolesCurrentPage === totalRolesPages}
-                        className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
-                      >
-                        ⟩⟩
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
-                        Results per page
-                      </span>
-                      <select
-                        value={rolesPerPage}
-                        onChange={(e) => {
-                          setRolesPerPage(parseInt(e.target.value));
-                          setRolesCurrentPage(1);
-                        }}
-                        className="px-2 py-1 border border-[hsl(var(--wq-border))] rounded bg-white text-sm"
-                      >
-                        <option value={10}>10</option>
-                        <option value={15}>15</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                      </select>
-                    </div>
-                  </div>
-                </CollapsibleSection>
-              </div>
-            )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedRoles.map((role) => (
+                          <tr 
+                            key={role.id}
+                            className="border-b border-[hsl(var(--wq-border))] last:border-b-0"
+                          >
+                            <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.roleName}</td>
+                            <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.chairName}</td>
+                            <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.chairType}</td>
+                            <td className="px-4 py-3 text-[hsl(var(--wq-primary))]">{role.order}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
 
-            {/* Accesses Section - Only show if managers are configured */}
-            {(team.primaryManager || team.oversiteManager) && (
-              <div className="mb-4">
-                <CollapsibleSection 
-                  title="Accesses" 
-                  onEdit={() => navigate(`/team-setup/${id}/edit-accesses`)}
-                >
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-[hsl(var(--wq-border))]">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setRolesCurrentPage(1)}
+                          disabled={rolesCurrentPage === 1}
+                          className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
+                        >
+                          ⟨⟨
+                        </button>
+                        <button
+                          onClick={() => setRolesCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={rolesCurrentPage === 1}
+                          className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
+                        >
+                          ⟨
+                        </button>
+                        <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
+                          Page{' '}
+                          <select
+                            value={rolesCurrentPage}
+                            onChange={(e) => setRolesCurrentPage(parseInt(e.target.value))}
+                            className="mx-1 px-2 py-1 border border-[hsl(var(--wq-border))] rounded bg-white"
+                          >
+                            {Array.from({ length: totalRolesPages }, (_, i) => i + 1).map(page => (
+                              <option key={page} value={page}>{page}</option>
+                            ))}
+                          </select>
+                          {' '}of {totalRolesPages || 1}
+                        </span>
+                        <button
+                          onClick={() => setRolesCurrentPage(prev => Math.min(totalRolesPages, prev + 1))}
+                          disabled={rolesCurrentPage === totalRolesPages}
+                          className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
+                        >
+                          ⟩
+                        </button>
+                        <button
+                          onClick={() => setRolesCurrentPage(totalRolesPages)}
+                          disabled={rolesCurrentPage === totalRolesPages}
+                          className="p-1 text-[hsl(var(--wq-text-muted))] hover:text-[hsl(var(--wq-primary))] disabled:opacity-50"
+                        >
+                          ⟩⟩
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
+                          Results per page
+                        </span>
+                        <select
+                          value={rolesPerPage}
+                          onChange={(e) => {
+                            setRolesPerPage(parseInt(e.target.value));
+                            setRolesCurrentPage(1);
+                          }}
+                          className="px-2 py-1 border border-[hsl(var(--wq-border))] rounded bg-white text-sm"
+                        >
+                          <option value={10}>10</option>
+                          <option value={15}>15</option>
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                        </select>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-[hsl(var(--wq-text-muted))]">No roles configured yet.</p>
+                    <p className="text-sm text-[hsl(var(--wq-text-muted))] mt-1">
+                      Click the edit button to add roles to this team.
+                    </p>
+                  </div>
+                )}
+              </CollapsibleSection>
+            </div>
+
+            {/* Accesses Section - Always show with edit capability */}
+            <div className="mb-4">
+              <CollapsibleSection 
+                title="Accesses" 
+                onEdit={() => navigate(`/team-setup/${id}/edit-accesses`)}
+              >
+                {(team.primaryManager || team.oversiteManager) ? (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Primary Manager</span>
-                      <a 
-                        href="#" 
-                        className="text-[hsl(var(--wq-primary))] font-medium hover:underline"
-                      >
-                        {team.primaryManager}
-                      </a>
+                      {team.primaryManager ? (
+                        <a 
+                          href="#" 
+                          className="text-[hsl(var(--wq-primary))] font-medium hover:underline"
+                        >
+                          {team.primaryManager}
+                        </a>
+                      ) : (
+                        <span className="text-[hsl(var(--wq-text-muted))]">Not assigned</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Oversite Manager</span>
-                      <a 
-                        href="#" 
-                        className="text-[hsl(var(--wq-primary))] font-medium hover:underline"
-                      >
-                        {team.oversiteManager}
-                      </a>
+                      {team.oversiteManager ? (
+                        <a 
+                          href="#" 
+                          className="text-[hsl(var(--wq-primary))] font-medium hover:underline"
+                        >
+                          {team.oversiteManager}
+                        </a>
+                      ) : (
+                        <span className="text-[hsl(var(--wq-text-muted))]">Not assigned</span>
+                      )}
                     </div>
                   </div>
-                </CollapsibleSection>
-              </div>
-            )}
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-[hsl(var(--wq-text-muted))]">No managers assigned yet.</p>
+                    <p className="text-sm text-[hsl(var(--wq-text-muted))] mt-1">
+                      Click the edit button to assign managers to this team.
+                    </p>
+                  </div>
+                )}
+              </CollapsibleSection>
+            </div>
           </main>
         </div>
       </div>
