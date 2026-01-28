@@ -724,13 +724,14 @@ export const ConsolidatedAssignmentFlowV2 = ({
                   Add Assignment
                 </h5>
                 
+                {/* Dual-column layout with matched heights */}
                 <div className="grid grid-cols-2 gap-6">
-                  {/* Left: Team Member Selection */}
-                  <div className="space-y-4">
-                    <h6 className="text-sm font-medium text-foreground">Select Team Member</h6>
+                  {/* Left: Team Member Selection - height matched to 10 chairs */}
+                  <div className="flex flex-col">
+                    <h6 className="text-sm font-medium text-foreground mb-3">Select Team Member</h6>
                     
                     {/* Search Bar */}
-                    <div className="relative">
+                    <div className="relative mb-3">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         placeholder="Search by name, role, location..."
@@ -740,8 +741,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
                       />
                     </div>
 
-                    {/* Team Member Cards */}
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {/* Team Member Cards - scrollable to match 10 chair height (~560px) */}
+                    <div className="space-y-2 h-[560px] overflow-y-auto pr-2 border border-[hsl(var(--wq-border))] rounded-lg p-3 bg-[hsl(var(--wq-bg-muted))]/30">
                       {eligibleMembers.map(({ member, availableCapacity, isDisabled, disableReason }) => (
                         <TeamMemberCard
                           key={member.id}
@@ -753,25 +754,25 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           availableCapacity={availableCapacity}
                         />
                       ))}
+                      
+                      {/* Show More Button */}
+                      {!showAll && !debouncedSearch && teamMembers.filter(m => !m.isManager).length > 6 && (
+                        <Button
+                          variant="link"
+                          onClick={() => setShowAll(true)}
+                          className="text-primary font-semibold w-full mt-2"
+                        >
+                          Show All Members
+                        </Button>
+                      )}
                     </div>
-
-                    {/* Show More Button */}
-                    {!showAll && !debouncedSearch && teamMembers.filter(m => !m.isManager).length > 6 && (
-                      <Button
-                        variant="link"
-                        onClick={() => setShowAll(true)}
-                        className="text-primary font-semibold w-full"
-                      >
-                        Show All Members
-                      </Button>
-                    )}
                   </div>
 
-                  {/* Right: Chair Selection & Configuration */}
-                  <div className="space-y-4">
+                  {/* Right: Chair Selection & Configuration - shows all 10 chairs */}
+                  <div className="flex flex-col">
                     {selectedMember ? (
                       <>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-3">
                           <h6 className="text-sm font-medium text-foreground">Configure Assignment</h6>
                           <Button
                             variant="ghost"
@@ -784,7 +785,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                         </div>
 
                         {/* Selected Member Summary */}
-                        <div className="p-3 bg-muted/30 rounded-lg flex items-center gap-3">
+                        <div className="p-3 bg-muted/30 rounded-lg flex items-center gap-3 mb-3">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <User className="w-5 h-5 text-primary" />
                           </div>
@@ -796,10 +797,10 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           </div>
                         </div>
 
-                        {/* Chair Selection - All chairs in one list */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Select Chair</label>
-                          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {/* Chair Selection - All 10 chairs visible (no scroll) */}
+                        <div className="flex-1 border border-[hsl(var(--wq-border))] rounded-lg p-3 bg-[hsl(var(--wq-bg-muted))]/30">
+                          <label className="text-sm font-medium text-foreground block mb-2">Select Chair</label>
+                          <div className="space-y-2">
                             {allChairs.map(({ chair, isDisabled, disableReason }) => (
                               <ChairCard
                                 key={chair.id}
@@ -813,43 +814,47 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           </div>
                         </div>
 
-                        {/* Workload Input */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Workload %</label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min={1}
-                              max={100}
-                              step={0.5}
-                              value={workloadPercentage}
-                              onChange={(e) => {
-                                setWorkloadPercentage(parseFloat(e.target.value) || 0);
-                                setValidationError(null);
-                              }}
-                              onFocus={(e) => e.target.select()}
-                              disabled={isReadOnly}
-                              className="w-28 bg-background"
-                            />
-                            <span className="text-sm text-muted-foreground">%</span>
+                        {/* Workload & Notes row below chair list */}
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                          {/* Workload Input */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground">Workload %</label>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                max={100}
+                                step={0.5}
+                                value={workloadPercentage}
+                                onChange={(e) => {
+                                  setWorkloadPercentage(parseFloat(e.target.value) || 0);
+                                  setValidationError(null);
+                                }}
+                                onFocus={(e) => e.target.select()}
+                                disabled={isReadOnly}
+                                className="w-28 bg-background"
+                              />
+                              <span className="text-sm text-muted-foreground">%</span>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Notes (Optional) */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Notes (optional)</label>
-                          <Textarea
-                            placeholder="Add any notes for this assignment..."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            disabled={isReadOnly}
-                            className="bg-background min-h-[60px]"
-                          />
+                          {/* Notes (Optional) */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground">Notes (optional)</label>
+                            <Textarea
+                              placeholder="Add any notes..."
+                              value={notes}
+                              onChange={(e) => setNotes(e.target.value)}
+                              disabled={isReadOnly}
+                              className="bg-background min-h-[40px] resize-none"
+                              rows={1}
+                            />
+                          </div>
                         </div>
 
                         {/* Validation Error */}
                         {validationError && (
-                          <div className="flex items-center gap-2 text-destructive text-sm">
+                          <div className="flex items-center gap-2 text-destructive text-sm mt-3">
                             <AlertCircle className="w-4 h-4" />
                             {validationError}
                           </div>
@@ -859,14 +864,14 @@ export const ConsolidatedAssignmentFlowV2 = ({
                         <Button
                           onClick={handleAddToCart}
                           disabled={!canAddToCart || isReadOnly}
-                          className="w-full"
+                          className="w-full mt-4"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Add Assignment
                         </Button>
                       </>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      <div className="flex items-center justify-center h-[600px] text-muted-foreground text-sm border border-dashed border-[hsl(var(--wq-border))] rounded-lg bg-[hsl(var(--wq-bg-muted))]/30">
                         <p>Select a team member to configure assignment</p>
                       </div>
                     )}
