@@ -566,38 +566,41 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           </Button>
                         </div>
 
-                        {/* Selected Member Summary */}
-                        <div className="p-3 bg-background rounded-lg flex items-center gap-3 border border-border">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-primary">{selectedMember.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Available: {formatAvailableCapacity(getMemberAvailableCapacity(selectedMember))}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Workload Input - At Top */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Workload %</label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              type="number" 
-                              min={1} 
-                              max={100} 
-                              step={0.5} 
-                              value={workloadPercentage} 
-                              onChange={e => {
-                                setWorkloadPercentage(parseFloat(e.target.value) || 0);
-                                setValidationError(null);
-                              }} 
-                              onFocus={e => e.target.select()} 
-                              disabled={isReadOnly} 
-                              className="w-28 bg-background" 
-                            />
-                            <span className="text-sm text-muted-foreground">%</span>
+                        {/* Selected Member Summary with Workload */}
+                        <div className="p-3 bg-background rounded-lg border border-border">
+                          <div className="flex items-center justify-between gap-4">
+                            {/* Left: Member Info */}
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <User className="w-5 h-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-primary">{selectedMember.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Available: {formatAvailableCapacity(getMemberAvailableCapacity(selectedMember))}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Right: Workload Input */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <label className="text-sm font-medium text-foreground">Workload</label>
+                              <Input 
+                                type="number" 
+                                min={1} 
+                                max={100} 
+                                step={0.5} 
+                                value={workloadPercentage} 
+                                onChange={e => {
+                                  setWorkloadPercentage(parseFloat(e.target.value) || 0);
+                                  setValidationError(null);
+                                }} 
+                                onFocus={e => e.target.select()} 
+                                disabled={isReadOnly} 
+                                className="w-20 bg-background" 
+                              />
+                              <span className="text-sm text-muted-foreground">%</span>
+                            </div>
                           </div>
                         </div>
 
