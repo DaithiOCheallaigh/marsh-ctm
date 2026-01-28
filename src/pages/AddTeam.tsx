@@ -51,11 +51,15 @@ export default function AddTeam() {
     
     const newTeam = addTeam({
       name: teamName,
+      department: teamName, // Default to team name
       qualifiers,
       teamBase,
       roles: [],
       primaryManager: '',
+      primaryManagerId: '',
       oversiteManager: '',
+      oversiteManagerId: '',
+      memberCount: 0,
     });
     
     navigate('/team-setup');
