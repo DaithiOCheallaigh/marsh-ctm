@@ -496,7 +496,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                 </div>
                 <h4 className="font-medium">Assign Team Members to Chairs</h4>
                 <p className="text-sm text-muted-foreground">
-                  Add multiple assignments. Click "Complete Assignment" when done.
+                  Add multiple assignments as required.
                 </p>
               </div>
 
