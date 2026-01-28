@@ -7,6 +7,7 @@ export interface RoleDefinition {
   roleName: string;
   teamName?: string;
   description?: string;
+  chairCount?: number; // Number of chairs configured for this role (from work item setup)
 }
 
 export interface AssignmentData {
