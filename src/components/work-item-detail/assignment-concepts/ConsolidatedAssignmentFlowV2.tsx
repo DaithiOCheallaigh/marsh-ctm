@@ -483,15 +483,25 @@ export const ConsolidatedAssignmentFlowV2 = ({
             </div>}
 
           {/* Step 2: Select Team Member & Chair (Shopping Cart behavior) */}
-          {currentStep === 2 && selectedRole && <div className="space-y-6">
+          {currentStep === 2 && selectedRole && (() => {
+              // Calculate remaining chairs to assign
+              const configuredChairCount = selectedRole.chairCount || 1; // Default to 1 if not specified
+              const existingRoleAssignments = existingAssignments.filter(a => a.roleId === selectedRole.roleId).length;
+              const totalAssigned = existingRoleAssignments + pendingAssignments.length;
+              const remainingChairs = Math.max(0, configuredChairCount - totalAssigned);
+              
+              return <div className="space-y-6">
               {/* Header */}
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Badge variant="secondary" className="text-xs">
                     {selectedRole.roleName}
                   </Badge>
+                  <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                    {remainingChairs} of {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''} remaining
+                  </Badge>
                   {pendingAssignments.length > 0 && <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
-                      {pendingAssignments.length} assignment{pendingAssignments.length > 1 ? 's' : ''} pending
+                      {pendingAssignments.length} pending
                     </Badge>}
                 </div>
                 <h4 className="font-medium">Assign Team Members to Chairs</h4>
@@ -671,7 +681,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
-            </div>}
+            </div>;
+            })()}
 
           {/* Step 3: Review & Complete */}
           {currentStep === 3 && selectedRole && <div className="space-y-6">
