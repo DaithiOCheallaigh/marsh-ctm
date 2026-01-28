@@ -1,6 +1,15 @@
 // Shared types for all three assignment concept components
 
-import { TeamMember } from "@/data/teamMembers";
+// Simplified person type for assignment data - compatible with both TeamMember and EligibleMember
+export interface AssignedPerson {
+  id: string;
+  name: string;
+  role?: string;
+  location?: string;
+  expertise?: string[];
+  capacity?: number;
+  matchScore?: number;
+}
 
 export interface RoleDefinition {
   roleId: string;
@@ -14,7 +23,7 @@ export interface AssignmentData {
   roleId: string;
   roleName: string;
   teamName?: string;
-  selectedPerson?: TeamMember;
+  selectedPerson?: AssignedPerson;
   chairType: 'Primary' | 'Secondary';
   workloadPercentage: number;
   notes?: string;
@@ -27,7 +36,7 @@ export interface AssignmentConceptProps {
   assignments: AssignmentData[];
   isReadOnly?: boolean;
   getMemberTotalWorkload?: (memberId: string) => number;
-  checkDuplicateAssignment?: (member: TeamMember) => { isAssigned: boolean; roleName?: string };
+  checkDuplicateAssignment?: (member: AssignedPerson) => { isAssigned: boolean; roleName?: string };
 }
 
 export const MIN_WORKLOAD = 1;

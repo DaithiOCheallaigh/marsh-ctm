@@ -32,9 +32,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Simplified person type for assignments
+interface AssignedPerson {
+  id: string;
+  name: string;
+  role?: string;
+  location?: string;
+}
+
 interface RoleAssignment {
   chairLabel: string;
-  assignedMember?: TeamMember;
+  assignedMember?: AssignedPerson;
   assignmentNotes?: string;
   workloadPercentage?: number;
 }
@@ -67,11 +75,13 @@ const WorkItemDetail = () => {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
-  const [showInactiveDialog, setShowInactiveDialog] = useState(false);
+  const [showPartialCompleteDialog, setShowPartialCompleteDialog] = useState(false);
+  const [partialJustification, setPartialJustification] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [conceptAssignments, setConceptAssignments] = useState<AssignmentData[]>([]);
   const [hasInitializedAssignments, setHasInitializedAssignments] = useState(false);
   const [assignmentView, setAssignmentView] = useState<"horizontal" | "vertical">("horizontal");
-  const [assignmentOption, setAssignmentOption] = useState<"option1" | "option2">("option1");
+  const [assignmentOption, setAssignmentOption] = useState<"option1" | "option2">("option2");
 
   // Team-based assignment state
   const [teams, setTeams] = useState<TeamState[]>([]);
@@ -161,7 +171,7 @@ const WorkItemDetail = () => {
   const isReadOnly = workItem?.status === 'Completed' || workItem?.isReadOnly;
 
   // Get all currently assigned members across all teams/roles
-  const getAllAssignedMembers = useCallback((): TeamMember[] => {
+  const getAllAssignedMembers = useCallback((): AssignedPerson[] => {
     return teams.flatMap((team) =>
       team.roles.flatMap((role) =>
         role.chairs
@@ -193,7 +203,7 @@ const WorkItemDetail = () => {
 
   // Check if a member is already assigned to ANY role (including current role's other chairs)
   const isMemberAssignedElsewhere = useCallback(
-    (member: TeamMember, currentRoleId: string): { isAssigned: boolean; roleName?: string } => {
+    (member: AssignedPerson, currentRoleId: string): { isAssigned: boolean; roleName?: string } => {
       for (const team of teams) {
         for (const role of team.roles) {
           const foundChair = role.chairs.find(
@@ -217,7 +227,7 @@ const WorkItemDetail = () => {
   const handleAssign = (
     roleId: string,
     chairIndex: number,
-    member: TeamMember,
+    member: AssignedPerson,
     notes: string,
     workloadPercentage: number
   ) => {
@@ -350,30 +360,104 @@ const WorkItemDetail = () => {
     navigate("/");
   };
 
-  const handleCompleteWorkItem = () => {
+  // Check if any assignments have been made
+  const hasAnyAssignments = () => {
+    return conceptAssignments.length > 0 || getTotalAssigned() > 0;
+  };
+
+  // Check if all required roles are fully assigned
+  const isFullyCompleted = () => {
     const primaryAssigned = getPrimaryChairsAssigned();
     const totalRequired = getTotalRequired();
-    
-    if (primaryAssigned < totalRequired) {
+    return primaryAssigned >= totalRequired;
+  };
+
+  // Delete is only enabled for new work items with zero assignments
+  const canDelete = !hasAnyAssignments();
+
+  // Complete is enabled after at least one assignment
+  const canComplete = hasAnyAssignments();
+
+  const handleCompleteWorkItem = () => {
+    if (!canComplete) {
       toast({
         title: "Cannot Complete",
-        description: `Please assign all primary chairs before completing. Currently ${primaryAssigned} of ${totalRequired} primary roles assigned.`,
+        description: "Please make at least one assignment before completing.",
         variant: "destructive",
       });
       return;
     }
-    
-    setShowCompleteDialog(true);
+
+    // Check if it's a partial completion
+    if (!isFullyCompleted()) {
+      setShowPartialCompleteDialog(true);
+    } else {
+      setShowCompleteDialog(true);
+    }
+  };
+
+  const handlePartialComplete = () => {
+    if (partialJustification.length < 10) {
+      toast({
+        title: "Justification Required",
+        description: "Please provide a justification (minimum 10 characters) for partial completion.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (partialJustification.length > 500) {
+      toast({
+        title: "Justification Too Long",
+        description: "Please keep the justification under 500 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (workItem) {
+      // Update with partial completion status
+      updateWorkItem(workItem.id, {
+        status: 'Completed', // UI shows as Completed
+        backendStatus: 'Partially Completed', // Backend tracks partial
+        partialCompletionJustification: partialJustification,
+        isReadOnly: true,
+      });
+      
+      toast({
+        title: "Work Item Completed",
+        description: "This work item has been marked as completed (partial).",
+      });
+      setShowPartialCompleteDialog(false);
+      setPartialJustification("");
+      navigate("/");
+    }
   };
 
   const confirmComplete = () => {
     if (workItem) {
-      completeWorkItem(workItem.id);
+      updateWorkItem(workItem.id, {
+        status: 'Completed',
+        backendStatus: 'Completed',
+        isReadOnly: true,
+      });
       toast({
         title: "Work Item Completed",
         description: "This work item is now complete and read-only.",
       });
       setShowCompleteDialog(false);
+      navigate("/");
+    }
+  };
+
+  const handleDeleteWorkItem = () => {
+    if (workItem && canDelete) {
+      deleteWorkItem(workItem.id);
+      toast({
+        title: "Work Item Deleted",
+        description: "The work item has been permanently removed from the work queue.",
+      });
+      setShowDeleteDialog(false);
       navigate("/");
     }
   };
@@ -640,16 +724,17 @@ const WorkItemDetail = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setShowInactiveDialog(true)}
-                    className="px-6 py-2 border-destructive text-destructive hover:bg-destructive/5 font-medium"
+                    onClick={() => setShowDeleteDialog(true)}
+                    disabled={!canDelete}
+                    className="px-6 py-2 border-destructive text-destructive hover:bg-destructive/5 font-medium disabled:opacity-50"
                   >
-                    Inactive
+                    Delete Work Item
                   </Button>
                   <Button
                     type="button"
                     onClick={handleCompleteWorkItem}
                     className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                    disabled={getPrimaryChairsAssigned() < getTotalRequired()}
+                    disabled={!canComplete}
                   >
                     Complete Work Item
                   </Button>
@@ -689,32 +774,55 @@ const WorkItemDetail = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Inactive Confirmation Dialog */}
-      <AlertDialog open={showInactiveDialog} onOpenChange={setShowInactiveDialog}>
+      {/* Partial Completion Dialog */}
+      <AlertDialog open={showPartialCompleteDialog} onOpenChange={setShowPartialCompleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark Work Item as Inactive?</AlertDialogTitle>
+            <AlertDialogTitle>Partial Assignment</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to mark this work item as inactive? This will permanently remove the work item from the work queue.
+              Your assignment is partial. Not all roles have been filled. Do you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium text-foreground">Justification (required)</label>
+            <textarea
+              value={partialJustification}
+              onChange={(e) => setPartialJustification(e.target.value)}
+              placeholder="Please provide a reason for partial completion (10-500 characters)..."
+              className="w-full mt-2 p-3 border border-input rounded-md text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {partialJustification.length}/500 characters
+            </p>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPartialJustification("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handlePartialComplete}
+              disabled={partialJustification.length < 10}
+            >
+              Proceed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Work Item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this work item? This action cannot be undone and will permanently remove the work item from the work queue.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (workItem) {
-                  deleteWorkItem(workItem.id);
-                  toast({
-                    title: "Work Item Deleted",
-                    description: "The work item has been marked as inactive and removed from the work queue.",
-                  });
-                  setShowInactiveDialog(false);
-                  navigate("/");
-                }
-              }}
+              onClick={handleDeleteWorkItem}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Mark Inactive
+              Delete Work Item
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

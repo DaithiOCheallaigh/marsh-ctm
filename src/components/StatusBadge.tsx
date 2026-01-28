@@ -1,11 +1,13 @@
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 interface StatusBadgeProps {
   status: 'Pending' | 'Completed' | 'Draft';
+  isPartiallyCompleted?: boolean;
   className?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, isPartiallyCompleted = false, className = '' }) => {
   const statusConfig = {
     Pending: {
       bg: 'bg-[hsl(33,100%,93%)]',
@@ -29,7 +31,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
   return (
     <span 
       className={`
-        inline-flex items-center justify-center
+        inline-flex items-center justify-center gap-1
         px-3 py-1
         rounded
         text-xs font-medium
@@ -38,8 +40,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ''
         ${className}
       `}
       role="status"
-      aria-label={`Status: ${status}`}
+      aria-label={`Status: ${status}${isPartiallyCompleted ? ' (Partial)' : ''}`}
+      title={isPartiallyCompleted ? 'Partially Completed - Not all roles were assigned' : undefined}
     >
+      {isPartiallyCompleted && <AlertTriangle className="w-3 h-3" />}
       {status}
     </span>
   );
