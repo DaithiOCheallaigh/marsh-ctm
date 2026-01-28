@@ -234,12 +234,7 @@ const ChairCard = ({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <Badge variant="outline" className={cn("text-xs", isSelected ? "border-primary-foreground/50 text-primary-foreground" : "bg-gray-50 text-gray-600 border-gray-200")}>
-          {chair.typicalWorkload || '20%'}
-        </Badge>
-        {isSelected && <Check className="w-4 h-4" />}
-      </div>
+      {isSelected && <Check className="w-4 h-4" />}
     </button>
   );
 };
