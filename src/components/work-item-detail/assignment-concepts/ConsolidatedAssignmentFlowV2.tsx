@@ -513,38 +513,49 @@ export const ConsolidatedAssignmentFlowV2 = ({
 
               {/* Add New Assignment Section */}
               <div className="border-t pt-6">
-                
-                
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Left: Team Member Selection */}
-                  <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-6 items-start">
+                  {/* Left: Team Member Selection - Single Container */}
+                  <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-3">
                     <h6 className="text-sm font-medium text-foreground">Select Team Member</h6>
                     
                     {/* Search Bar */}
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input placeholder="Search by name, role, location..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9" />
+                      <Input placeholder="Search by name, role, location..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 bg-background" />
                     </div>
 
                     {/* Team Member Cards */}
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
                       {eligibleMembers.map(({
-                    member,
-                    availableCapacity,
-                    isDisabled,
-                    disableReason
-                  }) => <TeamMemberCard key={member.id} member={member} isSelected={selectedMember?.id === member.id} onSelect={() => handleMemberSelect(member)} isDisabled={isDisabled || isReadOnly} disableReason={disableReason} availableCapacity={availableCapacity} />)}
+                        member,
+                        availableCapacity,
+                        isDisabled,
+                        disableReason
+                      }) => (
+                        <TeamMemberCard 
+                          key={member.id} 
+                          member={member} 
+                          isSelected={selectedMember?.id === member.id} 
+                          onSelect={() => handleMemberSelect(member)} 
+                          isDisabled={isDisabled || isReadOnly} 
+                          disableReason={disableReason} 
+                          availableCapacity={availableCapacity} 
+                        />
+                      ))}
                     </div>
 
                     {/* Show More Button */}
-                    {!showAll && !debouncedSearch && teamMembers.filter(m => !m.isManager).length > 6 && <Button variant="link" onClick={() => setShowAll(true)} className="text-primary font-semibold w-full">
+                    {!showAll && !debouncedSearch && teamMembers.filter(m => !m.isManager).length > 6 && (
+                      <Button variant="link" onClick={() => setShowAll(true)} className="text-primary font-semibold w-full">
                         Show All Members
-                      </Button>}
+                      </Button>
+                    )}
                   </div>
 
-                  {/* Right: Chair Selection & Configuration */}
-                  <div className="space-y-4">
-                    {selectedMember ? <>
+                  {/* Right: Chair & Configuration - Single Container */}
+                  <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-4">
+                    {selectedMember ? (
+                      <>
                         <div className="flex items-center justify-between">
                           <h6 className="text-sm font-medium text-foreground">Configure Assignment</h6>
                           <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)} className="h-8 px-2 text-muted-foreground">
@@ -553,7 +564,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                         </div>
 
                         {/* Selected Member Summary */}
-                        <div className="p-3 bg-muted/30 rounded-lg flex items-center gap-3">
+                        <div className="p-3 bg-background rounded-lg flex items-center gap-3 border border-border">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <User className="w-5 h-5 text-primary" />
                           </div>
@@ -565,50 +576,81 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           </div>
                         </div>
 
-                        {/* Chair Selection - All chairs in one list */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Select Chair</label>
-                          <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                            {allChairs.map(({
-                        chair,
-                        isDisabled,
-                        disableReason
-                      }) => <ChairCard key={chair.id} chair={chair} isSelected={selectedChair?.id === chair.id} onSelect={() => handleChairSelect(chair)} isDisabled={isDisabled || isReadOnly} disableReason={disableReason} />)}
-                          </div>
-                        </div>
-
-                        {/* Workload Input */}
+                        {/* Workload Input - At Top */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-foreground">Workload %</label>
                           <div className="flex items-center gap-2">
-                            <Input type="number" min={1} max={100} step={0.5} value={workloadPercentage} onChange={e => {
-                        setWorkloadPercentage(parseFloat(e.target.value) || 0);
-                        setValidationError(null);
-                      }} onFocus={e => e.target.select()} disabled={isReadOnly} className="w-28 bg-background" />
+                            <Input 
+                              type="number" 
+                              min={1} 
+                              max={100} 
+                              step={0.5} 
+                              value={workloadPercentage} 
+                              onChange={e => {
+                                setWorkloadPercentage(parseFloat(e.target.value) || 0);
+                                setValidationError(null);
+                              }} 
+                              onFocus={e => e.target.select()} 
+                              disabled={isReadOnly} 
+                              className="w-28 bg-background" 
+                            />
                             <span className="text-sm text-muted-foreground">%</span>
                           </div>
                         </div>
 
-                        {/* Notes (Optional) */}
+                        {/* Chair Selection - All chairs in one list */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground">Select Chair</label>
+                          <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                            {allChairs.map(({
+                              chair,
+                              isDisabled,
+                              disableReason
+                            }) => (
+                              <ChairCard 
+                                key={chair.id} 
+                                chair={chair} 
+                                isSelected={selectedChair?.id === chair.id} 
+                                onSelect={() => handleChairSelect(chair)} 
+                                isDisabled={isDisabled || isReadOnly} 
+                                disableReason={disableReason} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Notes (Optional) - At Bottom */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-foreground">Notes (optional)</label>
-                          <Textarea placeholder="Add any notes for this assignment..." value={notes} onChange={e => setNotes(e.target.value)} disabled={isReadOnly} className="bg-background min-h-[60px]" />
+                          <Textarea 
+                            placeholder="Add any notes for this assignment..." 
+                            value={notes} 
+                            onChange={e => setNotes(e.target.value)} 
+                            disabled={isReadOnly} 
+                            className="bg-background min-h-[60px]" 
+                          />
                         </div>
 
                         {/* Validation Error */}
-                        {validationError && <div className="flex items-center gap-2 text-destructive text-sm">
+                        {validationError && (
+                          <div className="flex items-center gap-2 text-destructive text-sm">
                             <AlertCircle className="w-4 h-4" />
                             {validationError}
-                          </div>}
+                          </div>
+                        )}
 
                         {/* Add to Cart Button */}
                         <Button onClick={handleAddToCart} disabled={!canAddToCart || isReadOnly} className="w-full">
                           <Plus className="w-4 h-4 mr-2" />
                           Add Assignment
                         </Button>
-                      </> : <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[520px] text-muted-foreground text-sm">
+                        <User className="w-8 h-8 mb-2 opacity-50" />
                         <p>Select a team member to configure assignment</p>
-                      </div>}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
