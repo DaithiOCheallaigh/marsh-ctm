@@ -797,6 +797,28 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           </div>
                         </div>
 
+                        {/* Workload Input - moved above chair selection */}
+                        <div className="space-y-2 mb-4">
+                          <label className="text-sm font-medium text-foreground">Workload %</label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={100}
+                              step={0.5}
+                              value={workloadPercentage}
+                              onChange={(e) => {
+                                setWorkloadPercentage(parseFloat(e.target.value) || 0);
+                                setValidationError(null);
+                              }}
+                              onFocus={(e) => e.target.select()}
+                              disabled={isReadOnly}
+                              className="w-28 bg-background"
+                            />
+                            <span className="text-sm text-muted-foreground">%</span>
+                          </div>
+                        </div>
+
                         {/* Chair Selection - All 10 chairs visible (no scroll) */}
                         <div className="flex-1 border border-[hsl(var(--wq-border))] rounded-lg p-3 bg-[hsl(var(--wq-bg-muted))]/30">
                           <label className="text-sm font-medium text-foreground block mb-2">Select Chair</label>
@@ -814,42 +836,17 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           </div>
                         </div>
 
-                        {/* Workload & Notes row below chair list */}
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                          {/* Workload Input */}
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground">Workload %</label>
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                min={1}
-                                max={100}
-                                step={0.5}
-                                value={workloadPercentage}
-                                onChange={(e) => {
-                                  setWorkloadPercentage(parseFloat(e.target.value) || 0);
-                                  setValidationError(null);
-                                }}
-                                onFocus={(e) => e.target.select()}
-                                disabled={isReadOnly}
-                                className="w-28 bg-background"
-                              />
-                              <span className="text-sm text-muted-foreground">%</span>
-                            </div>
-                          </div>
-
-                          {/* Notes (Optional) */}
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground">Notes (optional)</label>
-                            <Textarea
-                              placeholder="Add any notes..."
-                              value={notes}
-                              onChange={(e) => setNotes(e.target.value)}
-                              disabled={isReadOnly}
-                              className="bg-background min-h-[40px] resize-none"
-                              rows={1}
-                            />
-                          </div>
+                        {/* Notes (Optional) - below chair list */}
+                        <div className="space-y-2 mt-4">
+                          <label className="text-sm font-medium text-foreground">Notes (optional)</label>
+                          <Textarea
+                            placeholder="Add any notes..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            disabled={isReadOnly}
+                            className="bg-background min-h-[40px] resize-none"
+                            rows={1}
+                          />
                         </div>
 
                         {/* Validation Error */}
