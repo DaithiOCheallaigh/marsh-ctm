@@ -1,84 +1,91 @@
 import { ManagerTeamMapping } from '@/types/teamAssignment';
 import { teamsData } from './teams';
-import { managers } from './teamMembers';
+import { teamMembers } from './teamMembers';
 
 /**
- * Manager to Team mappings
- * This defines which teams each manager has access to for work item assignment.
- * In a real system, this would come from Team Setup configuration.
+ * Manager to Team mappings - Insurance Industry specific
+ * Maps each manager to teams based on their expertise and domain
  */
 export const managerTeamMappings: ManagerTeamMapping[] = [
   {
-    managerId: 'tm1', // David Chen
+    managerId: 'member_001', // David Chen - Managing Director Property & Casualty
     managerName: 'David Chen',
-    teamIds: ['1', '4'], // Accounts, Management
+    teamIds: ['team_001', 'team_007', 'team_008'], // Property Risk, Construction, Energy
   },
   {
-    managerId: 'tm2', // Jennifer Walsh
+    managerId: 'member_002', // Jennifer Walsh - SVP Marine & Cargo
     managerName: 'Jennifer Walsh',
-    teamIds: ['2', '5'], // Claims, Risk
+    teamIds: ['team_004', 'team_012', 'team_001'], // Marine Cargo, Fleet, Property Risk
   },
   {
-    managerId: 'tm3', // Colin Masterson
+    managerId: 'member_003', // Colin Masterson - VP Human Capital
     managerName: 'Colin Masterson',
-    teamIds: ['1', '2', '3'], // Accounts, Claims, Cyber Security
+    teamIds: ['team_001', 'team_013'], // Property Risk, Management Liability
   },
   {
-    managerId: 'tm4', // Amanda Foster
+    managerId: 'member_004', // Amanda Foster - Director Client Transitions
     managerName: 'Amanda Foster',
-    teamIds: ['2', '4', '5'], // Claims, Management, Risk
+    teamIds: ['team_010', 'team_001', 'team_004'], // Aviation, Property Risk, Marine Cargo
   },
   {
-    managerId: 'tm5', // Patricia Morrison
+    managerId: 'member_005', // Patricia Morrison - SVP Construction & Surety
     managerName: 'Patricia Morrison',
-    teamIds: ['3', '5'], // Cyber Security, Risk
+    teamIds: ['team_007', 'team_011', 'team_001'], // Construction, Environmental, Property Risk
   },
   {
-    managerId: 'tm6', // Michael Santos
+    managerId: 'member_006', // Michael Santos - Director Retail & Hospitality
     managerName: 'Michael Santos',
-    teamIds: ['1', '3', '4'], // Accounts, Cyber Security, Management
+    teamIds: ['team_001', 'team_010', 'team_004'], // Property Risk, Aviation, Marine Cargo
   },
   {
-    managerId: 'tm7', // Sarah Anderson - Primary Manager for Accounts team
+    managerId: 'member_007', // Sarah Anderson - Senior Account Manager
     managerName: 'Sarah Anderson',
-    teamIds: ['1', '2', '4'], // Accounts, Claims, Management
+    teamIds: ['team_003', 'team_014', 'team_001'], // Commercial Underwriting, Product Liability, Property Risk
   },
   {
-    managerId: 'tm16', // David Park - Primary Manager for Cyber Security team
-    managerName: 'David Park',
-    teamIds: ['3', '2', '5'], // Cyber Security, Claims, Risk
+    managerId: 'member_008', // Robert Wilson - Senior Risk Engineer
+    managerName: 'Robert Wilson',
+    teamIds: ['team_008', 'team_011', 'team_001'], // Energy, Environmental, Property Risk
   },
   {
-    managerId: 'tm17', // Michael Chen - Primary Manager for Claims team
-    managerName: 'Michael Chen',
-    teamIds: ['2', '3', '1'], // Claims, Cyber Security, Accounts
+    managerId: 'member_010', // Marcus Johnson - Senior Claims Analyst
+    managerName: 'Marcus Johnson',
+    teamIds: ['team_002', 'team_012', 'team_014'], // Casualty Claims, Fleet, Product Liability
   },
   {
-    managerId: 'tm18', // Robert Thompson - Primary Manager for Management team
+    managerId: 'member_011', // Lisa Park - Account Executive Healthcare
+    managerName: 'Lisa Park',
+    teamIds: ['team_006', 'team_009', 'team_013'], // Healthcare, Financial Institutions, Management Liability
+  },
+  {
+    managerId: 'member_013', // Alexandra Chen - Cyber Risk Specialist
+    managerName: 'Alexandra Chen',
+    teamIds: ['team_005', 'team_009', 'team_003'], // Cyber Security, Financial Institutions, Commercial Underwriting
+  },
+  {
+    managerId: 'member_015', // Jennifer Blake - Financial Lines Specialist
+    managerName: 'Jennifer Blake',
+    teamIds: ['team_009', 'team_013', 'team_005'], // Financial Institutions, Management Liability, Cyber Security
+  },
+  {
+    managerId: 'member_018', // Robert Thompson - VP Operations
     managerName: 'Robert Thompson',
-    teamIds: ['4', '1', '2'], // Management, Accounts, Claims
+    teamIds: ['team_003', 'team_013', 'team_001'], // Commercial Underwriting, Management Liability, Property Risk
   },
   {
-    managerId: 'tm19', // Jennifer Martinez - Primary Manager for Risk team
-    managerName: 'Jennifer Martinez',
-    teamIds: ['5', '2', '3'], // Risk, Claims, Cyber Security
-  },
-  {
-    managerId: 'tm20', // Kumar Lee - Oversight Manager
+    managerId: 'member_020', // Kumar Lee - Director
     managerName: 'Kumar Lee',
-    teamIds: ['1', '5', '4'], // Accounts, Risk, Management
+    teamIds: ['team_013', 'team_009', 'team_001'], // Management Liability, Financial Institutions, Property Risk
   },
   {
-    managerId: 'tm21', // Jessica Williams - Oversight Manager for Claims
-    managerName: 'Jessica Williams',
-    teamIds: ['2', '3', '4'], // Claims, Cyber Security, Management
-  },
-  {
-    managerId: 'tm22', // Emily Rodriguez - Oversight Manager for Cyber Security
+    managerId: 'member_022', // Emily Rodriguez - Operations Manager
     managerName: 'Emily Rodriguez',
-    teamIds: ['3', '5', '1'], // Cyber Security, Risk, Accounts
+    teamIds: ['team_005', 'team_011', 'team_003'], // Cyber Security, Environmental, Commercial Underwriting
   },
 ];
+
+// Get all managers from teamMembers who have isManager: true
+export const managers = teamMembers.filter(m => m.isManager);
 
 /**
  * Get teams available for a specific manager
