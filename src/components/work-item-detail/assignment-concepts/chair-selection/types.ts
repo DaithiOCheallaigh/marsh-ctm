@@ -39,7 +39,7 @@ export const CHAIR_TYPE_CONFIGS: ChairTypeConfig[] = [
   },
 ];
 
-// Sample chair data for the role
+// Sample chair data for the role - 10 chairs total
 export const SAMPLE_CHAIRS: Chair[] = [
   // Primary Chairs
   {
@@ -66,6 +66,22 @@ export const SAMPLE_CHAIRS: Chair[] = [
     isRequired: true,
     assignedTo: undefined,
   },
+  {
+    id: 'technical-lead',
+    name: 'Technical Lead',
+    description: 'Technical oversight and solution architecture',
+    type: 'primary',
+    isRequired: false,
+    assignedTo: undefined,
+  },
+  {
+    id: 'risk-manager',
+    name: 'Risk Manager',
+    description: 'Risk assessment and mitigation strategies',
+    type: 'primary',
+    isRequired: false,
+    assignedTo: undefined,
+  },
   // Secondary Chairs
   {
     id: 'backup-account-manager',
@@ -82,6 +98,30 @@ export const SAMPLE_CHAIRS: Chair[] = [
     type: 'secondary',
     isRequired: false,
     assignedTo: 'Emily Watson',
+  },
+  {
+    id: 'compliance-officer',
+    name: 'Compliance Officer',
+    description: 'Ensure regulatory compliance and standards',
+    type: 'secondary',
+    isRequired: false,
+    assignedTo: undefined,
+  },
+  {
+    id: 'training-coordinator',
+    name: 'Training Coordinator',
+    description: 'Onboarding and skill development support',
+    type: 'secondary',
+    isRequired: false,
+    assignedTo: undefined,
+  },
+  {
+    id: 'documentation-specialist',
+    name: 'Documentation Specialist',
+    description: 'Maintain records and documentation',
+    type: 'secondary',
+    isRequired: false,
+    assignedTo: undefined,
   },
 ];
 
