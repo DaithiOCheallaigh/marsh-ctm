@@ -525,7 +525,10 @@ export const ConsolidatedAssignmentFlowV2 = ({
                     </div>
 
                     {/* Team Member Cards */}
-                    <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+                    <div className={cn(
+                      "space-y-2 pr-1",
+                      !showAll && "max-h-[520px] overflow-y-auto"
+                    )}>
                       {eligibleMembers.map(({
                         member,
                         availableCapacity,
