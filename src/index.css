@@ -41,6 +41,11 @@
     --wq-status-completed-bg: 136 70% 90%;   /* #E8F5E9 */
     --wq-status-completed-text: 120 100% 27%; /* #008B06 */
     
+    /* Status Colors - Partial/Warning */
+    --wq-status-warning-bg: 45 100% 96%;     /* #FFFBEB */
+    --wq-status-warning-border: 45 93% 58%;  /* #F59E0B */
+    --wq-status-warning-text: 38 92% 40%;    /* #B45309 */
+    
     /* Priority Colors - High */
     --wq-priority-high-bg: 2 100% 95%;       /* #FFE4E3 */
     --wq-priority-high-text: 0 100% 35%;     /* #B30000 */
