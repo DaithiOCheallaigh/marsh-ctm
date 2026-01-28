@@ -716,17 +716,10 @@ const WorkItemDetail = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-3 mt-8 mb-8">
+            <div className="flex justify-between mt-8 mb-8">
               {!isReadOnly && (
                 <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                    className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
-                  >
-                    Cancel
-                  </Button>
+                  {/* Left side - Delete button */}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -749,14 +742,26 @@ const WorkItemDetail = () => {
                       )}
                     </Tooltip>
                   </TooltipProvider>
-                  <Button
-                    type="button"
-                    onClick={handleCompleteWorkItem}
-                    className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                    disabled={!canComplete}
-                  >
-                    Complete Work Item
-                  </Button>
+
+                  {/* Right side - Cancel and Complete buttons */}
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleCompleteWorkItem}
+                      className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                      disabled={!canComplete}
+                    >
+                      Complete Work Item
+                    </Button>
+                  </div>
                 </>
               )}
               {isReadOnly && (
