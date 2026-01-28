@@ -613,33 +613,101 @@ export const ConsolidatedAssignmentFlowV2 = ({
                 </div>
               ) : (
                 <div className="grid gap-2">
-                  {workItemRoles.map(role => (
-                    <button 
-                      key={role.roleId} 
-                      type="button" 
-                      onClick={() => handleRoleSelect(role)} 
-                      disabled={isReadOnly} 
-                      className="flex items-center justify-between p-4 rounded-lg border-2 border-border hover:border-primary hover:bg-primary/5 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Briefcase className="h-5 w-5 text-primary" />
+                  {workItemRoles.map(role => {
+                    // Get configured chair count for this role
+                    const roleData = rolesData.find(r => 
+                      r.name.toLowerCase().includes(role.roleName.toLowerCase()) ||
+                      role.roleName.toLowerCase().includes(r.name.toLowerCase()) ||
+                      r.id === role.roleId
+                    );
+                    const configuredChairCount = role.chairCount || roleData?.chairs?.length || 1;
+                    
+                    // Count existing assignments for this role
+                    const assignedCount = existingAssignments.filter(a => a.roleId === role.roleId).length;
+                    
+                    // Determine completion state
+                    const isFullyCompleted = assignedCount >= configuredChairCount;
+                    const isPartiallyCompleted = assignedCount > 0 && assignedCount < configuredChairCount;
+                    
+                    return (
+                      <button 
+                        key={role.roleId} 
+                        type="button" 
+                        onClick={() => handleRoleSelect(role)} 
+                        disabled={isReadOnly} 
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-lg border-2 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed",
+                          isFullyCompleted 
+                            ? "border-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]" 
+                            : isPartiallyCompleted 
+                              ? "border-amber-400 bg-amber-50" 
+                              : "border-border hover:border-primary hover:bg-primary/5"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-10 h-10 rounded-lg flex items-center justify-center",
+                            isFullyCompleted 
+                              ? "bg-[hsl(var(--wq-status-completed-text))]" 
+                              : isPartiallyCompleted 
+                                ? "bg-amber-400" 
+                                : "bg-primary/10"
+                          )}>
+                            {isFullyCompleted ? (
+                              <Check className="h-5 w-5 text-white" />
+                            ) : isPartiallyCompleted ? (
+                              <AlertCircle className="h-5 w-5 text-white" />
+                            ) : (
+                              <Briefcase className="h-5 w-5 text-primary" />
+                            )}
+                          </div>
+                          <div>
+                            <p className={cn(
+                              "font-medium transition-colors",
+                              isFullyCompleted 
+                                ? "text-[hsl(var(--wq-status-completed-text))]" 
+                                : isPartiallyCompleted 
+                                  ? "text-amber-700" 
+                                  : "group-hover:text-primary"
+                            )}>
+                              {role.roleName}
+                            </p>
+                            {role.description && <p className="text-sm text-muted-foreground">{role.description}</p>}
+                            <div className="flex items-center gap-2 mt-1">
+                              {role.teamName && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {role.teamName}
+                                </Badge>
+                              )}
+                              {isFullyCompleted ? (
+                                <Badge className="text-xs bg-[hsl(var(--wq-status-completed-text))] text-white">
+                                  <Check className="w-3 h-3 mr-1" />
+                                  Fully Assigned ({assignedCount}/{configuredChairCount})
+                                </Badge>
+                              ) : isPartiallyCompleted ? (
+                                <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  Partial ({assignedCount}/{configuredChairCount})
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">
+                                  {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium group-hover:text-primary transition-colors">
-                            {role.roleName}
-                          </p>
-                          {role.description && <p className="text-sm text-muted-foreground">{role.description}</p>}
-                          {role.teamName && (
-                            <Badge variant="secondary" className="mt-1 text-xs">
-                              {role.teamName}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </button>
-                  ))}
+                        <ChevronRight className={cn(
+                          "h-5 w-5 transition-colors",
+                          isFullyCompleted 
+                            ? "text-[hsl(var(--wq-status-completed-text))]" 
+                            : isPartiallyCompleted 
+                              ? "text-amber-600" 
+                              : "text-muted-foreground group-hover:text-primary"
+                        )} />
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
