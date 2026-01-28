@@ -108,15 +108,6 @@ export const ListChairSelection = ({
                       {badgeConfig.label}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {chair.description}
-                  </p>
-                  <p className={cn(
-                    "text-xs mt-1",
-                    isAssigned ? "text-amber-600" : "text-muted-foreground"
-                  )}>
-                    Status: {isAssigned ? `Assigned to ${chair.assignedTo}` : 'Unassigned'}
-                  </p>
                 </div>
               </button>
             );
