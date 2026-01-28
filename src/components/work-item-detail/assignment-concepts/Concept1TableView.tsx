@@ -13,6 +13,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import {
   AssignmentConceptProps,
   AssignmentData,
+  AssignedPerson,
   DEFAULT_WORKLOAD,
   MIN_WORKLOAD,
   MAX_WORKLOAD,
@@ -25,7 +26,7 @@ import {
 
 interface ExpandedState {
   roleId: string;
-  selectedMember?: TeamMember;
+  selectedMember?: AssignedPerson;
   chairType: 'Primary' | 'Secondary';
   workload: number;
   notes: string;

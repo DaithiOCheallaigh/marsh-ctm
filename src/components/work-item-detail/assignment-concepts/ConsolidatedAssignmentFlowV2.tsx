@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, ChevronDown, User, Briefcase, CheckCircle2, AlertCircle, Search, AlertTriangle, X, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, CheckCircle2, AlertCircle, Search, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { RoleDefinition, AssignmentData, getMatchBadge } from "./types";
-import { teamMembers, TeamMember } from "@/data/teamMembers";
+import { TeamMember } from "@/data/teamMembers";
 import { useDebounce } from "@/hooks/useDebounce";
 import { CAPACITY_CONFIG, calculateAvailableCapacity, getCapacityStatus, formatAvailableCapacity } from "@/utils/capacityManagement";
-import { SAMPLE_CHAIRS, Chair } from "./chair-selection";
+import { useTeamAssignments } from "@/context/TeamAssignmentsContext";
+import { rolesData, RoleChair } from "@/data/roles";
+
 interface ConsolidatedAssignmentFlowV2Props {
   availableRoles: RoleDefinition[];
   existingAssignments?: AssignmentData[];
@@ -23,12 +25,27 @@ interface ConsolidatedAssignmentFlowV2Props {
 // Pending assignment in the "shopping cart"
 interface PendingAssignment {
   id: string;
-  member: TeamMember;
-  chair: Chair;
+  member: EligibleMember;
+  chair: RoleChair;
   workloadPercentage: number;
   notes?: string;
 }
+
+// Local interface for eligible members in this component
+interface EligibleMember {
+  id: string;
+  name: string;
+  role: string;
+  location: string;
+  expertise: string[];
+  capacity: number;
+  matchScore: number;
+  locationMatch: boolean;
+  expertiseMatch: boolean;
+}
+
 type Step = 1 | 2 | 3;
+
 const StepIndicator = ({
   stepNumber,
   label,
@@ -45,20 +62,47 @@ const StepIndicator = ({
   onClick?: () => void;
 }) => {
   const canClick = isCompleted && onClick;
-  return <button type="button" onClick={canClick ? onClick : undefined} disabled={!canClick} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full text-left", isActive && "bg-primary/10 border-2 border-primary", isCompleted && !isActive && "bg-[hsl(var(--wq-status-completed-bg))] border border-[hsl(var(--wq-status-completed-text))] cursor-pointer hover:opacity-90", !isActive && !isCompleted && "bg-muted/50 border border-transparent opacity-60")}>
-      <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors", isActive && "bg-primary text-primary-foreground", isCompleted && "bg-[hsl(var(--wq-status-completed-text))] text-white", !isActive && !isCompleted && "bg-muted-foreground/30 text-muted-foreground")}>
+  return (
+    <button 
+      type="button" 
+      onClick={canClick ? onClick : undefined} 
+      disabled={!canClick} 
+      className={cn(
+        "flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full text-left",
+        isActive && "bg-primary/10 border-2 border-primary",
+        isCompleted && !isActive && "bg-[hsl(var(--wq-status-completed-bg))] border border-[hsl(var(--wq-status-completed-text))] cursor-pointer hover:opacity-90",
+        !isActive && !isCompleted && "bg-muted/50 border border-transparent opacity-60"
+      )}
+    >
+      <div className={cn(
+        "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+        isActive && "bg-primary text-primary-foreground",
+        isCompleted && "bg-[hsl(var(--wq-status-completed-text))] text-white",
+        !isActive && !isCompleted && "bg-muted-foreground/30 text-muted-foreground"
+      )}>
         {isCompleted ? <Check className="h-4 w-4" /> : stepNumber}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={cn("text-sm font-medium truncate", isActive && "text-primary", isCompleted && "text-[hsl(var(--wq-status-completed-text))]", !isActive && !isCompleted && "text-muted-foreground")}>
+        <p className={cn(
+          "text-sm font-medium truncate",
+          isActive && "text-primary",
+          isCompleted && "text-[hsl(var(--wq-status-completed-text))]",
+          !isActive && !isCompleted && "text-muted-foreground"
+        )}>
           {label}
         </p>
       </div>
-      <Icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-primary", isCompleted && "text-[hsl(var(--wq-status-completed-text))]", !isActive && !isCompleted && "text-muted-foreground/50")} />
-    </button>;
+      <Icon className={cn(
+        "h-4 w-4 flex-shrink-0",
+        isActive && "text-primary",
+        isCompleted && "text-[hsl(var(--wq-status-completed-text))]",
+        !isActive && !isCompleted && "text-muted-foreground/50"
+      )} />
+    </button>
+  );
 };
 
-// Team Member Selection Card
+// Team Member Selection Card - uses TeamAssignments data
 const TeamMemberCard = ({
   member,
   isSelected,
@@ -67,20 +111,36 @@ const TeamMemberCard = ({
   disableReason,
   availableCapacity
 }: {
-  member: TeamMember;
+  member: EligibleMember;
   isSelected: boolean;
   onSelect: () => void;
   isDisabled?: boolean;
   disableReason?: string;
   availableCapacity: number;
 }) => {
-  const matchBadge = getMatchBadge(member.matchScore);
+  const matchBadge = getMatchBadge(member.matchScore || 0);
   const statusInfo = getCapacityStatus(availableCapacity);
   const isCapacityZero = availableCapacity <= 0;
-  return <button type="button" onClick={onSelect} disabled={isDisabled} title={disableReason} className={cn("w-full p-4 rounded-lg border text-left transition-all bg-white", isSelected ? "border-primary ring-2 ring-primary/20" : "border-[hsl(var(--wq-border))] hover:border-primary/50", isDisabled && "opacity-50 cursor-not-allowed", isCapacityZero && !isDisabled && "bg-gray-50")}>
+
+  return (
+    <button 
+      type="button" 
+      onClick={onSelect} 
+      disabled={isDisabled} 
+      title={disableReason} 
+      className={cn(
+        "w-full p-4 rounded-lg border text-left transition-all bg-white",
+        isSelected ? "border-primary ring-2 ring-primary/20" : "border-[hsl(var(--wq-border))] hover:border-primary/50",
+        isDisabled && "opacity-50 cursor-not-allowed",
+        isCapacityZero && !isDisabled && "bg-gray-50"
+      )}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3">
-          <div className={cn("w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0", isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))] bg-white")}>
+          <div className={cn(
+            "w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center flex-shrink-0",
+            isSelected ? "bg-primary border-primary" : "border-[hsl(var(--wq-border))] bg-white"
+          )}>
             {isSelected && <Check className="w-3 h-3 text-white" />}
           </div>
           <div>
@@ -90,20 +150,28 @@ const TeamMemberCard = ({
         </div>
         <div className="text-right flex-shrink-0">
           <div className="text-sm text-[hsl(var(--wq-text-secondary))]">
-            Match Score: <span className="font-semibold text-primary">{member.matchScore}</span>
+            Match Score: <span className="font-semibold text-primary">{member.matchScore || 0}</span>
           </div>
-          {matchBadge.label && <Badge className={cn("text-xs mt-1", matchBadge.className)}>
+          {matchBadge.label && (
+            <Badge className={cn("text-xs mt-1", matchBadge.className)}>
               {matchBadge.label}
-            </Badge>}
+            </Badge>
+          )}
         </div>
       </div>
 
       <div className="flex items-center gap-4 mb-3 text-sm">
-        <span className={cn("flex items-center gap-1", member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")}>
+        <span className={cn(
+          "flex items-center gap-1",
+          member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
+        )}>
           <CheckCircle2 className={cn("w-4 h-4", member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")} />
           Location
         </span>
-        <span className={cn("flex items-center gap-1", member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")}>
+        <span className={cn(
+          "flex items-center gap-1",
+          member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
+        )}>
           <CheckCircle2 className={cn("w-4 h-4", member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")} />
           Expertise
         </span>
@@ -118,7 +186,7 @@ const TeamMemberCard = ({
           <span className="font-medium">Location:</span> {member.location}
         </span>
         <span>
-          <span className="font-medium">Expertise:</span> {member.expertise.slice(0, 3).join(", ")}
+          <span className="font-medium">Expertise:</span> {member.expertise?.slice(0, 3).join(", ") || 'N/A'}
         </span>
         <span className="flex items-center gap-1">
           <span className="font-medium">Available:</span>
@@ -128,7 +196,8 @@ const TeamMemberCard = ({
         </span>
       </div>
       {disableReason && isDisabled && <p className="text-xs text-destructive mt-2">{disableReason}</p>}
-    </button>;
+    </button>
+  );
 };
 
 // Chair Selection Card
@@ -139,13 +208,24 @@ const ChairCard = ({
   isDisabled,
   disableReason
 }: {
-  chair: Chair;
+  chair: RoleChair;
   isSelected: boolean;
   onSelect: () => void;
   isDisabled?: boolean;
   disableReason?: string;
 }) => {
-  return <button type="button" onClick={onSelect} disabled={isDisabled} title={disableReason} className={cn("w-full px-4 py-3 rounded-lg border text-left transition-all flex items-center justify-between", isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[hsl(var(--wq-border))] hover:border-primary/50 hover:bg-[hsl(var(--wq-bg-muted))]", isDisabled && "opacity-50 cursor-not-allowed bg-gray-100")}>
+  return (
+    <button 
+      type="button" 
+      onClick={onSelect} 
+      disabled={isDisabled} 
+      title={disableReason} 
+      className={cn(
+        "w-full px-4 py-3 rounded-lg border text-left transition-all flex items-center justify-between",
+        isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[hsl(var(--wq-border))] hover:border-primary/50 hover:bg-[hsl(var(--wq-bg-muted))]",
+        isDisabled && "opacity-50 cursor-not-allowed bg-gray-100"
+      )}
+    >
       <div className="flex items-center gap-3">
         <div>
           <span className="font-medium">{chair.name}</span>
@@ -155,15 +235,13 @@ const ChairCard = ({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Badge variant="outline" className={cn("text-xs", chair.type === 'primary' ? isSelected ? "border-primary-foreground/50 text-primary-foreground" : "bg-blue-50 text-blue-700 border-blue-200" : isSelected ? "border-primary-foreground/50 text-primary-foreground" : "bg-gray-50 text-gray-600 border-gray-200")}>
-          {chair.type === 'primary' ? 'Primary' : 'Secondary'}
+        <Badge variant="outline" className={cn("text-xs", isSelected ? "border-primary-foreground/50 text-primary-foreground" : "bg-gray-50 text-gray-600 border-gray-200")}>
+          {chair.typicalWorkload || '20%'}
         </Badge>
-        {chair.assignedTo && <Badge variant="secondary" className="text-xs">
-            Assigned: {chair.assignedTo}
-          </Badge>}
         {isSelected && <Check className="w-4 h-4" />}
       </div>
-    </button>;
+    </button>
+  );
 };
 
 // Pending Assignment Card (shopping cart item)
@@ -176,7 +254,8 @@ const PendingAssignmentCard = ({
   onRemove: () => void;
   isReadOnly?: boolean;
 }) => {
-  return <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
           <User className="w-4 h-4 text-primary" />
@@ -186,18 +265,24 @@ const PendingAssignmentCard = ({
           <p className="text-xs text-muted-foreground">
             {assignment.chair.name} • {assignment.workloadPercentage}%
           </p>
+          {assignment.notes && (
+            <p className="text-xs text-muted-foreground italic mt-1 truncate max-w-[200px]">
+              Note: {assignment.notes}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Badge variant="outline" className={cn("text-xs", assignment.chair.type === 'primary' ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-gray-50 text-gray-600 border-gray-200")}>
-          {assignment.chair.type === 'primary' ? 'Primary' : 'Secondary'}
-        </Badge>
-        {!isReadOnly && <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50">
+        {!isReadOnly && (
+          <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50">
             <Trash2 className="w-4 h-4" />
-          </Button>}
+          </Button>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export const ConsolidatedAssignmentFlowV2 = ({
   availableRoles,
   existingAssignments = [],
@@ -205,6 +290,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
   onCancel,
   isReadOnly = false
 }: ConsolidatedAssignmentFlowV2Props) => {
+  const { teams: assignmentTeams } = useTeamAssignments();
+  
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
 
@@ -212,8 +299,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
   const [pendingAssignments, setPendingAssignments] = useState<PendingAssignment[]>([]);
 
   // Current assignment being configured
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [selectedChair, setSelectedChair] = useState<Chair | null>(null);
+  const [selectedMember, setSelectedMember] = useState<EligibleMember | null>(null);
+  const [selectedChair, setSelectedChair] = useState<RoleChair | null>(null);
   const [workloadPercentage, setWorkloadPercentage] = useState<number>(CAPACITY_CONFIG.DEFAULT_ASSIGNMENT_WORKLOAD);
   const [notes, setNotes] = useState<string>("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -222,15 +309,66 @@ export const ConsolidatedAssignmentFlowV2 = ({
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
+  // Get team members from TeamAssignments context (My Team Assignment)
+  const teamAssignmentMembers = useMemo((): EligibleMember[] => {
+    const allMembers: EligibleMember[] = [];
+    
+    assignmentTeams.forEach(team => {
+      team.members.forEach(member => {
+        // Calculate available capacity from client assignments
+        const totalWorkload = member.clientAssignments?.reduce((sum, a) => sum + (a.workload || 0), 0) || 0;
+        const availableCapacity = Math.max(0, 100 - totalWorkload);
+        
+        allMembers.push({
+          id: member.id,
+          name: `${member.firstName} ${member.lastName}`,
+          role: member.title,
+          location: member.location,
+          expertise: member.expertise || [],
+          capacity: availableCapacity,
+          matchScore: Math.floor(Math.random() * 30) + 70, // Simulated match score
+          locationMatch: true,
+          expertiseMatch: member.expertise?.length > 0,
+        });
+      });
+    });
+    
+    return allMembers;
+  }, [assignmentTeams]);
+
+  // Get chairs for the selected role from roles data
+  const roleChairs = useMemo((): RoleChair[] => {
+    if (!selectedRole) return [];
+    
+    // Find the role in our roles data
+    const roleData = rolesData.find(r => 
+      r.name.toLowerCase().includes(selectedRole.roleName.toLowerCase()) ||
+      selectedRole.roleName.toLowerCase().includes(r.name.toLowerCase()) ||
+      r.id === selectedRole.roleId
+    );
+    
+    if (roleData && roleData.chairs) {
+      return roleData.chairs;
+    }
+    
+    // Fallback: return generic chairs if role not found
+    return [
+      { id: 'chair-1', name: 'Primary Lead', description: 'Main responsibility holder', typicalWorkload: '30-40%', type: 'primary' as const, isRequired: true },
+      { id: 'chair-2', name: 'Secondary Support', description: 'Supporting role', typicalWorkload: '20-30%', type: 'secondary' as const, isRequired: false },
+    ];
+  }, [selectedRole]);
+
   // Get chairs that are already assigned (from existing assignments for this role)
   const getAssignedChairIds = (): Set<string> => {
     const ids = new Set<string>();
 
     // From existing completed assignments
     existingAssignments.filter(a => a.roleId === selectedRole?.roleId).forEach(a => {
-      // Map chair name to chair id
-      const chair = SAMPLE_CHAIRS.find(c => c.name === a.chairType || c.type === a.chairType.toLowerCase());
-      if (chair) ids.add(chair.id);
+      if (a.notes) {
+        // Try to extract chair id from notes or match by name
+        const matchingChair = roleChairs.find(c => a.notes?.includes(c.name));
+        if (matchingChair) ids.add(matchingChair.id);
+      }
     });
 
     // From pending assignments
@@ -251,72 +389,76 @@ export const ConsolidatedAssignmentFlowV2 = ({
   };
 
   // Calculate available capacity for a member considering pending assignments
-  const getMemberAvailableCapacity = (member: TeamMember): number => {
+  const getMemberAvailableCapacity = (member: EligibleMember): number => {
     // Base workload from existing assignments across all work items
     const existingWorkload = existingAssignments.filter(a => a.selectedPerson?.id === member.id).reduce((sum, a) => sum + (a.workloadPercentage || 0), 0);
 
     // Pending workload for this member in shopping cart
     const pendingWorkload = pendingAssignments.filter(p => p.member.id === member.id).reduce((sum, p) => sum + p.workloadPercentage, 0);
-    return calculateAvailableCapacity(member, existingWorkload + pendingWorkload);
+    
+    // Calculate based on member's capacity field
+    const baseCapacity = member.capacity || 100;
+    return Math.max(0, baseCapacity - existingWorkload - pendingWorkload);
   };
 
-  // Filter and sort team members
+  // Filter and sort team members from My Team Assignment
   const eligibleMembers = useMemo(() => {
     const assignedMemberIds = getAssignedMemberIds();
 
-    // Get all non-manager members and filter out already assigned ones
-    let members = teamMembers.filter(m => !m.isManager && !assignedMemberIds.has(m.id));
+    // Use team members from TeamAssignments context and filter out already assigned ones
+    let members = teamAssignmentMembers.filter(m => !assignedMemberIds.has(m.id));
 
     // Apply search filter
     if (debouncedSearch) {
       const query = debouncedSearch.toLowerCase();
-      members = members.filter(m => m.name.toLowerCase().includes(query) || m.role.toLowerCase().includes(query) || m.location.toLowerCase().includes(query) || m.expertise.some(e => e.toLowerCase().includes(query)));
+      members = members.filter(m => 
+        m.name.toLowerCase().includes(query) || 
+        m.role.toLowerCase().includes(query) || 
+        m.location.toLowerCase().includes(query) || 
+        m.expertise?.some(e => e.toLowerCase().includes(query))
+      );
     }
 
-    // Sort by available capacity (highest to lowest) per Rule 2
+    // Sort by available capacity (highest to lowest)
     members = members.sort((a, b) => {
       const capA = getMemberAvailableCapacity(a);
       const capB = getMemberAvailableCapacity(b);
       return capB - capA;
     });
 
-    // Map with capacity info (no disabled status needed since assigned members are filtered out)
+    // Map with capacity info
     const membersWithStatus = members.map(m => ({
       member: m,
       availableCapacity: getMemberAvailableCapacity(m),
-      isDisabled: false,
-      disableReason: undefined
+      isDisabled: getMemberAvailableCapacity(m) <= 0,
+      disableReason: getMemberAvailableCapacity(m) <= 0 ? "No available capacity" : undefined
     }));
+    
     if (!showAll && !debouncedSearch) {
       return membersWithStatus.slice(0, 6);
     }
     return membersWithStatus;
-  }, [debouncedSearch, showAll, pendingAssignments, existingAssignments, selectedRole]);
+  }, [debouncedSearch, showAll, pendingAssignments, existingAssignments, selectedRole, teamAssignmentMembers]);
 
-  // Get all chairs for the role (not filtered by type) per Rule 3
-  const allChairs = useMemo(() => {
+  // Get all available chairs for the role (filter out assigned ones)
+  const availableChairs = useMemo(() => {
     const assignedChairIds = getAssignedChairIds();
-    return SAMPLE_CHAIRS.map(chair => ({
-      chair,
-      isDisabled: assignedChairIds.has(chair.id) || !!chair.assignedTo,
-      disableReason: assignedChairIds.has(chair.id) ? "Already assigned in this role" : chair.assignedTo ? `Assigned to ${chair.assignedTo}` : undefined
-    }));
-  }, [pendingAssignments, existingAssignments, selectedRole]);
+    return roleChairs.filter(chair => !assignedChairIds.has(chair.id));
+  }, [roleChairs, pendingAssignments, existingAssignments, selectedRole]);
 
-  // Get unassigned roles
-  const unassignedRoles = useMemo(() => {
-    // A role is unassigned if it has no existing assignments with a Primary chair
-    // For simplicity, we'll show all roles that don't have existing assignments
-    const assignedRoleIds = existingAssignments.map(a => a.roleId);
-    return availableRoles.filter(r => !assignedRoleIds.includes(r.roleId));
-  }, [availableRoles, existingAssignments]);
+  // Filter to show only roles from work item configuration (availableRoles prop)
+  const workItemRoles = useMemo(() => {
+    return availableRoles;
+  }, [availableRoles]);
+
   const handleRoleSelect = (role: RoleDefinition) => {
     if (isReadOnly) return;
     setSelectedRole(role);
     setPendingAssignments([]);
     setCurrentStep(2);
   };
-  const handleMemberSelect = (member: TeamMember) => {
+
+  const handleMemberSelect = (member: EligibleMember) => {
     if (isReadOnly) return;
     setSelectedMember(member);
     setSelectedChair(null);
@@ -324,11 +466,13 @@ export const ConsolidatedAssignmentFlowV2 = ({
     setNotes("");
     setValidationError(null);
   };
-  const handleChairSelect = (chair: Chair) => {
+
+  const handleChairSelect = (chair: RoleChair) => {
     if (isReadOnly) return;
     setSelectedChair(chair);
     setValidationError(null);
   };
+
   const handleAddToCart = () => {
     if (!selectedMember || !selectedChair) return;
 
@@ -344,6 +488,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
       setValidationError(`Workload cannot exceed available capacity (${formatAvailableCapacity(availableCapacity)})`);
       return;
     }
+    
     const newAssignment: PendingAssignment = {
       id: `pending-${Date.now()}`,
       member: selectedMember,
@@ -360,13 +505,16 @@ export const ConsolidatedAssignmentFlowV2 = ({
     setNotes("");
     setValidationError(null);
   };
+
   const handleRemoveFromCart = (assignmentId: string) => {
     setPendingAssignments(prev => prev.filter(p => p.id !== assignmentId));
   };
+
   const handleProceedToReview = () => {
     if (pendingAssignments.length === 0) return;
     setCurrentStep(3);
   };
+
   const handleCompleteAssignment = () => {
     if (!selectedRole || pendingAssignments.length === 0) return;
 
@@ -376,9 +524,9 @@ export const ConsolidatedAssignmentFlowV2 = ({
       roleName: selectedRole.roleName,
       teamName: selectedRole.teamName,
       selectedPerson: p.member,
-      chairType: p.chair.type === 'primary' ? 'Primary' : 'Secondary',
+      chairType: 'Primary', // Unified - no type segregation
       workloadPercentage: p.workloadPercentage,
-      notes: p.notes
+      notes: `${p.chair.name}${p.notes ? ` - ${p.notes}` : ''}`
     }));
     onComplete(completedAssignments);
 
@@ -393,6 +541,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
     setSearchQuery("");
     setShowAll(false);
   };
+
   const handleCancel = () => {
     if (pendingAssignments.length > 0) {
       setShowExitConfirm(true);
@@ -400,6 +549,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
       onCancel?.();
     }
   };
+
   const goToStep = (step: Step) => {
     if (step < currentStep) {
       setCurrentStep(step);
@@ -411,23 +561,18 @@ export const ConsolidatedAssignmentFlowV2 = ({
       }
     }
   };
-  const steps = [{
-    number: 1,
-    label: "Select Role",
-    icon: Briefcase
-  }, {
-    number: 2,
-    label: "Select Member & Chair",
-    icon: User
-  }, {
-    number: 3,
-    label: "Review & Complete",
-    icon: CheckCircle2
-  }];
+
+  const steps = [
+    { number: 1, label: "Select Role", icon: Briefcase },
+    { number: 2, label: "Select Member & Chair", icon: User },
+    { number: 3, label: "Review & Complete", icon: CheckCircle2 }
+  ];
 
   // Check if current configuration is valid for adding
   const canAddToCart = selectedMember && selectedChair && workloadPercentage > 0 && !validationError;
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       {/* Progress Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -436,21 +581,34 @@ export const ConsolidatedAssignmentFlowV2 = ({
             Step {currentStep} of 3 — {steps[currentStep - 1].label}
           </p>
         </div>
-        {onCancel && !isReadOnly && <Button variant="outline" size="sm" onClick={handleCancel}>
+        {onCancel && !isReadOnly && (
+          <Button variant="outline" size="sm" onClick={handleCancel}>
             Cancel
-          </Button>}
+          </Button>
+        )}
       </div>
 
       {/* Step Indicators */}
       <div className="grid grid-cols-3 gap-2">
-        {steps.map(step => <StepIndicator key={step.number} stepNumber={step.number} label={step.label} icon={step.icon} isActive={currentStep === step.number} isCompleted={currentStep > step.number} onClick={currentStep > step.number ? () => goToStep(step.number as Step) : undefined} />)}
+        {steps.map(step => (
+          <StepIndicator 
+            key={step.number} 
+            stepNumber={step.number} 
+            label={step.label} 
+            icon={step.icon} 
+            isActive={currentStep === step.number} 
+            isCompleted={currentStep > step.number} 
+            onClick={currentStep > step.number ? () => goToStep(step.number as Step) : undefined} 
+          />
+        ))}
       </div>
 
       {/* Step Content */}
       <Card className="border-2">
         <CardContent className="p-6">
           {/* Step 1: Select Role */}
-          {currentStep === 1 && <div className="space-y-4">
+          {currentStep === 1 && (
+            <div className="space-y-4">
               <div>
                 <h4 className="font-medium mb-1">Select a Role</h4>
                 <p className="text-sm text-muted-foreground">
@@ -458,14 +616,24 @@ export const ConsolidatedAssignmentFlowV2 = ({
                 </p>
               </div>
 
-              {unassignedRoles.length === 0 ? <div className="py-8 text-center">
-                  <CheckCircle2 className="h-12 w-12 text-[hsl(var(--wq-status-completed-text))] mx-auto mb-3" />
-                  <p className="text-lg font-medium text-[hsl(var(--wq-status-completed-text))]">All roles assigned!</p>
+              {workItemRoles.length === 0 ? (
+                <div className="py-8 text-center">
+                  <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-3" />
+                  <p className="text-lg font-medium text-foreground">No roles configured</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Every role has been assigned to a team member.
+                    No roles were selected during work item creation. Please edit the work item to add roles.
                   </p>
-                </div> : <div className="grid gap-2">
-                  {unassignedRoles.map(role => <button key={role.roleId} type="button" onClick={() => handleRoleSelect(role)} disabled={isReadOnly} className="flex items-center justify-between p-4 rounded-lg border-2 border-border hover:border-primary hover:bg-primary/5 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed">
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  {workItemRoles.map(role => (
+                    <button 
+                      key={role.roleId} 
+                      type="button" 
+                      onClick={() => handleRoleSelect(role)} 
+                      disabled={isReadOnly} 
+                      className="flex items-center justify-between p-4 rounded-lg border-2 border-border hover:border-primary hover:bg-primary/5 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                           <Briefcase className="h-5 w-5 text-primary" />
@@ -475,219 +643,258 @@ export const ConsolidatedAssignmentFlowV2 = ({
                             {role.roleName}
                           </p>
                           {role.description && <p className="text-sm text-muted-foreground">{role.description}</p>}
+                          {role.teamName && (
+                            <Badge variant="secondary" className="mt-1 text-xs">
+                              {role.teamName}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </button>)}
-                </div>}
-            </div>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Step 2: Select Team Member & Chair (Shopping Cart behavior) */}
           {currentStep === 2 && selectedRole && (() => {
-              // Calculate remaining chairs to assign
-              const configuredChairCount = selectedRole.chairCount || 1; // Default to 1 if not specified
-              const existingRoleAssignments = existingAssignments.filter(a => a.roleId === selectedRole.roleId).length;
-              const totalAssigned = existingRoleAssignments + pendingAssignments.length;
-              const remainingChairs = Math.max(0, configuredChairCount - totalAssigned);
-              
-              return <div className="space-y-6">
-              {/* Header */}
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedRole.roleName}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                    {remainingChairs} of {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''} remaining
-                  </Badge>
-                  {pendingAssignments.length > 0 && <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
-                      {pendingAssignments.length} pending
-                    </Badge>}
-                </div>
-                <h4 className="font-medium">Assign Team Members to Chairs</h4>
-                <p className="text-sm text-muted-foreground">
-                  Add multiple assignments as required.
-                </p>
-              </div>
-
-              {/* Pending Assignments (Shopping Cart) */}
-              {pendingAssignments.length > 0 && <div className="space-y-2">
-                  <h5 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Pending Assignments ({pendingAssignments.length})
-                  </h5>
-                  <div className="space-y-2">
-                    {pendingAssignments.map(assignment => <PendingAssignmentCard key={assignment.id} assignment={assignment} onRemove={() => handleRemoveFromCart(assignment.id)} isReadOnly={isReadOnly} />)}
+            // Calculate remaining chairs to assign
+            const configuredChairCount = selectedRole.chairCount || roleChairs.length || 1;
+            const existingRoleAssignments = existingAssignments.filter(a => a.roleId === selectedRole.roleId).length;
+            const totalAssigned = existingRoleAssignments + pendingAssignments.length;
+            const remainingChairs = Math.max(0, configuredChairCount - totalAssigned);
+            
+            return (
+              <div className="space-y-6">
+                {/* Header */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedRole.roleName}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                      {remainingChairs} of {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''} remaining
+                    </Badge>
+                    {pendingAssignments.length > 0 && (
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                        {pendingAssignments.length} pending
+                      </Badge>
+                    )}
                   </div>
-                </div>}
+                  <h4 className="font-medium">Assign Team Members to Chairs</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Add multiple assignments as required.
+                  </p>
+                </div>
 
-              {/* Add New Assignment Section */}
-              <div className="border-t pt-6">
-                <div className="grid grid-cols-2 gap-6 items-start">
-                  {/* Left: Team Member Selection - Single Container */}
-                  <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-3">
-                    <h6 className="text-sm font-medium text-foreground">Select Team Member</h6>
-                    
-                    {/* Search Bar */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input placeholder="Search by name, role, location..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 bg-background" />
-                    </div>
-
-                    {/* Team Member Cards */}
-                    <div className={cn(
-                      "space-y-2 pr-1",
-                      !showAll && "max-h-[520px] overflow-y-auto"
-                    )}>
-                      {eligibleMembers.map(({
-                        member,
-                        availableCapacity,
-                        isDisabled,
-                        disableReason
-                      }) => (
-                        <TeamMemberCard 
-                          key={member.id} 
-                          member={member} 
-                          isSelected={selectedMember?.id === member.id} 
-                          onSelect={() => handleMemberSelect(member)} 
-                          isDisabled={isDisabled || isReadOnly} 
-                          disableReason={disableReason} 
-                          availableCapacity={availableCapacity} 
+                {/* Pending Assignments (Shopping Cart) */}
+                {pendingAssignments.length > 0 && (
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      Pending Assignments ({pendingAssignments.length})
+                    </h5>
+                    <div className="space-y-2">
+                      {pendingAssignments.map(assignment => (
+                        <PendingAssignmentCard 
+                          key={assignment.id} 
+                          assignment={assignment} 
+                          onRemove={() => handleRemoveFromCart(assignment.id)} 
+                          isReadOnly={isReadOnly} 
                         />
                       ))}
                     </div>
-
-                    {/* Show More Button */}
-                    {!showAll && !debouncedSearch && teamMembers.filter(m => !m.isManager).length > 6 && (
-                      <Button variant="link" onClick={() => setShowAll(true)} className="text-primary font-semibold w-full">
-                        Show All Members
-                      </Button>
-                    )}
                   </div>
+                )}
 
-                  {/* Right: Chair & Configuration - Single Container */}
-                  <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-4">
-                    {selectedMember ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <h6 className="text-sm font-medium text-foreground">Configure Assignment</h6>
-                          <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)} className="h-8 px-2 text-muted-foreground">
-                            <X className="w-4 h-4" />
-                          </Button>
+                {/* Add New Assignment Section */}
+                <div className="border-t pt-6">
+                  <div className="grid grid-cols-2 gap-6 items-start">
+                    {/* Left: Team Member Selection - Single Container */}
+                    <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-3">
+                      <h6 className="text-sm font-medium text-foreground">Select Team Member</h6>
+                      
+                      {/* Empty State for Team Members */}
+                      {teamAssignmentMembers.length === 0 ? (
+                        <div className="py-8 text-center">
+                          <User className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
+                          <p className="text-sm font-medium text-foreground">No team members configured</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Configure team members in "My Team Assignment" settings.
+                          </p>
                         </div>
+                      ) : (
+                        <>
+                          {/* Search Bar */}
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                              placeholder="Search by name, role, location..." 
+                              value={searchQuery} 
+                              onChange={e => setSearchQuery(e.target.value)} 
+                              className="pl-9 bg-background" 
+                            />
+                          </div>
 
-                        {/* Selected Member Summary with Workload */}
-                        <div className="p-3 bg-background rounded-lg border border-border">
-                          <div className="flex items-center justify-between gap-4">
-                            {/* Left: Member Info */}
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <User className="w-5 h-5 text-primary" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-primary">{selectedMember.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  After assignment: {formatAvailableCapacity(Math.max(0, getMemberAvailableCapacity(selectedMember) - workloadPercentage))}
+                          {/* Team Member Cards */}
+                          <div className={cn(
+                            "space-y-2 pr-1",
+                            !showAll && "max-h-[520px] overflow-y-auto"
+                          )}>
+                            {eligibleMembers.length === 0 ? (
+                              <div className="py-6 text-center">
+                                <p className="text-sm text-muted-foreground">
+                                  {debouncedSearch ? "No members match your search" : "All team members have been assigned"}
                                 </p>
                               </div>
-                            </div>
-                            
-                            {/* Right: Workload Input */}
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <label className="text-sm font-medium text-foreground">Workload</label>
-                              <Input 
-                                type="number" 
-                                min={1} 
-                                max={100} 
-                                step={0.5} 
-                                value={workloadPercentage} 
-                                onChange={e => {
-                                  setWorkloadPercentage(parseFloat(e.target.value) || 0);
-                                  setValidationError(null);
-                                }} 
-                                onFocus={e => e.target.select()} 
-                                disabled={isReadOnly} 
-                                className="w-20 bg-background" 
-                              />
-                              <span className="text-sm text-muted-foreground">%</span>
+                            ) : (
+                              eligibleMembers.map(({ member, availableCapacity, isDisabled, disableReason }) => (
+                                <TeamMemberCard 
+                                  key={member.id} 
+                                  member={member} 
+                                  isSelected={selectedMember?.id === member.id} 
+                                  onSelect={() => handleMemberSelect(member)} 
+                                  isDisabled={isDisabled || isReadOnly} 
+                                  disableReason={disableReason} 
+                                  availableCapacity={availableCapacity} 
+                                />
+                              ))
+                            )}
+                          </div>
+
+                          {/* Show More Button */}
+                          {!showAll && !debouncedSearch && teamAssignmentMembers.length > 6 && (
+                            <Button variant="link" onClick={() => setShowAll(true)} className="text-primary font-semibold w-full">
+                              Show All Members
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Right: Chair & Configuration - Single Container */}
+                    <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-4">
+                      {selectedMember ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h6 className="text-sm font-medium text-foreground">Configure Assignment</h6>
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)} className="h-8 px-2 text-muted-foreground">
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+
+                          {/* Selected Member Summary with Workload */}
+                          <div className="p-3 bg-background rounded-lg border border-border">
+                            <div className="flex items-center justify-between gap-4">
+                              {/* Left: Member Info */}
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                  <User className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-primary">{selectedMember.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    After assignment: {formatAvailableCapacity(Math.max(0, getMemberAvailableCapacity(selectedMember) - workloadPercentage))}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              {/* Right: Workload Input */}
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <label className="text-sm font-medium text-foreground">Workload</label>
+                                <Input 
+                                  type="number" 
+                                  min={1} 
+                                  max={100} 
+                                  step={0.5} 
+                                  value={workloadPercentage} 
+                                  onChange={e => {
+                                    setWorkloadPercentage(parseFloat(e.target.value) || 0);
+                                    setValidationError(null);
+                                  }} 
+                                  onFocus={e => e.target.select()} 
+                                  disabled={isReadOnly} 
+                                  className="w-20 bg-background" 
+                                />
+                                <span className="text-sm text-muted-foreground">%</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Chair Selection - All chairs in one list */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Select Chair</label>
+                          {/* Chair Selection - All chairs in one list (no type segregation) */}
                           <div className="space-y-2">
-                            {allChairs
-                              .filter(({ isDisabled }) => !isDisabled)
-                              .map(({
-                                chair,
-                                isDisabled,
-                                disableReason
-                              }) => (
-                              <ChairCard 
-                                key={chair.id} 
-                                chair={chair} 
-                                isSelected={selectedChair?.id === chair.id} 
-                                onSelect={() => handleChairSelect(chair)} 
-                                isDisabled={isDisabled || isReadOnly} 
-                                disableReason={disableReason} 
-                              />
-                            ))}
+                            <label className="text-sm font-medium text-foreground">Select Chair</label>
+                            {availableChairs.length === 0 ? (
+                              <div className="py-6 text-center border border-dashed border-border rounded-lg">
+                                <p className="text-sm text-muted-foreground">All chairs have been assigned for this role</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                {availableChairs.map(chair => (
+                                  <ChairCard 
+                                    key={chair.id} 
+                                    chair={chair} 
+                                    isSelected={selectedChair?.id === chair.id} 
+                                    onSelect={() => handleChairSelect(chair)} 
+                                    isDisabled={isReadOnly} 
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        </div>
 
-                        {/* Notes (Optional) - At Bottom */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-foreground">Notes (optional)</label>
-                          <Textarea 
-                            placeholder="Add any notes for this assignment..." 
-                            value={notes} 
-                            onChange={e => setNotes(e.target.value)} 
-                            disabled={isReadOnly} 
-                            className="bg-background min-h-[60px]" 
-                          />
-                        </div>
-
-                        {/* Validation Error */}
-                        {validationError && (
-                          <div className="flex items-center gap-2 text-destructive text-sm">
-                            <AlertCircle className="w-4 h-4" />
-                            {validationError}
+                          {/* Notes (Optional) - Assignment Level */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-foreground">Assignment Notes (optional)</label>
+                            <Textarea 
+                              placeholder="Add context, reasoning, or special instructions for this assignment..." 
+                              value={notes} 
+                              onChange={e => setNotes(e.target.value)} 
+                              disabled={isReadOnly} 
+                              className="bg-background min-h-[60px]" 
+                            />
                           </div>
-                        )}
 
-                        {/* Add to Cart Button */}
-                        <Button onClick={handleAddToCart} disabled={!canAddToCart || isReadOnly} className="w-full">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Assignment
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-[520px] text-muted-foreground text-sm">
-                        <User className="w-8 h-8 mb-2 opacity-50" />
-                        <p>Select a team member to configure assignment</p>
-                      </div>
-                    )}
+                          {/* Validation Error */}
+                          {validationError && (
+                            <div className="flex items-center gap-2 text-destructive text-sm">
+                              <AlertCircle className="w-4 h-4" />
+                              {validationError}
+                            </div>
+                          )}
+
+                          {/* Add to Cart Button */}
+                          <Button onClick={handleAddToCart} disabled={!canAddToCart || isReadOnly} className="w-full">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Assignment
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-[520px] text-muted-foreground text-sm">
+                          <User className="w-8 h-8 mb-2 opacity-50" />
+                          <p>Select a team member to configure assignment</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Footer Actions */}
-              <div className="flex justify-between pt-4 border-t">
-                <Button variant="outline" onClick={() => goToStep(1)} disabled={isReadOnly}>
-                  Back
-                </Button>
-                <Button onClick={handleProceedToReview} disabled={isReadOnly || pendingAssignments.length === 0}>
-                  Next: Review ({pendingAssignments.length})
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
+                {/* Footer Actions - Remove Back button as per requirements */}
+                <div className="flex justify-end pt-4 border-t">
+                  <Button onClick={handleProceedToReview} disabled={isReadOnly || pendingAssignments.length === 0}>
+                    Next: Review ({pendingAssignments.length})
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </div>
-            </div>;
-            })()}
+            );
+          })()}
 
           {/* Step 3: Review & Complete */}
-          {currentStep === 3 && selectedRole && <div className="space-y-6">
+          {currentStep === 3 && selectedRole && (
+            <div className="space-y-6">
               <div>
                 <h4 className="font-medium">Review & Complete</h4>
                 <p className="text-sm text-muted-foreground">
@@ -711,12 +918,10 @@ export const ConsolidatedAssignmentFlowV2 = ({
 
                 {/* Assignment List */}
                 <div className="space-y-3">
-                  {pendingAssignments.map((assignment, index) => <div key={assignment.id} className="bg-white rounded-lg p-4 border border-[hsl(var(--wq-border))]">
+                  {pendingAssignments.map((assignment, index) => (
+                    <div key={assignment.id} className="bg-white rounded-lg p-4 border border-[hsl(var(--wq-border))]">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">Assignment {index + 1}</span>
-                        <Badge variant="outline" className={cn("text-xs", assignment.chair.type === 'primary' ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-gray-50 text-gray-600 border-gray-200")}>
-                          {assignment.chair.type === 'primary' ? 'Primary' : 'Secondary'}
-                        </Badge>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
@@ -731,12 +936,15 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           <span className="text-muted-foreground">Workload:</span>
                           <p className="font-medium">{assignment.workloadPercentage}%</p>
                         </div>
-                        {assignment.notes && <div className="col-span-2">
+                        {assignment.notes && (
+                          <div className="col-span-2">
                             <span className="text-muted-foreground">Notes:</span>
                             <p className="font-medium">{assignment.notes}</p>
-                          </div>}
+                          </div>
+                        )}
                       </div>
-                    </div>)}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -749,7 +957,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
                   Complete Assignment
                 </Button>
               </div>
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -757,25 +966,26 @@ export const ConsolidatedAssignmentFlowV2 = ({
       <AlertDialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Unsaved Assignments
-            </AlertDialogTitle>
+            <AlertDialogTitle>Unsaved Assignments</AlertDialogTitle>
             <AlertDialogDescription>
-              You have {pendingAssignments.length} pending assignment{pendingAssignments.length > 1 ? 's' : ''} that will be lost if you exit. Are you sure you want to cancel?
+              You have {pendingAssignments.length} unsaved assignment{pendingAssignments.length > 1 ? 's' : ''} in your cart. 
+              If you leave now, these assignments will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Continue Editing</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-            setShowExitConfirm(false);
-            onCancel?.();
-          }} className="bg-destructive hover:bg-destructive/90">
-              Discard & Exit
+              setShowExitConfirm(false);
+              setPendingAssignments([]);
+              setCurrentStep(1);
+              setSelectedRole(null);
+              onCancel?.();
+            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Discard & Leave
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+    </div>
+  );
 };
-export default ConsolidatedAssignmentFlowV2;

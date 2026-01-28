@@ -19,11 +19,22 @@ export interface Attachment {
   dataUrl?: string; // Base64 data URL for download/preview
 }
 
+// Simplified person type for saved assignments
+export interface SavedAssignedPerson {
+  id: string;
+  name: string;
+  role?: string;
+  location?: string;
+  expertise?: string[];
+  capacity?: number;
+  matchScore?: number;
+}
+
 export interface SavedAssignment {
   roleId: string;
   roleName: string;
   teamName?: string;
-  selectedPerson?: TeamMember;
+  selectedPerson?: SavedAssignedPerson;
   chairType: 'Primary' | 'Secondary';
   workloadPercentage: number;
   notes?: string;
@@ -42,6 +53,8 @@ export interface WorkItem {
   delegateManager?: string;
   priority: 'High' | 'Medium' | 'Low';
   status: 'Pending' | 'Completed';
+  backendStatus?: 'Pending' | 'Completed' | 'Partially Completed'; // Backend tracking for partial completion
+  partialCompletionJustification?: string; // Required justification for partial completion
   description?: string;
   teams?: TeamConfig[];
   attachments?: Attachment[];
