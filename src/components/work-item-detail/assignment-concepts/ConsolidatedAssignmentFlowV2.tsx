@@ -264,8 +264,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
   const eligibleMembers = useMemo(() => {
     const assignedMemberIds = getAssignedMemberIds();
 
-    // Get all non-manager members
-    let members = teamMembers.filter(m => !m.isManager);
+    // Get all non-manager members and filter out already assigned ones
+    let members = teamMembers.filter(m => !m.isManager && !assignedMemberIds.has(m.id));
 
     // Apply search filter
     if (debouncedSearch) {
@@ -280,12 +280,12 @@ export const ConsolidatedAssignmentFlowV2 = ({
       return capB - capA;
     });
 
-    // Map with disabled status
+    // Map with capacity info (no disabled status needed since assigned members are filtered out)
     const membersWithStatus = members.map(m => ({
       member: m,
       availableCapacity: getMemberAvailableCapacity(m),
-      isDisabled: assignedMemberIds.has(m.id),
-      disableReason: assignedMemberIds.has(m.id) ? "Already assigned to a chair in this role" : undefined
+      isDisabled: false,
+      disableReason: undefined
     }));
     if (!showAll && !debouncedSearch) {
       return membersWithStatus.slice(0, 6);
