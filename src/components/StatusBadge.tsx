@@ -33,13 +33,13 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     },
     Completed: {
       bg: isPartiallyCompleted 
-        ? 'bg-[hsl(45,100%,92%)]' // Amber/yellow for partial
+        ? 'bg-gray-100' // Grey for partial
         : 'bg-[hsl(136,70%,90%)]', // Green for full
       text: isPartiallyCompleted 
-        ? 'text-[hsl(38,92%,50%)]' // Amber text
+        ? 'text-gray-600' // Grey text
         : 'text-[hsl(120,100%,27%)]', // Green text
       border: isPartiallyCompleted 
-        ? 'border-[hsl(38,92%,50%,0.2)]'
+        ? 'border-gray-300'
         : 'border-[hsl(120,100%,27%,0.2)]',
       icon: isPartiallyCompleted ? AlertTriangle : CircleCheck
     },
