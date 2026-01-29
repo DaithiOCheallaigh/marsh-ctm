@@ -13,7 +13,6 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { CAPACITY_CONFIG, calculateAvailableCapacity, getCapacityStatus, formatAvailableCapacity } from "@/utils/capacityManagement";
 import { useTeamAssignments } from "@/context/TeamAssignmentsContext";
 import { rolesData, RoleChair } from "@/data/roles";
-
 interface ConsolidatedAssignmentFlowV2Props {
   availableRoles: RoleDefinition[];
   existingAssignments?: AssignmentData[];
@@ -43,9 +42,7 @@ interface EligibleMember {
   locationMatch: boolean;
   expertiseMatch: boolean;
 }
-
 type Step = 1 | 2 | 3;
-
 const StepIndicator = ({
   stepNumber,
   label,
@@ -62,44 +59,17 @@ const StepIndicator = ({
   onClick?: () => void;
 }) => {
   const canClick = isCompleted && onClick;
-  return (
-    <button 
-      type="button" 
-      onClick={canClick ? onClick : undefined} 
-      disabled={!canClick} 
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full text-left",
-        isActive && "bg-primary/10 border-2 border-primary",
-        isCompleted && !isActive && "bg-[hsl(var(--wq-status-completed-bg))] border border-[hsl(var(--wq-status-completed-text))] cursor-pointer hover:opacity-90",
-        !isActive && !isCompleted && "bg-muted/50 border border-transparent opacity-60"
-      )}
-    >
-      <div className={cn(
-        "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
-        isActive && "bg-primary text-primary-foreground",
-        isCompleted && "bg-[hsl(var(--wq-status-completed-text))] text-white",
-        !isActive && !isCompleted && "bg-muted-foreground/30 text-muted-foreground"
-      )}>
+  return <button type="button" onClick={canClick ? onClick : undefined} disabled={!canClick} className={cn("flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full text-left", isActive && "bg-primary/10 border-2 border-primary", isCompleted && !isActive && "bg-[hsl(var(--wq-status-completed-bg))] border border-[hsl(var(--wq-status-completed-text))] cursor-pointer hover:opacity-90", !isActive && !isCompleted && "bg-muted/50 border border-transparent opacity-60")}>
+      <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors", isActive && "bg-primary text-primary-foreground", isCompleted && "bg-[hsl(var(--wq-status-completed-text))] text-white", !isActive && !isCompleted && "bg-muted-foreground/30 text-muted-foreground")}>
         {isCompleted ? <Check className="h-4 w-4" /> : stepNumber}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={cn(
-          "text-sm font-medium truncate",
-          isActive && "text-primary",
-          isCompleted && "text-[hsl(var(--wq-status-completed-text))]",
-          !isActive && !isCompleted && "text-muted-foreground"
-        )}>
+        <p className={cn("text-sm font-medium truncate", isActive && "text-primary", isCompleted && "text-[hsl(var(--wq-status-completed-text))]", !isActive && !isCompleted && "text-muted-foreground")}>
           {label}
         </p>
       </div>
-      <Icon className={cn(
-        "h-4 w-4 flex-shrink-0",
-        isActive && "text-primary",
-        isCompleted && "text-[hsl(var(--wq-status-completed-text))]",
-        !isActive && !isCompleted && "text-muted-foreground/50"
-      )} />
-    </button>
-  );
+      <Icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-primary", isCompleted && "text-[hsl(var(--wq-status-completed-text))]", !isActive && !isCompleted && "text-muted-foreground/50")} />
+    </button>;
 };
 
 // Team Member Selection Card - uses TeamAssignments data
@@ -121,20 +91,7 @@ const TeamMemberCard = ({
   const matchBadge = getMatchBadge(member.matchScore || 0);
   const statusInfo = getCapacityStatus(availableCapacity);
   const isCapacityZero = availableCapacity <= 0;
-
-  return (
-    <button 
-      type="button" 
-      onClick={onSelect} 
-      disabled={isDisabled} 
-      title={disableReason} 
-      className={cn(
-        "w-full p-4 rounded-lg border text-left transition-all bg-white",
-        isSelected ? "border-primary ring-2 ring-primary/20" : "border-[hsl(var(--wq-border))] hover:border-primary/50",
-        isDisabled && "opacity-50 cursor-not-allowed",
-        isCapacityZero && !isDisabled && "bg-gray-50"
-      )}
-    >
+  return <button type="button" onClick={onSelect} disabled={isDisabled} title={disableReason} className={cn("w-full p-4 rounded-lg border text-left transition-all bg-white", isSelected ? "border-primary ring-2 ring-primary/20" : "border-[hsl(var(--wq-border))] hover:border-primary/50", isDisabled && "opacity-50 cursor-not-allowed", isCapacityZero && !isDisabled && "bg-gray-50")}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="font-semibold text-primary">{member.name}</div>
@@ -144,26 +101,18 @@ const TeamMemberCard = ({
           <div className="text-sm text-[hsl(var(--wq-text-secondary))]">
             Match Score: <span className="font-semibold text-primary">{member.matchScore || 0}</span>
           </div>
-          {matchBadge.label && (
-            <Badge className={cn("text-xs mt-1", matchBadge.className)}>
+          {matchBadge.label && <Badge className={cn("text-xs mt-1", matchBadge.className)}>
               {matchBadge.label}
-            </Badge>
-          )}
+            </Badge>}
         </div>
       </div>
 
       <div className="flex items-center gap-4 mb-3 text-sm">
-        <span className={cn(
-          "flex items-center gap-1",
-          member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
-        )}>
+        <span className={cn("flex items-center gap-1", member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")}>
           <CheckCircle2 className={cn("w-4 h-4", member.locationMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")} />
           Location
         </span>
-        <span className={cn(
-          "flex items-center gap-1",
-          member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground"
-        )}>
+        <span className={cn("flex items-center gap-1", member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")}>
           <CheckCircle2 className={cn("w-4 h-4", member.expertiseMatch ? "text-[hsl(var(--wq-status-completed-text))]" : "text-muted-foreground")} />
           Expertise
         </span>
@@ -188,8 +137,7 @@ const TeamMemberCard = ({
         </span>
       </div>
       {disableReason && isDisabled && <p className="text-xs text-destructive mt-2">{disableReason}</p>}
-    </button>
-  );
+    </button>;
 };
 
 // Chair Selection Card
@@ -206,18 +154,7 @@ const ChairCard = ({
   isDisabled?: boolean;
   disableReason?: string;
 }) => {
-  return (
-    <button 
-      type="button" 
-      onClick={onSelect} 
-      disabled={isDisabled} 
-      title={disableReason} 
-      className={cn(
-        "w-full px-4 py-3 rounded-lg border text-left transition-all flex items-center justify-between",
-        isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[hsl(var(--wq-border))] hover:border-primary/50 hover:bg-[hsl(var(--wq-bg-muted))]",
-        isDisabled && "opacity-50 cursor-not-allowed bg-gray-100"
-      )}
-    >
+  return <button type="button" onClick={onSelect} disabled={isDisabled} title={disableReason} className={cn("w-full px-4 py-3 rounded-lg border text-left transition-all flex items-center justify-between", isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[hsl(var(--wq-border))] hover:border-primary/50 hover:bg-[hsl(var(--wq-bg-muted))]", isDisabled && "opacity-50 cursor-not-allowed bg-gray-100")}>
       <div className="flex items-center gap-3">
         <div>
           <span className="font-medium">{chair.name}</span>
@@ -227,8 +164,7 @@ const ChairCard = ({
         </div>
       </div>
       {isSelected && <Check className="w-4 h-4" />}
-    </button>
-  );
+    </button>;
 };
 
 // Pending Assignment Card (shopping cart item)
@@ -241,8 +177,7 @@ const PendingAssignmentCard = ({
   onRemove: () => void;
   isReadOnly?: boolean;
 }) => {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
+  return <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
           <User className="w-4 h-4 text-primary" />
@@ -252,24 +187,18 @@ const PendingAssignmentCard = ({
           <p className="text-xs text-muted-foreground">
             {assignment.chair.name} • {assignment.workloadPercentage}%
           </p>
-          {assignment.notes && (
-            <p className="text-xs text-muted-foreground italic mt-1 truncate max-w-[200px]">
+          {assignment.notes && <p className="text-xs text-muted-foreground italic mt-1 truncate max-w-[200px]">
               Note: {assignment.notes}
-            </p>
-          )}
+            </p>}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {!isReadOnly && (
-          <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50">
+        {!isReadOnly && <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50">
             <Trash2 className="w-4 h-4" />
-          </Button>
-        )}
+          </Button>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export const ConsolidatedAssignmentFlowV2 = ({
   availableRoles,
   existingAssignments = [],
@@ -277,8 +206,9 @@ export const ConsolidatedAssignmentFlowV2 = ({
   onCancel,
   isReadOnly = false
 }: ConsolidatedAssignmentFlowV2Props) => {
-  const { teams: assignmentTeams } = useTeamAssignments();
-  
+  const {
+    teams: assignmentTeams
+  } = useTeamAssignments();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [selectedRole, setSelectedRole] = useState<RoleDefinition | null>(null);
 
@@ -299,13 +229,11 @@ export const ConsolidatedAssignmentFlowV2 = ({
   // Get team members from TeamAssignments context (My Team Assignment)
   const teamAssignmentMembers = useMemo((): EligibleMember[] => {
     const allMembers: EligibleMember[] = [];
-    
     assignmentTeams.forEach(team => {
       team.members.forEach(member => {
         // Calculate available capacity from client assignments
         const totalWorkload = member.clientAssignments?.reduce((sum, a) => sum + (a.workload || 0), 0) || 0;
         const availableCapacity = Math.max(0, 100 - totalWorkload);
-        
         allMembers.push({
           id: member.id,
           name: `${member.firstName} ${member.lastName}`,
@@ -313,36 +241,42 @@ export const ConsolidatedAssignmentFlowV2 = ({
           location: member.location,
           expertise: member.expertise || [],
           capacity: availableCapacity,
-          matchScore: Math.floor(Math.random() * 30) + 70, // Simulated match score
+          matchScore: Math.floor(Math.random() * 30) + 70,
+          // Simulated match score
           locationMatch: true,
-          expertiseMatch: member.expertise?.length > 0,
+          expertiseMatch: member.expertise?.length > 0
         });
       });
     });
-    
     return allMembers;
   }, [assignmentTeams]);
 
   // Get chairs for the selected role from roles data
   const roleChairs = useMemo((): RoleChair[] => {
     if (!selectedRole) return [];
-    
+
     // Find the role in our roles data
-    const roleData = rolesData.find(r => 
-      r.name.toLowerCase().includes(selectedRole.roleName.toLowerCase()) ||
-      selectedRole.roleName.toLowerCase().includes(r.name.toLowerCase()) ||
-      r.id === selectedRole.roleId
-    );
-    
+    const roleData = rolesData.find(r => r.name.toLowerCase().includes(selectedRole.roleName.toLowerCase()) || selectedRole.roleName.toLowerCase().includes(r.name.toLowerCase()) || r.id === selectedRole.roleId);
     if (roleData && roleData.chairs) {
       return roleData.chairs;
     }
-    
+
     // Fallback: return generic chairs if role not found
-    return [
-      { id: 'chair-1', name: 'Primary Lead', description: 'Main responsibility holder', typicalWorkload: '30-40%', type: 'primary' as const, isRequired: true },
-      { id: 'chair-2', name: 'Secondary Support', description: 'Supporting role', typicalWorkload: '20-30%', type: 'secondary' as const, isRequired: false },
-    ];
+    return [{
+      id: 'chair-1',
+      name: 'Primary Lead',
+      description: 'Main responsibility holder',
+      typicalWorkload: '30-40%',
+      type: 'primary' as const,
+      isRequired: true
+    }, {
+      id: 'chair-2',
+      name: 'Secondary Support',
+      description: 'Supporting role',
+      typicalWorkload: '20-30%',
+      type: 'secondary' as const,
+      isRequired: false
+    }];
   }, [selectedRole]);
 
   // Get chairs that are already assigned (from existing assignments for this role)
@@ -382,7 +316,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
 
     // Pending workload for this member in shopping cart
     const pendingWorkload = pendingAssignments.filter(p => p.member.id === member.id).reduce((sum, p) => sum + p.workloadPercentage, 0);
-    
+
     // Calculate based on member's capacity field
     const baseCapacity = member.capacity || 100;
     return Math.max(0, baseCapacity - existingWorkload - pendingWorkload);
@@ -398,12 +332,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
     // Apply search filter
     if (debouncedSearch) {
       const query = debouncedSearch.toLowerCase();
-      members = members.filter(m => 
-        m.name.toLowerCase().includes(query) || 
-        m.role.toLowerCase().includes(query) || 
-        m.location.toLowerCase().includes(query) || 
-        m.expertise?.some(e => e.toLowerCase().includes(query))
-      );
+      members = members.filter(m => m.name.toLowerCase().includes(query) || m.role.toLowerCase().includes(query) || m.location.toLowerCase().includes(query) || m.expertise?.some(e => e.toLowerCase().includes(query)));
     }
 
     // Sort by available capacity (highest to lowest)
@@ -420,7 +349,6 @@ export const ConsolidatedAssignmentFlowV2 = ({
       isDisabled: getMemberAvailableCapacity(m) <= 0,
       disableReason: getMemberAvailableCapacity(m) <= 0 ? "No available capacity" : undefined
     }));
-    
     if (!showAll && !debouncedSearch) {
       return membersWithStatus.slice(0, 6);
     }
@@ -437,14 +365,12 @@ export const ConsolidatedAssignmentFlowV2 = ({
   const workItemRoles = useMemo(() => {
     return availableRoles;
   }, [availableRoles]);
-
   const handleRoleSelect = (role: RoleDefinition) => {
     if (isReadOnly) return;
     setSelectedRole(role);
     setPendingAssignments([]);
     setCurrentStep(2);
   };
-
   const handleMemberSelect = (member: EligibleMember) => {
     if (isReadOnly) return;
     setSelectedMember(member);
@@ -453,13 +379,11 @@ export const ConsolidatedAssignmentFlowV2 = ({
     setNotes("");
     setValidationError(null);
   };
-
   const handleChairSelect = (chair: RoleChair) => {
     if (isReadOnly) return;
     setSelectedChair(chair);
     setValidationError(null);
   };
-
   const handleAddToCart = () => {
     if (!selectedMember || !selectedChair) return;
 
@@ -475,7 +399,6 @@ export const ConsolidatedAssignmentFlowV2 = ({
       setValidationError(`Workload cannot exceed available capacity (${formatAvailableCapacity(availableCapacity)})`);
       return;
     }
-    
     const newAssignment: PendingAssignment = {
       id: `pending-${Date.now()}`,
       member: selectedMember,
@@ -492,16 +415,13 @@ export const ConsolidatedAssignmentFlowV2 = ({
     setNotes("");
     setValidationError(null);
   };
-
   const handleRemoveFromCart = (assignmentId: string) => {
     setPendingAssignments(prev => prev.filter(p => p.id !== assignmentId));
   };
-
   const handleProceedToReview = () => {
     if (pendingAssignments.length === 0) return;
     setCurrentStep(3);
   };
-
   const handleCompleteAssignment = () => {
     if (!selectedRole || pendingAssignments.length === 0) return;
 
@@ -511,7 +431,8 @@ export const ConsolidatedAssignmentFlowV2 = ({
       roleName: selectedRole.roleName,
       teamName: selectedRole.teamName,
       selectedPerson: p.member,
-      chairType: 'Primary', // Unified - no type segregation
+      chairType: 'Primary',
+      // Unified - no type segregation
       workloadPercentage: p.workloadPercentage,
       notes: `${p.chair.name}${p.notes ? ` - ${p.notes}` : ''}`
     }));
@@ -528,7 +449,6 @@ export const ConsolidatedAssignmentFlowV2 = ({
     setSearchQuery("");
     setShowAll(false);
   };
-
   const handleCancel = () => {
     if (pendingAssignments.length > 0) {
       setShowExitConfirm(true);
@@ -536,7 +456,6 @@ export const ConsolidatedAssignmentFlowV2 = ({
       onCancel?.();
     }
   };
-
   const goToStep = (step: Step) => {
     if (step < currentStep) {
       setCurrentStep(step);
@@ -548,18 +467,23 @@ export const ConsolidatedAssignmentFlowV2 = ({
       }
     }
   };
-
-  const steps = [
-    { number: 1, label: "Select Role", icon: Briefcase },
-    { number: 2, label: "Select Member & Chair", icon: User },
-    { number: 3, label: "Review & Complete", icon: CheckCircle2 }
-  ];
+  const steps = [{
+    number: 1,
+    label: "Select Role",
+    icon: Briefcase
+  }, {
+    number: 2,
+    label: "Select Member & Chair",
+    icon: User
+  }, {
+    number: 3,
+    label: "Review & Complete",
+    icon: CheckCircle2
+  }];
 
   // Check if current configuration is valid for adding
   const canAddToCart = selectedMember && selectedChair && workloadPercentage > 0 && !validationError;
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Progress Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -568,34 +492,21 @@ export const ConsolidatedAssignmentFlowV2 = ({
             Step {currentStep} of 3 — {steps[currentStep - 1].label}
           </p>
         </div>
-        {onCancel && !isReadOnly && (
-          <Button variant="outline" size="sm" onClick={handleCancel}>
+        {onCancel && !isReadOnly && <Button variant="outline" size="sm" onClick={handleCancel}>
             Cancel
-          </Button>
-        )}
+          </Button>}
       </div>
 
       {/* Step Indicators */}
       <div className="grid grid-cols-3 gap-2">
-        {steps.map(step => (
-          <StepIndicator 
-            key={step.number} 
-            stepNumber={step.number} 
-            label={step.label} 
-            icon={step.icon} 
-            isActive={currentStep === step.number} 
-            isCompleted={currentStep > step.number} 
-            onClick={currentStep > step.number ? () => goToStep(step.number as Step) : undefined} 
-          />
-        ))}
+        {steps.map(step => <StepIndicator key={step.number} stepNumber={step.number} label={step.label} icon={step.icon} isActive={currentStep === step.number} isCompleted={currentStep > step.number} onClick={currentStep > step.number ? () => goToStep(step.number as Step) : undefined} />)}
       </div>
 
       {/* Step Content */}
       <Card className="border-2">
         <CardContent className="p-6">
           {/* Step 1: Select Role */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
+          {currentStep === 1 && <div className="space-y-4">
               <div>
                 <h4 className="font-medium mb-1">Select a Role</h4>
                 <p className="text-sm text-muted-foreground">
@@ -603,126 +514,64 @@ export const ConsolidatedAssignmentFlowV2 = ({
                 </p>
               </div>
 
-              {workItemRoles.length === 0 ? (
-                <div className="py-8 text-center">
+              {workItemRoles.length === 0 ? <div className="py-8 text-center">
                   <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-3" />
                   <p className="text-lg font-medium text-foreground">No roles configured</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     No roles were selected during work item creation. Please edit the work item to add roles.
                   </p>
-                </div>
-              ) : (
-                <div className="grid gap-2">
+                </div> : <div className="grid gap-2">
                   {workItemRoles.map(role => {
-                    // Get configured chair count for this role
-                    const roleData = rolesData.find(r => 
-                      r.name.toLowerCase().includes(role.roleName.toLowerCase()) ||
-                      role.roleName.toLowerCase().includes(r.name.toLowerCase()) ||
-                      r.id === role.roleId
-                    );
-                    const configuredChairCount = role.chairCount || roleData?.chairs?.length || 1;
-                    
-                    // Count existing assignments for this role
-                    const assignedCount = existingAssignments.filter(a => a.roleId === role.roleId).length;
-                    
-                    // Determine completion state
-                    const isFullyCompleted = assignedCount >= configuredChairCount;
-                    const isPartiallyCompleted = assignedCount > 0 && assignedCount < configuredChairCount;
-                    
-                    return (
-                      <button 
-                        key={role.roleId} 
-                        type="button" 
-                        onClick={() => handleRoleSelect(role)} 
-                        disabled={isReadOnly} 
-                        className={cn(
-                          "flex items-center justify-between p-4 rounded-lg border-2 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed",
-                          isFullyCompleted 
-                            ? "border-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]" 
-                            : isPartiallyCompleted 
-                              ? "border-gray-300 bg-gray-50" 
-                              : "border-border hover:border-primary hover:bg-primary/5"
-                        )}
-                      >
+              // Get configured chair count for this role
+              const roleData = rolesData.find(r => r.name.toLowerCase().includes(role.roleName.toLowerCase()) || role.roleName.toLowerCase().includes(r.name.toLowerCase()) || r.id === role.roleId);
+              const configuredChairCount = role.chairCount || roleData?.chairs?.length || 1;
+
+              // Count existing assignments for this role
+              const assignedCount = existingAssignments.filter(a => a.roleId === role.roleId).length;
+
+              // Determine completion state
+              const isFullyCompleted = assignedCount >= configuredChairCount;
+              const isPartiallyCompleted = assignedCount > 0 && assignedCount < configuredChairCount;
+              return <button key={role.roleId} type="button" onClick={() => handleRoleSelect(role)} disabled={isReadOnly} className={cn("flex items-center justify-between p-4 rounded-lg border-2 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed", isFullyCompleted ? "border-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]" : isPartiallyCompleted ? "border-gray-300 bg-gray-50" : "border-border hover:border-primary hover:bg-primary/5")}>
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "w-10 h-10 rounded-lg flex items-center justify-center",
-                            isFullyCompleted 
-                              ? "bg-[hsl(var(--wq-status-completed-text))]" 
-                              : isPartiallyCompleted 
-                                ? "bg-gray-400" 
-                                : "bg-primary/10"
-                          )}>
-                            {isFullyCompleted ? (
-                              <Check className="h-5 w-5 text-white" />
-                            ) : isPartiallyCompleted ? (
-                              <AlertCircle className="h-5 w-5 text-white" />
-                            ) : (
-                              <Briefcase className="h-5 w-5 text-primary" />
-                            )}
+                          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", isFullyCompleted ? "bg-[hsl(var(--wq-status-completed-text))]" : isPartiallyCompleted ? "bg-gray-400" : "bg-primary/10")}>
+                            {isFullyCompleted ? <Check className="h-5 w-5 text-white" /> : isPartiallyCompleted ? <AlertCircle className="h-5 w-5 text-white" /> : <Briefcase className="h-5 w-5 text-primary" />}
                           </div>
                           <div>
-                            <p className={cn(
-                              "font-medium transition-colors",
-                              isFullyCompleted 
-                                ? "text-[hsl(var(--wq-status-completed-text))]" 
-                                : isPartiallyCompleted 
-                                  ? "text-gray-700" 
-                                  : "group-hover:text-primary"
-                            )}>
+                            <p className={cn("font-medium transition-colors", isFullyCompleted ? "text-[hsl(var(--wq-status-completed-text))]" : isPartiallyCompleted ? "text-gray-700" : "group-hover:text-primary")}>
                               {role.roleName}
                             </p>
                             {role.description && <p className="text-sm text-muted-foreground">{role.description}</p>}
                             <div className="flex items-center gap-2 mt-1">
-                              {role.teamName && (
-                                <Badge variant="secondary" className="text-xs">
+                              {role.teamName && <Badge variant="secondary" className="text-xs">
                                   {role.teamName}
-                                </Badge>
-                              )}
-                              {isFullyCompleted ? (
-                                <Badge className="text-xs bg-[hsl(var(--wq-status-completed-text))] text-white">
+                                </Badge>}
+                              {isFullyCompleted ? <Badge className="text-xs bg-[hsl(var(--wq-status-completed-text))] text-white">
                                   <Check className="w-3 h-3 mr-1" />
                                   Fully Assigned ({assignedCount}/{configuredChairCount})
-                                </Badge>
-                              ) : isPartiallyCompleted ? (
-                                <Badge className="text-xs bg-gray-100 text-gray-700 border-gray-300">
+                                </Badge> : isPartiallyCompleted ? <Badge className="text-xs bg-gray-100 text-gray-700 border-gray-300">
                                   <AlertCircle className="w-3 h-3 mr-1" />
                                   Partial ({assignedCount}/{configuredChairCount})
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-xs">
+                                </Badge> : <Badge variant="outline" className="text-xs">
                                   {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''}
-                                </Badge>
-                              )}
+                                </Badge>}
                             </div>
                           </div>
                         </div>
-                        <ChevronRight className={cn(
-                          "h-5 w-5 transition-colors",
-                          isFullyCompleted 
-                            ? "text-[hsl(var(--wq-status-completed-text))]" 
-                            : isPartiallyCompleted 
-                              ? "text-gray-600" 
-                              : "text-muted-foreground group-hover:text-primary"
-                        )} />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+                        <ChevronRight className={cn("h-5 w-5 transition-colors", isFullyCompleted ? "text-[hsl(var(--wq-status-completed-text))]" : isPartiallyCompleted ? "text-gray-600" : "text-muted-foreground group-hover:text-primary")} />
+                      </button>;
+            })}
+                </div>}
+            </div>}
 
           {/* Step 2: Select Team Member & Chair (Shopping Cart behavior) */}
           {currentStep === 2 && selectedRole && (() => {
-            // Calculate remaining chairs to assign
-            const configuredChairCount = selectedRole.chairCount || roleChairs.length || 1;
-            const existingRoleAssignments = existingAssignments.filter(a => a.roleId === selectedRole.roleId).length;
-            const totalAssigned = existingRoleAssignments + pendingAssignments.length;
-            const remainingChairs = Math.max(0, configuredChairCount - totalAssigned);
-            
-            return (
-              <div className="space-y-6">
+          // Calculate remaining chairs to assign
+          const configuredChairCount = selectedRole.chairCount || roleChairs.length || 1;
+          const existingRoleAssignments = existingAssignments.filter(a => a.roleId === selectedRole.roleId).length;
+          const totalAssigned = existingRoleAssignments + pendingAssignments.length;
+          const remainingChairs = Math.max(0, configuredChairCount - totalAssigned);
+          return <div className="space-y-6">
                 {/* Header */}
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -732,11 +581,9 @@ export const ConsolidatedAssignmentFlowV2 = ({
                     <Badge variant="outline" className="text-xs border-primary/30 text-primary">
                       {remainingChairs} of {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''} remaining
                     </Badge>
-                    {pendingAssignments.length > 0 && (
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                    {pendingAssignments.length > 0 && <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
                         {pendingAssignments.length} pending
-                      </Badge>
-                    )}
+                      </Badge>}
                   </div>
                   <h4 className="font-medium">Assign Team Members to Chairs</h4>
                   <p className="text-sm text-muted-foreground">
@@ -745,24 +592,15 @@ export const ConsolidatedAssignmentFlowV2 = ({
                 </div>
 
                 {/* Pending Assignments (Shopping Cart) */}
-                {pendingAssignments.length > 0 && (
-                  <div className="space-y-2">
+                {pendingAssignments.length > 0 && <div className="space-y-2">
                     <h5 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <Plus className="w-4 h-4" />
+                      
                       Pending Assignments ({pendingAssignments.length})
                     </h5>
                     <div className="space-y-2">
-                      {pendingAssignments.map(assignment => (
-                        <PendingAssignmentCard 
-                          key={assignment.id} 
-                          assignment={assignment} 
-                          onRemove={() => handleRemoveFromCart(assignment.id)} 
-                          isReadOnly={isReadOnly} 
-                        />
-                      ))}
+                      {pendingAssignments.map(assignment => <PendingAssignmentCard key={assignment.id} assignment={assignment} onRemove={() => handleRemoveFromCart(assignment.id)} isReadOnly={isReadOnly} />)}
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Add New Assignment Section */}
                 <div className="border-t pt-6">
@@ -772,67 +610,43 @@ export const ConsolidatedAssignmentFlowV2 = ({
                       <h6 className="text-sm font-medium text-foreground">Select Team Member</h6>
                       
                       {/* Empty State for Team Members */}
-                      {teamAssignmentMembers.length === 0 ? (
-                        <div className="py-8 text-center">
+                      {teamAssignmentMembers.length === 0 ? <div className="py-8 text-center">
                           <User className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
                           <p className="text-sm font-medium text-foreground">No team members configured</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             Configure team members in "My Team Assignment" settings.
                           </p>
-                        </div>
-                      ) : (
-                        <>
+                        </div> : <>
                           {/* Search Bar */}
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input 
-                              placeholder="Search by name, role, location..." 
-                              value={searchQuery} 
-                              onChange={e => setSearchQuery(e.target.value)} 
-                              className="pl-9 bg-background" 
-                            />
+                            <Input placeholder="Search by name, role, location..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 bg-background" />
                           </div>
 
                           {/* Team Member Cards */}
-                          <div className={cn(
-                            "space-y-2 pr-1",
-                            !showAll && "max-h-[520px] overflow-y-auto"
-                          )}>
-                            {eligibleMembers.length === 0 ? (
-                              <div className="py-6 text-center">
+                          <div className={cn("space-y-2 pr-1", !showAll && "max-h-[520px] overflow-y-auto")}>
+                            {eligibleMembers.length === 0 ? <div className="py-6 text-center">
                                 <p className="text-sm text-muted-foreground">
                                   {debouncedSearch ? "No members match your search" : "All team members have been assigned"}
                                 </p>
-                              </div>
-                            ) : (
-                              eligibleMembers.map(({ member, availableCapacity, isDisabled, disableReason }) => (
-                                <TeamMemberCard 
-                                  key={member.id} 
-                                  member={member} 
-                                  isSelected={selectedMember?.id === member.id} 
-                                  onSelect={() => handleMemberSelect(member)} 
-                                  isDisabled={isDisabled || isReadOnly} 
-                                  disableReason={disableReason} 
-                                  availableCapacity={availableCapacity} 
-                                />
-                              ))
-                            )}
+                              </div> : eligibleMembers.map(({
+                        member,
+                        availableCapacity,
+                        isDisabled,
+                        disableReason
+                      }) => <TeamMemberCard key={member.id} member={member} isSelected={selectedMember?.id === member.id} onSelect={() => handleMemberSelect(member)} isDisabled={isDisabled || isReadOnly} disableReason={disableReason} availableCapacity={availableCapacity} />)}
                           </div>
 
                           {/* Show More Button */}
-                          {!showAll && !debouncedSearch && teamAssignmentMembers.length > 6 && (
-                            <Button variant="link" onClick={() => setShowAll(true)} className="text-primary font-semibold w-full">
+                          {!showAll && !debouncedSearch && teamAssignmentMembers.length > 6 && <Button variant="link" onClick={() => setShowAll(true)} className="text-primary font-semibold w-full">
                               Show All Members
-                            </Button>
-                          )}
-                        </>
-                      )}
+                            </Button>}
+                        </>}
                     </div>
 
                     {/* Right: Chair & Configuration - Single Container */}
                     <div className="border border-border rounded-lg bg-muted/30 p-4 space-y-4">
-                      {selectedMember ? (
-                        <>
+                      {selectedMember ? <>
                           <div className="flex items-center justify-between">
                             <h6 className="text-sm font-medium text-foreground">Configure Assignment</h6>
                             <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)} className="h-8 px-2 text-muted-foreground">
@@ -859,20 +673,10 @@ export const ConsolidatedAssignmentFlowV2 = ({
                               {/* Right: Workload Input */}
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <label className="text-sm font-medium text-foreground">Workload</label>
-                                <Input 
-                                  type="number" 
-                                  min={1} 
-                                  max={100} 
-                                  step={0.5} 
-                                  value={workloadPercentage} 
-                                  onChange={e => {
-                                    setWorkloadPercentage(parseFloat(e.target.value) || 0);
-                                    setValidationError(null);
-                                  }} 
-                                  onFocus={e => e.target.select()} 
-                                  disabled={isReadOnly} 
-                                  className="w-20 bg-background" 
-                                />
+                                <Input type="number" min={1} max={100} step={0.5} value={workloadPercentage} onChange={e => {
+                            setWorkloadPercentage(parseFloat(e.target.value) || 0);
+                            setValidationError(null);
+                          }} onFocus={e => e.target.select()} disabled={isReadOnly} className="w-20 bg-background" />
                                 <span className="text-sm text-muted-foreground">%</span>
                               </div>
                             </div>
@@ -881,57 +685,34 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           {/* Chair Selection - All chairs in one list (no type segregation) */}
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-foreground">Select Chair</label>
-                            {availableChairs.length === 0 ? (
-                              <div className="py-6 text-center border border-dashed border-border rounded-lg">
+                            {availableChairs.length === 0 ? <div className="py-6 text-center border border-dashed border-border rounded-lg">
                                 <p className="text-sm text-muted-foreground">All chairs have been assigned for this role</p>
-                              </div>
-                            ) : (
-                              <div className="space-y-2">
-                                {availableChairs.map(chair => (
-                                  <ChairCard 
-                                    key={chair.id} 
-                                    chair={chair} 
-                                    isSelected={selectedChair?.id === chair.id} 
-                                    onSelect={() => handleChairSelect(chair)} 
-                                    isDisabled={isReadOnly} 
-                                  />
-                                ))}
-                              </div>
-                            )}
+                              </div> : <div className="space-y-2">
+                                {availableChairs.map(chair => <ChairCard key={chair.id} chair={chair} isSelected={selectedChair?.id === chair.id} onSelect={() => handleChairSelect(chair)} isDisabled={isReadOnly} />)}
+                              </div>}
                           </div>
 
                           {/* Notes (Optional) - Assignment Level */}
                           <div className="space-y-2">
                             <label className="text-sm font-medium text-foreground">Assignment Notes (optional)</label>
-                            <Textarea 
-                              placeholder="Add context, reasoning, or special instructions for this assignment..." 
-                              value={notes} 
-                              onChange={e => setNotes(e.target.value)} 
-                              disabled={isReadOnly} 
-                              className="bg-background min-h-[60px]" 
-                            />
+                            <Textarea placeholder="Add context, reasoning, or special instructions for this assignment..." value={notes} onChange={e => setNotes(e.target.value)} disabled={isReadOnly} className="bg-background min-h-[60px]" />
                           </div>
 
                           {/* Validation Error */}
-                          {validationError && (
-                            <div className="flex items-center gap-2 text-destructive text-sm">
+                          {validationError && <div className="flex items-center gap-2 text-destructive text-sm">
                               <AlertCircle className="w-4 h-4" />
                               {validationError}
-                            </div>
-                          )}
+                            </div>}
 
                           {/* Add to Cart Button */}
                           <Button onClick={handleAddToCart} disabled={!canAddToCart || isReadOnly} className="w-full">
                             <Plus className="w-4 h-4 mr-2" />
                             Add Assignment
                           </Button>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-[520px] text-muted-foreground text-sm">
+                        </> : <div className="flex flex-col items-center justify-center h-[520px] text-muted-foreground text-sm">
                           <User className="w-8 h-8 mb-2 opacity-50" />
                           <p>Select a team member to configure assignment</p>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                   </div>
                 </div>
@@ -943,13 +724,11 @@ export const ConsolidatedAssignmentFlowV2 = ({
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
-              </div>
-            );
-          })()}
+              </div>;
+        })()}
 
           {/* Step 3: Review & Complete */}
-          {currentStep === 3 && selectedRole && (
-            <div className="space-y-6">
+          {currentStep === 3 && selectedRole && <div className="space-y-6">
               <div>
                 <h4 className="font-medium">Review & Complete</h4>
                 <p className="text-sm text-muted-foreground">
@@ -973,8 +752,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
 
                 {/* Assignment List */}
                 <div className="space-y-3">
-                  {pendingAssignments.map((assignment, index) => (
-                    <div key={assignment.id} className="bg-white rounded-lg p-4 border border-[hsl(var(--wq-border))]">
+                  {pendingAssignments.map((assignment, index) => <div key={assignment.id} className="bg-white rounded-lg p-4 border border-[hsl(var(--wq-border))]">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">Assignment {index + 1}</span>
                       </div>
@@ -991,15 +769,12 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           <span className="text-muted-foreground">Workload:</span>
                           <p className="font-medium">{assignment.workloadPercentage}%</p>
                         </div>
-                        {assignment.notes && (
-                          <div className="col-span-2">
+                        {assignment.notes && <div className="col-span-2">
                             <span className="text-muted-foreground">Notes:</span>
                             <p className="font-medium">{assignment.notes}</p>
-                          </div>
-                        )}
+                          </div>}
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </div>
 
@@ -1012,8 +787,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                   Complete Assignment
                 </Button>
               </div>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
@@ -1030,17 +804,16 @@ export const ConsolidatedAssignmentFlowV2 = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Continue Editing</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-              setShowExitConfirm(false);
-              setPendingAssignments([]);
-              setCurrentStep(1);
-              setSelectedRole(null);
-              onCancel?.();
-            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            setShowExitConfirm(false);
+            setPendingAssignments([]);
+            setCurrentStep(1);
+            setSelectedRole(null);
+            onCancel?.();
+          }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Discard & Leave
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 };
