@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, User, Briefcase, CheckCircle2, AlertCircle, Search, X, Plus, Trash2, Clock } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, CheckCircle2, AlertCircle, Search, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,14 +122,6 @@ const TeamMemberCard = ({
   const statusInfo = getCapacityStatus(availableCapacity);
   const isCapacityZero = availableCapacity <= 0;
 
-  // Capacity indicator styling based on availability
-  const getCapacityIndicatorClass = (capacity: number) => {
-    if (capacity >= 50) return "bg-green-500";
-    if (capacity >= 20) return "bg-amber-500";
-    if (capacity > 0) return "bg-orange-500";
-    return "bg-red-500";
-  };
-
   return (
     <button 
       type="button" 
@@ -137,38 +129,20 @@ const TeamMemberCard = ({
       disabled={isDisabled} 
       title={disableReason} 
       className={cn(
-        "w-full p-4 rounded-lg border text-left transition-all bg-white relative",
+        "w-full p-4 rounded-lg border text-left transition-all bg-white",
         isSelected ? "border-primary ring-2 ring-primary/20" : "border-[hsl(var(--wq-border))] hover:border-primary/50",
         isDisabled && "opacity-50 cursor-not-allowed",
         isCapacityZero && !isDisabled && "bg-gray-50"
       )}
     >
-      {/* Capacity Indicator Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg overflow-hidden bg-gray-100">
-        <div 
-          className={cn("h-full transition-all", getCapacityIndicatorClass(availableCapacity))}
-          style={{ width: `${Math.min(100, availableCapacity)}%` }}
-        />
-      </div>
-
-      <div className="flex items-start justify-between mb-3 mt-1">
-        <div className="flex items-center gap-3">
-          {/* Capacity Badge - Prominent */}
-          <div className={cn(
-            "w-12 h-12 rounded-full flex flex-col items-center justify-center text-white font-bold",
-            getCapacityIndicatorClass(availableCapacity)
-          )}>
-            <span className="text-sm leading-none">{Math.round(availableCapacity)}</span>
-            <span className="text-[10px] leading-none">%</span>
-          </div>
-          <div>
-            <div className="font-semibold text-primary">{member.name}</div>
-            <div className="text-sm text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
-          </div>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="font-semibold text-primary">{member.name}</div>
+          <div className="text-sm text-[hsl(var(--wq-text-secondary))]">{member.role}</div>
         </div>
         <div className="text-right flex-shrink-0">
           <div className="text-sm text-[hsl(var(--wq-text-secondary))]">
-            Match: <span className="font-semibold text-primary">{member.matchScore || 0}</span>
+            Match Score: <span className="font-semibold text-primary">{member.matchScore || 0}</span>
           </div>
           {matchBadge.label && (
             <Badge className={cn("text-xs mt-1", matchBadge.className)}>
@@ -205,6 +179,12 @@ const TeamMemberCard = ({
         </span>
         <span>
           <span className="font-medium">Expertise:</span> {member.expertise?.slice(0, 3).join(", ") || 'N/A'}
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="font-medium">Available:</span>
+          <Badge variant="outline" className={cn("text-xs font-semibold", statusInfo.colorClass, statusInfo.bgClass, statusInfo.borderClass)}>
+            {formatAvailableCapacity(availableCapacity)}
+          </Badge>
         </span>
       </div>
       {disableReason && isDisabled && <p className="text-xs text-destructive mt-2">{disableReason}</p>}
@@ -251,7 +231,7 @@ const ChairCard = ({
   );
 };
 
-// Pending Assignment Card (shopping cart item) - Grey styling for pending state
+// Pending Assignment Card (shopping cart item)
 const PendingAssignmentCard = ({
   assignment,
   onRemove,
@@ -262,23 +242,18 @@ const PendingAssignmentCard = ({
   isReadOnly?: boolean;
 }) => {
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--wq-status-pending-grey-bg))] border border-[hsl(var(--wq-status-pending-grey-border))]">
+    <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-200">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-[hsl(var(--wq-status-pending-grey-border))] flex items-center justify-center">
-          <Clock className="w-4 h-4 text-[hsl(var(--wq-status-pending-grey-text))]" />
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <p className="font-medium text-[hsl(var(--wq-status-pending-grey-text))]">{assignment.member.name}</p>
-            <Badge variant="outline" className="text-[10px] bg-[hsl(var(--wq-status-pending-grey-bg))] text-[hsl(var(--wq-status-pending-grey-text))] border-[hsl(var(--wq-status-pending-grey-border))]">
-              Pending
-            </Badge>
-          </div>
-          <p className="text-xs text-[hsl(var(--wq-status-pending-grey-text))]">
+          <p className="font-medium text-primary">{assignment.member.name}</p>
+          <p className="text-xs text-muted-foreground">
             {assignment.chair.name} • {assignment.workloadPercentage}%
           </p>
           {assignment.notes && (
-            <p className="text-xs text-[hsl(var(--wq-status-pending-grey-text))] italic mt-1 truncate max-w-[200px]">
+            <p className="text-xs text-muted-foreground italic mt-1 truncate max-w-[200px]">
               Note: {assignment.notes}
             </p>
           )}
@@ -286,7 +261,7 @@ const PendingAssignmentCard = ({
       </div>
       <div className="flex items-center gap-2">
         {!isReadOnly && (
-          <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10">
+          <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-red-50">
             <Trash2 className="w-4 h-4" />
           </Button>
         )}
@@ -748,64 +723,32 @@ export const ConsolidatedAssignmentFlowV2 = ({
             
             return (
               <div className="space-y-6">
-                {/* Header with Prominent Chair Count */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {selectedRole.roleName}
+                {/* Header */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedRole.roleName}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                      {remainingChairs} of {configuredChairCount} chair{configuredChairCount !== 1 ? 's' : ''} remaining
+                    </Badge>
+                    {pendingAssignments.length > 0 && (
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                        {pendingAssignments.length} pending
                       </Badge>
-                      {pendingAssignments.length > 0 && (
-                        <Badge className="bg-[hsl(var(--wq-status-pending-grey-bg))] text-[hsl(var(--wq-status-pending-grey-text))] border-[hsl(var(--wq-status-pending-grey-border))] text-xs">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {pendingAssignments.length} pending
-                        </Badge>
-                      )}
-                    </div>
-                    <h4 className="font-medium">Assign Team Members to Chairs</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Add multiple assignments as required.
-                    </p>
+                    )}
                   </div>
-                  
-                  {/* Prominent Remaining Chairs Counter */}
-                  <div className={cn(
-                    "flex flex-col items-center justify-center px-5 py-3 rounded-lg border-2",
-                    remainingChairs === 0 
-                      ? "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))]"
-                      : remainingChairs <= 2 
-                        ? "bg-amber-50 border-amber-400" 
-                        : "bg-primary/5 border-primary"
-                  )}>
-                    <span className={cn(
-                      "text-3xl font-bold leading-none",
-                      remainingChairs === 0 
-                        ? "text-[hsl(var(--wq-status-completed-text))]"
-                        : remainingChairs <= 2 
-                          ? "text-amber-600" 
-                          : "text-primary"
-                    )}>
-                      {remainingChairs}
-                    </span>
-                    <span className={cn(
-                      "text-xs font-medium mt-1",
-                      remainingChairs === 0 
-                        ? "text-[hsl(var(--wq-status-completed-text))]"
-                        : "text-muted-foreground"
-                    )}>
-                      {remainingChairs === 1 ? 'Chair' : 'Chairs'} Remaining
-                    </span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5">
-                      of {configuredChairCount} total
-                    </span>
-                  </div>
+                  <h4 className="font-medium">Assign Team Members to Chairs</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Add multiple assignments as required.
+                  </p>
                 </div>
 
                 {/* Pending Assignments (Shopping Cart) */}
                 {pendingAssignments.length > 0 && (
                   <div className="space-y-2">
-                    <h5 className="text-sm font-medium text-[hsl(var(--wq-status-pending-grey-text))] flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                    <h5 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
                       Pending Assignments ({pendingAssignments.length})
                     </h5>
                     <div className="space-y-2">
@@ -1031,18 +974,11 @@ export const ConsolidatedAssignmentFlowV2 = ({
                 {/* Assignment List */}
                 <div className="space-y-3">
                   {pendingAssignments.map((assignment, index) => (
-                    <div key={assignment.id} className="bg-white rounded-lg p-4 border border-[hsl(var(--wq-border))] relative overflow-hidden">
-                      {/* Pending indicator stripe */}
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[hsl(var(--wq-status-pending-grey-border))]" />
-                      
-                      <div className="flex items-center justify-between mb-2 ml-2">
+                    <div key={assignment.id} className="bg-white rounded-lg p-4 border border-[hsl(var(--wq-border))]">
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-muted-foreground">Assignment {index + 1}</span>
-                        <Badge className="bg-[hsl(var(--wq-status-pending-grey-bg))] text-[hsl(var(--wq-status-pending-grey-text))] border-[hsl(var(--wq-status-pending-grey-border))] text-xs">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Pending
-                        </Badge>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm ml-2">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground">Team Member:</span>
                           <p className="font-medium">{assignment.member.name}</p>

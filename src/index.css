@@ -58,11 +58,6 @@
     --wq-priority-low-bg: 0 0% 94%;          /* #F0F0F0 */
     --wq-priority-low-text: 0 0% 36%;        /* #5C5C5C */
     
-    /* Status Colors - Pending (Grey) */
-    --wq-status-pending-grey-bg: 0 0% 94%;   /* #F0F0F0 */
-    --wq-status-pending-grey-border: 0 0% 75%; /* #BFBFBF */
-    --wq-status-pending-grey-text: 0 0% 40%; /* #666666 */
-    
     /* Sidebar Colors */
     --wq-sidebar-bg: 220 100% 24%;           /* #002C77 */
     --wq-sidebar-active: 197 100% 44%;       /* #009DE0 */
