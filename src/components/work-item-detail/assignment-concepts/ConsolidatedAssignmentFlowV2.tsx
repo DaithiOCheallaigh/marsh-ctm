@@ -640,7 +640,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           isFullyCompleted 
                             ? "border-[hsl(var(--wq-status-completed-text))] bg-[hsl(var(--wq-status-completed-bg))]" 
                             : isPartiallyCompleted 
-                              ? "border-amber-400 bg-amber-50" 
+                              ? "border-gray-300 bg-gray-50" 
                               : "border-border hover:border-primary hover:bg-primary/5"
                         )}
                       >
@@ -650,7 +650,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                             isFullyCompleted 
                               ? "bg-[hsl(var(--wq-status-completed-text))]" 
                               : isPartiallyCompleted 
-                                ? "bg-amber-400" 
+                                ? "bg-gray-400" 
                                 : "bg-primary/10"
                           )}>
                             {isFullyCompleted ? (
@@ -667,7 +667,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                               isFullyCompleted 
                                 ? "text-[hsl(var(--wq-status-completed-text))]" 
                                 : isPartiallyCompleted 
-                                  ? "text-amber-700" 
+                                  ? "text-gray-700" 
                                   : "group-hover:text-primary"
                             )}>
                               {role.roleName}
@@ -685,7 +685,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                                   Fully Assigned ({assignedCount}/{configuredChairCount})
                                 </Badge>
                               ) : isPartiallyCompleted ? (
-                                <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                                <Badge className="text-xs bg-gray-100 text-gray-700 border-gray-300">
                                   <AlertCircle className="w-3 h-3 mr-1" />
                                   Partial ({assignedCount}/{configuredChairCount})
                                 </Badge>
@@ -702,7 +702,7 @@ export const ConsolidatedAssignmentFlowV2 = ({
                           isFullyCompleted 
                             ? "text-[hsl(var(--wq-status-completed-text))]" 
                             : isPartiallyCompleted 
-                              ? "text-amber-600" 
+                              ? "text-gray-600" 
                               : "text-muted-foreground group-hover:text-primary"
                         )} />
                       </button>
