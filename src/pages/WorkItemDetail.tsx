@@ -19,6 +19,7 @@ import {
   VerticalAssignmentFlow,
   ConsolidatedAssignmentFlow,
   ConsolidatedAssignmentFlowV2,
+  CompletedAssignmentView,
   AssignmentData,
 } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -571,8 +572,21 @@ const WorkItemDetail = () => {
                 <h3 className="text-lg font-semibold text-primary">Assignment Requirements</h3>
               </div>
 
-              {/* Assignment Flow Component based on selected option and view */}
-              {assignmentOption === "option1" ? (
+              {/* Assignment Flow Component - Show read-only view for completed items */}
+              {isReadOnly ? (
+                <CompletedAssignmentView
+                  availableRoles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  isPartialCompletion={workItem.backendStatus === 'Partially Completed'}
+                />
+              ) : assignmentOption === "option1" ? (
                 // Option 1: Current 4-step flow (Horizontal or Vertical)
                 assignmentView === "horizontal" ? (
                   <SimplifiedAssignmentFlow
