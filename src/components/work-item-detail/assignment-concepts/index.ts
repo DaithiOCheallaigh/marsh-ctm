@@ -8,3 +8,4 @@ export { SimplifiedAssignmentFlow } from './SimplifiedAssignmentFlow';
 export { VerticalAssignmentFlow } from './VerticalAssignmentFlow';
 export { ConsolidatedAssignmentFlow } from './ConsolidatedAssignmentFlow';
 export { ConsolidatedAssignmentFlowV2 } from './ConsolidatedAssignmentFlowV2';
+export { CompletedAssignmentView } from '../CompletedAssignmentView';
