@@ -249,50 +249,10 @@ const initialWorkItems: WorkItem[] = [
     assignee: 'Jennifer Walsh', 
     priority: 'High', 
     status: 'Completed',
-    backendStatus: 'Completed',
-    isReadOnly: true,
     description: 'Oil & gas exploration company requiring energy package and environmental liability',
     teams: [
       { teamId: 'team-energy', teamName: 'Energy', isPrimary: true, roles: [createRole('Energy Specialist'), createRole('Senior Broker'), createRole('Risk Engineer')] },
       { teamId: 'team-env', teamName: 'Environmental', isPrimary: false, roles: [createRole('Environmental Risk Manager')] }
-    ],
-    savedAssignments: [
-      {
-        roleId: 'role-energy-specialist',
-        roleName: 'Energy Specialist',
-        teamName: 'Energy',
-        selectedPerson: { id: 'member-1', name: 'Michael Chen', role: 'Energy Specialist', location: 'Houston' },
-        chairType: 'Primary',
-        workloadPercentage: 35,
-        notes: 'Primary Lead - Strong background in oil & gas sector'
-      },
-      {
-        roleId: 'role-senior-broker',
-        roleName: 'Senior Broker',
-        teamName: 'Energy',
-        selectedPerson: { id: 'member-2', name: 'Sarah Johnson', role: 'Senior Broker', location: 'Houston' },
-        chairType: 'Primary',
-        workloadPercentage: 25,
-        notes: 'Account Lead'
-      },
-      {
-        roleId: 'role-risk-engineer',
-        roleName: 'Risk Engineer',
-        teamName: 'Energy',
-        selectedPerson: { id: 'member-3', name: 'David Martinez', role: 'Risk Engineer', location: 'Dallas' },
-        chairType: 'Primary',
-        workloadPercentage: 20,
-        notes: 'Technical Advisor'
-      },
-      {
-        roleId: 'role-environmental-risk-manager',
-        roleName: 'Environmental Risk Manager',
-        teamName: 'Environmental',
-        selectedPerson: { id: 'member-4', name: 'Emily Rodriguez', role: 'Environmental Risk Manager', location: 'Houston' },
-        chairType: 'Primary',
-        workloadPercentage: 30,
-        notes: 'Primary Lead - EPA compliance specialist'
-      }
     ]
   },
   { 
@@ -346,34 +306,7 @@ const initialWorkItems: WorkItem[] = [
     assignee: 'Amanda Foster', 
     priority: 'High', 
     status: 'Completed',
-    backendStatus: 'Partially Completed',
-    isReadOnly: true,
-    partialCompletionJustification: 'Client transition expedited due to acquisition timeline. Fleet Manager role could not be assigned as all qualified team members are at capacity. Will be addressed in Q2 resource planning.',
-    description: 'Client acquired by larger carrier with existing coverage',
-    teams: [
-      { teamId: 'team-mc', teamName: 'Marine Cargo', isPrimary: true, roles: [createRole('Account Executive'), createRole('Underwriting Specialist')] },
-      { teamId: 'team-fleet', teamName: 'Fleet', isPrimary: false, roles: [createRole('Fleet Manager')] }
-    ],
-    savedAssignments: [
-      {
-        roleId: 'role-account-executive',
-        roleName: 'Account Executive',
-        teamName: 'Marine Cargo',
-        selectedPerson: { id: 'member-5', name: 'James Wilson', role: 'Account Executive', location: 'Indianapolis' },
-        chairType: 'Primary',
-        workloadPercentage: 20,
-        notes: 'Primary Lead - Handling transition documentation'
-      },
-      {
-        roleId: 'role-underwriting-specialist',
-        roleName: 'Underwriting Specialist',
-        teamName: 'Marine Cargo',
-        selectedPerson: { id: 'member-6', name: 'Patricia Lee', role: 'Underwriting Specialist', location: 'Chicago' },
-        chairType: 'Primary',
-        workloadPercentage: 15,
-        notes: 'Secondary Support - Policy review and cancellation'
-      }
-    ]
+    description: 'Client acquired by larger carrier with existing coverage'
   },
   { 
     id: '1001234581', 
