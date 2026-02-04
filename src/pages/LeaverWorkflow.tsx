@@ -331,15 +331,15 @@ const LeaverWorkflow = () => {
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Assigned To
+                        PeopleSoft ID
                       </p>
                       <p className="text-primary font-semibold text-sm">
-                        {workItem.assignee || 'Unassigned'}
+                        {workItem.id}
                       </p>
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Due Date
+                        Leaving Date
                       </p>
                       <p className="text-primary font-semibold text-sm">
                         {workItem.dueDate}
