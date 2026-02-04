@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface AssignmentPanelProps {
   leaverName: string;
+  leaverTeam: string;
   clients: LeaverClient[];
   assignedClientIds: string[];
   selectedMember: ReassignableTeamMember | null;
@@ -24,6 +25,7 @@ interface AssignmentPanelProps {
 
 export const AssignmentPanel: React.FC<AssignmentPanelProps> = ({
   leaverName,
+  leaverTeam,
   clients,
   assignedClientIds,
   selectedMember,
@@ -51,6 +53,7 @@ export const AssignmentPanel: React.FC<AssignmentPanelProps> = ({
           <div>
             <h4 className="text-primary font-bold text-sm mb-1">From:</h4>
             <p className="text-primary font-semibold text-base">{leaverName}</p>
+            <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{leaverTeam}</p>
           </div>
 
           <div className="space-y-2 max-h-[400px] overflow-y-auto">

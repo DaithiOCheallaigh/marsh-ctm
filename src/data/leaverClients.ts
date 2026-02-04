@@ -118,6 +118,7 @@ export interface LeaverWorkItem {
   id: string;
   workType: "Leaver";
   employeeName: string;
+  team: string;
   email: string;
   location: string;
   peopleSoftId: string;
@@ -131,6 +132,7 @@ export const mockLeaverWorkItem: LeaverWorkItem = {
   id: "3",
   workType: "Leaver",
   employeeName: "John Grimes",
+  team: "Property Risk Assessment",
   email: "johngrimes@marsh.com",
   location: "New York",
   peopleSoftId: "1234567",
