@@ -372,6 +372,7 @@ const LeaverWorkflow = () => {
                   <div className="p-6">
                     <AssignmentPanel
                       leaverName={leaverName}
+                      leaverTeam={workItem?.teams?.[0]?.teamName || "Property Risk Assessment"}
                       clients={leaverClients}
                       assignedClientIds={assignedClientIds}
                       selectedMember={selectedMember}
