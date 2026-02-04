@@ -25,10 +25,19 @@ import {
   FormSelectTrigger, 
   FormSelectValue 
 } from "@/components/form/FormSelect";
+import SearchablePersonInput, { SearchablePerson } from "@/components/form/SearchablePersonInput";
 import { getFieldStateClasses } from "@/components/form/FormDirtyContext";
 import { managers } from "@/data/teamMembers";
 import { Client } from "@/data/clients";
 import { WorkItemTeamConfig } from "@/types/teamAssignment";
+
+// Convert managers to searchable persons
+const managerPersons: SearchablePerson[] = managers.map((manager) => ({
+  id: manager.id,
+  name: manager.name,
+  role: manager.role,
+  location: manager.location,
+}));
 
 type WorkType = "" | "onboarding" | "new-joiner" | "leaver" | "offboarding";
 type Priority = "high" | "medium" | "low";
@@ -107,8 +116,8 @@ const CreateWorkItem = () => {
     markDirty("priority");
   };
 
-  const handleAssignToChange = (value: string) => {
-    setAssignTo(value);
+  const handleAssignToChange = (id: string, person: SearchablePerson | null) => {
+    setAssignTo(id);
     markDirty("assignTo");
   };
 
@@ -462,18 +471,13 @@ const CreateWorkItem = () => {
                         Assigned To<span className="text-[hsl(0,100%,50%)]">*</span>
                       </Label>
                       <div className="space-y-1">
-                        <FormSelect value={assignTo} onValueChange={handleAssignToChange}>
-                          <FormSelectTrigger className="max-w-md" fieldName="assignTo">
-                            <FormSelectValue placeholder="Select Manager" />
-                          </FormSelectTrigger>
-                          <FormSelectContent>
-                            {managers.map((manager) => (
-                              <FormSelectItem key={manager.id} value={manager.id}>
-                                {manager.name} - {manager.role}
-                              </FormSelectItem>
-                            ))}
-                          </FormSelectContent>
-                        </FormSelect>
+                        <SearchablePersonInput
+                          value={assignTo}
+                          onChange={handleAssignToChange}
+                          placeholder="Search Manager"
+                          persons={managerPersons}
+                          isDirty={isDirty("assignTo")}
+                        />
                         <p className="text-xs text-muted-foreground ml-1">
                           Only managers can be assigned as the primary owner
                         </p>
