@@ -680,15 +680,27 @@ const CreateWorkItem = () => {
                     />
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="p-6 text-center py-4">
-                      <p className="text-[hsl(var(--wq-text-secondary))] mb-4">
+                    <div className="p-6">
+                      <p className="text-[hsl(var(--wq-text-secondary))] text-sm mb-6 text-center">
                         Review your selections and click "Create Work Item" to complete.
                       </p>
-                      <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg inline-block text-left">
-                        <p className="text-sm"><strong>Work Type:</strong> {workType}</p>
-                        <p className="text-sm"><strong>Assignee:</strong> {getAssigneeName()}</p>
-                        <p className="text-sm"><strong>Client/Colleague:</strong> {getClientName()}</p>
-                        <p className="text-sm"><strong>Due Date:</strong> {dueDate ? format(dueDate, "dd MMM yyyy") : "Not set"}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Work Type</p>
+                          <p className="text-sm font-semibold text-primary capitalize">{workType.replace('-', ' ') || '—'}</p>
+                        </div>
+                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Assigned To</p>
+                          <p className="text-sm font-semibold text-primary">{getAssigneeName() || '—'}</p>
+                        </div>
+                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Client/Colleague</p>
+                          <p className="text-sm font-semibold text-primary">{getClientName() || '—'}</p>
+                        </div>
+                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Due Date</p>
+                          <p className="text-sm font-semibold text-primary">{dueDate ? format(dueDate, "dd MMM yyyy") : '—'}</p>
+                        </div>
                       </div>
                     </div>
                   </CollapsibleContent>
