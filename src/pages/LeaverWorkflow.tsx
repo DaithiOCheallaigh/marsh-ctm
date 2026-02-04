@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { Clock, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
@@ -8,12 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { PriorityBadge } from "@/components/PriorityBadge";
+import { useWorkItems } from "@/context/WorkItemsContext";
 import {
   leaverClients,
   LeaverClient,
   ReassignableTeamMember,
   Reassignment,
-  mockLeaverWorkItem,
 } from "@/data/leaverClients";
 import {
   AssignmentPanel,
@@ -25,6 +25,11 @@ import {
 const LeaverWorkflow = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams<{ id: string }>();
+  const { workItems, completeWorkItem } = useWorkItems();
+
+  // Find the work item from context
+  const workItem = workItems.find((item) => item.id === id);
 
   // Section visibility
   const [workDetailsOpen, setWorkDetailsOpen] = useState(true);
@@ -42,7 +47,14 @@ const LeaverWorkflow = () => {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
-  const workItem = mockLeaverWorkItem;
+  // Redirect if work item not found or not a Leaver type
+  useEffect(() => {
+    if (!workItem) {
+      navigate("/", { replace: true });
+    } else if (workItem.workType !== "Leaver") {
+      navigate(`/work-item/${id}`, { replace: true });
+    }
+  }, [workItem, id, navigate]);
 
   // Toggle client selection in From panel
   const handleToggleClient = useCallback((clientId: string) => {
@@ -205,6 +217,16 @@ const LeaverWorkflow = () => {
     }
   };
 
+  // Don't render until we have a valid work item
+  if (!workItem || workItem.workType !== "Leaver") {
+    return null;
+  }
+
+  // Derive leaver-specific display values from WorkItem
+  const leaverName = workItem.clientName; // For Leaver type, clientName holds the leaver's name
+  const email = `${leaverName.toLowerCase().replace(/\s+/g, '')}@marsh.com`;
+  const leaverLocation = workItem.location || 'Not specified';
+
   return (
     <>
       <div className="min-h-screen bg-[hsl(var(--wq-bg-page))] flex flex-col">
@@ -234,7 +256,7 @@ const LeaverWorkflow = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <h1 className="text-primary text-lg font-bold">
-                  Work ID - {workItem.id} | {workItem.employeeName}
+                  Work ID - {workItem.id} | {leaverName}
                 </h1>
                 <div className="flex items-center gap-2 text-[hsl(var(--wq-text-secondary))] text-sm">
                   <span>Work Type:</span>
@@ -251,18 +273,18 @@ const LeaverWorkflow = () => {
                 <div className="flex items-center gap-2 px-3 py-2 bg-[hsl(var(--wq-bg-muted))] rounded-lg">
                   <Clock className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
                   <span className="text-[hsl(var(--wq-text-secondary))] text-xs">
-                    {workItem.createdAt}
+                    {workItem.dateCreated}
                   </span>
                 </div>
                 <span
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-medium border",
-                    workItem.status === "On Track"
-                      ? "bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]"
-                      : "bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))] border-[hsl(var(--wq-status-pending-text))]"
+                    workItem.status === "Pending"
+                      ? "bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))] border-[hsl(var(--wq-status-pending-text))]"
+                      : "bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]"
                   )}
                 >
-                  {workItem.status}
+                  {workItem.status === "Pending" ? "On Track" : workItem.status}
                 </span>
               </div>
             </div>
@@ -290,31 +312,31 @@ const LeaverWorkflow = () => {
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Name</p>
                       <p className="text-primary font-semibold text-sm">
-                        {workItem.employeeName}
+                        {leaverName}
                       </p>
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Email</p>
-                      <p className="text-primary font-semibold text-sm">{workItem.email}</p>
+                      <p className="text-primary font-semibold text-sm">{email}</p>
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Location</p>
-                      <p className="text-primary font-semibold text-sm">{workItem.location}</p>
+                      <p className="text-primary font-semibold text-sm">{leaverLocation}</p>
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        People Soft ID
+                        Assigned To
                       </p>
                       <p className="text-primary font-semibold text-sm">
-                        {workItem.peopleSoftId}
+                        {workItem.assignee || 'Unassigned'}
                       </p>
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Leaving Date
+                        Due Date
                       </p>
                       <p className="text-primary font-semibold text-sm">
-                        {workItem.leavingDate}
+                        {workItem.dueDate}
                       </p>
                     </div>
                   </div>
@@ -343,7 +365,7 @@ const LeaverWorkflow = () => {
                 <CollapsibleContent>
                   <div className="p-6">
                     <AssignmentPanel
-                      leaverName={workItem.employeeName}
+                      leaverName={leaverName}
                       clients={leaverClients}
                       assignedClientIds={assignedClientIds}
                       selectedMember={selectedMember}
