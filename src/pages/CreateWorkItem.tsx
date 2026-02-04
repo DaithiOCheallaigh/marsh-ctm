@@ -551,8 +551,8 @@ const CreateWorkItem = () => {
                 )}>
                   <CollapsibleTrigger className="w-full" disabled={!isSection1Complete()}>
                     <CollapsibleSectionHeader 
-                      title="Client Selection" 
-                      sectionNumber={2} 
+                      title={workType === "leaver" ? "Select Leaver" : "Client Selection"} 
+                      sectionNumber={2}
                       isComplete={isSection2Complete()}
                       isDisabled={!isSection1Complete()}
                       isOpen={isSection1Complete() && openSections.has(2)}
