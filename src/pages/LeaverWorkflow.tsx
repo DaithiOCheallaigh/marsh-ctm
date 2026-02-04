@@ -179,6 +179,12 @@ const LeaverWorkflow = () => {
 
   const confirmComplete = () => {
     setShowCompleteModal(false);
+    
+    // Mark the work item as completed in the context
+    if (id) {
+      completeWorkItem(id);
+    }
+    
     toast({
       title: "Reassignments Completed",
       description: "All client reassignments have been finalized.",
