@@ -293,7 +293,13 @@ const CreateWorkItem = () => {
       title: "Work Item Created",
       description: "Your work item has been successfully created.",
     });
-    navigate(`/work-item/${workItemId}`);
+    
+    // Navigate to Leaver Workflow for leaver work type
+    if (workType === "leaver") {
+      navigate("/leaver-workflow");
+    } else {
+      navigate(`/work-item/${workItemId}`);
+    }
   };
 
 

@@ -9,6 +9,7 @@ import { TeamAssignmentsProvider } from "./context/TeamAssignmentsContext";
 import Index from "./pages/Index";
 import CreateWorkItem from "./pages/CreateWorkItem";
 import WorkItemDetail from "./pages/WorkItemDetail";
+import LeaverWorkflow from "./pages/LeaverWorkflow";
 import TeamSetup from "./pages/TeamSetup";
 import TeamDetail from "./pages/TeamDetail";
 import EditTeamDetails from "./pages/EditTeamDetails";
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/create-work-item" element={<CreateWorkItem />} />
                 <Route path="/work-item/:id" element={<WorkItemDetail />} />
+                <Route path="/leaver-workflow" element={<LeaverWorkflow />} />
                 <Route path="/team-setup" element={<TeamSetup />} />
                 <Route path="/team-setup/new" element={<AddTeam />} />
                 <Route path="/team-setup/:id" element={<TeamDetail />} />
