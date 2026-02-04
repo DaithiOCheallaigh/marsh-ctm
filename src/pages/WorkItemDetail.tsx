@@ -153,6 +153,12 @@ const WorkItemDetail = () => {
   useEffect(() => {
     const found = workItems.find((item) => item.id === id);
     if (found) {
+      // Redirect Leaver work items to the Leaver Workflow page
+      if (found.workType === 'Leaver') {
+        navigate('/leaver-workflow', { replace: true });
+        return;
+      }
+      
       setWorkItem(found);
       if (teams.length === 0) {
         setTeams(buildTeamsFromWorkItem(found));
