@@ -137,7 +137,13 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
             </tr>
           </thead>
           <tbody>
-            {sortedData.map((item, index) => (
+            {sortedData.map((item, index) => {
+              // Determine navigation path based on work type
+              const navigatePath = item.workType === 'Leaver' 
+                ? '/leaver-workflow' 
+                : `/work-item/${item.id}`;
+              
+              return (
               <tr 
                 key={`${item.id}-${index}`}
                 className={`
@@ -148,10 +154,10 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                 `}
                 tabIndex={0}
                 role="row"
-                onClick={() => navigate(`/work-item/${item.id}`)}
+                onClick={() => navigate(navigatePath)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    navigate(`/work-item/${item.id}`);
+                    navigate(navigatePath);
                   }
                 }}
               >
@@ -184,7 +190,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
                   />
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
