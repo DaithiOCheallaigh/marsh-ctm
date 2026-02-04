@@ -14,6 +14,7 @@ interface UnsavedChangesModalProps {
   onClose: () => void;
   onSaveAndExit: () => void;
   onExitWithoutSaving: () => void;
+  pendingCount?: number;
 }
 
 export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
@@ -21,6 +22,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
   onClose,
   onSaveAndExit,
   onExitWithoutSaving,
+  pendingCount,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -30,7 +32,15 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
             Unsaved Changes
           </DialogTitle>
           <DialogDescription className="text-center text-[hsl(var(--wq-text-secondary))]">
-            You have unsaved reassignments. What would you like to do?
+            <p>
+              You have {pendingCount !== undefined ? `${pendingCount} ` : ""}unsaved reassignment{pendingCount !== 1 ? "s" : ""}.
+              What would you like to do?
+            </p>
+            {pendingCount !== undefined && pendingCount > 0 && (
+              <p className="text-xs text-[hsl(var(--wq-text-muted))] mt-2">
+                Changes will be lost if you exit without saving.
+              </p>
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col gap-3 sm:flex-col">
@@ -38,7 +48,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
             onClick={onSaveAndExit} 
             className="w-full bg-primary hover:bg-primary/90"
           >
-            Save & Exit
+            Save as Draft
           </Button>
           <Button
             variant="outline"

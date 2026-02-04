@@ -3,12 +3,13 @@ import { LeaverClient } from "@/data/leaverClients";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
-interface LeaverClientCardProps {
+export interface LeaverClientCardProps {
   client: LeaverClient;
   showCheckbox: boolean;
   isChecked: boolean;
   onCheckChange: (checked: boolean) => void;
   isAssigned?: boolean;
+  capacityRequirement?: number;
 }
 
 export const LeaverClientCard: React.FC<LeaverClientCardProps> = ({
@@ -17,6 +18,7 @@ export const LeaverClientCard: React.FC<LeaverClientCardProps> = ({
   isChecked,
   onCheckChange,
   isAssigned = false,
+  capacityRequirement,
 }) => {
   return (
     <div
@@ -46,6 +48,11 @@ export const LeaverClientCard: React.FC<LeaverClientCardProps> = ({
           {client.industry} | {client.role}
         </p>
       </div>
+      {capacityRequirement !== undefined && (
+        <span className="text-xs text-[hsl(var(--wq-text-muted))] bg-[hsl(var(--wq-bg-muted))] px-2 py-1 rounded">
+          {capacityRequirement.toFixed(1)} chair
+        </span>
+      )}
     </div>
   );
 };
