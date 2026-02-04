@@ -155,7 +155,7 @@ const WorkItemDetail = () => {
     if (found) {
       // Redirect Leaver work items to the Leaver Workflow page
       if (found.workType === 'Leaver') {
-        navigate('/leaver-workflow', { replace: true });
+        navigate(`/leaver-workflow/${found.id}`, { replace: true });
         return;
       }
       

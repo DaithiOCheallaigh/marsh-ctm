@@ -296,7 +296,7 @@ const CreateWorkItem = () => {
     
     // Navigate to Leaver Workflow for leaver work type
     if (workType === "leaver") {
-      navigate("/leaver-workflow");
+      navigate(`/leaver-workflow/${workItemId}`);
     } else {
       navigate(`/work-item/${workItemId}`);
     }

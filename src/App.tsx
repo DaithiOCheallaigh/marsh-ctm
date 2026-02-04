@@ -36,7 +36,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/create-work-item" element={<CreateWorkItem />} />
                 <Route path="/work-item/:id" element={<WorkItemDetail />} />
-                <Route path="/leaver-workflow" element={<LeaverWorkflow />} />
+                <Route path="/leaver-workflow/:id" element={<LeaverWorkflow />} />
                 <Route path="/team-setup" element={<TeamSetup />} />
                 <Route path="/team-setup/new" element={<AddTeam />} />
                 <Route path="/team-setup/:id" element={<TeamDetail />} />

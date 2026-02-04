@@ -140,7 +140,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onSort, className = 
             {sortedData.map((item, index) => {
               // Determine navigation path based on work type
               const navigatePath = item.workType === 'Leaver' 
-                ? '/leaver-workflow' 
+                ? `/leaver-workflow/${item.id}` 
                 : `/work-item/${item.id}`;
               
               return (
