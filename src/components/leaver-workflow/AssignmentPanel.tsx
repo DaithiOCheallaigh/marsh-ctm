@@ -56,7 +56,7 @@ export const AssignmentPanel: React.FC<AssignmentPanelProps> = ({
             <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{leaverTeam}</p>
           </div>
 
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+          <div className="space-y-2">
             {availableClients.map((client) => (
               <LeaverClientCard
                 key={client.id}
@@ -116,7 +116,7 @@ export const AssignmentPanel: React.FC<AssignmentPanelProps> = ({
 
           {/* Pending clients for this member */}
           {selectedMember && pendingClients.length > 0 && (
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            <div className="space-y-2">
               {pendingClients.map((client) => (
                 <div
                   key={client.id}
