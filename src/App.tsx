@@ -8,7 +8,6 @@ import { TeamsProvider } from "./context/TeamsContext";
 import { TeamAssignmentsProvider } from "./context/TeamAssignmentsContext";
 import Index from "./pages/Index";
 import CreateWorkItem from "./pages/CreateWorkItem";
-import CreateLeaverWorkItem from "./pages/CreateLeaverWorkItem";
 import WorkItemDetail from "./pages/WorkItemDetail";
 import LeaverWorkflow from "./pages/LeaverWorkflow";
 import TeamSetup from "./pages/TeamSetup";
@@ -36,7 +35,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/create-work-item" element={<CreateWorkItem />} />
-                <Route path="/create-leaver-work-item" element={<CreateLeaverWorkItem />} />
                 <Route path="/work-item/:id" element={<WorkItemDetail />} />
                 <Route path="/leaver-workflow/:id" element={<LeaverWorkflow />} />
                 <Route path="/team-setup" element={<TeamSetup />} />
