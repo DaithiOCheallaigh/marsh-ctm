@@ -78,7 +78,7 @@ export const EnhancedAssignmentPanel: React.FC<EnhancedAssignmentPanelProps> = (
           {remainingCount > 0 && assignedCount > 0}
 
           {/* Client List */}
-          <div className="space-y-2 max-h-[400px] overflow-auto">
+          <div className="space-y-2">
             {availableClients.map(client => <LeaverClientCard key={client.id} client={client} showCheckbox={!!selectedMember} isChecked={selectedClientIds.includes(client.id)} onCheckChange={() => onToggleClient(client.id)} capacityRequirement={client.capacityRequirement} />)}
             {availableClients.length === 0 && pendingClients.length === 0 && <div className="flex items-center justify-center py-8 text-[hsl(var(--wq-status-completed-text))]">
                 <span className="text-sm font-medium">
