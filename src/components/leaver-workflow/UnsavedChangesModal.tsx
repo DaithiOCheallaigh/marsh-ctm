@@ -33,12 +33,11 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
           </DialogTitle>
           <DialogDescription className="text-center text-[hsl(var(--wq-text-secondary))]">
             <p>
-              You have {pendingCount !== undefined ? `${pendingCount} ` : ""}unsaved reassignment{pendingCount !== 1 ? "s" : ""}.
-              What would you like to do?
+              You are exiting the page and all unsaved data will be lost.
             </p>
             {pendingCount !== undefined && pendingCount > 0 && (
               <p className="text-xs text-[hsl(var(--wq-text-muted))] mt-2">
-                Changes will be lost if you exit without saving.
+                You have {pendingCount} unsaved reassignment{pendingCount !== 1 ? "s" : ""} that will be permanently removed.
               </p>
             )}
           </DialogDescription>
