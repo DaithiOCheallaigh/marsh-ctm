@@ -68,9 +68,7 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
                 colSpan={isReadOnly ? 6 : 7}
                 className="text-center py-8 text-[hsl(var(--wq-text-muted))]"
               >
-                {isReadOnly
-                  ? "No reassignments were made for this work item."
-                  : "No reassignments yet. Select a team member and clients to begin."}
+                No reassignments yet. Select a team member and clients to begin.
               </TableCell>
             </TableRow>
           ) : (
