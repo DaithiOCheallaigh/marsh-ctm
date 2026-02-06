@@ -513,7 +513,7 @@ const LeaverWorkflow = () => {
                         clients={clientsWithCapacity}
                         assignedClientIds={assignedClientIds}
                         selectedMember={selectedMember}
-                        onSelectMember={setSelectedMember}
+                        onSelectMember={handleSelectMember}
                         selectedClientIds={selectedClientIds}
                         onToggleClient={handleToggleClient}
                         pendingClients={pendingClients}
