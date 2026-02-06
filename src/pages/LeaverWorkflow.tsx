@@ -470,30 +470,6 @@ const LeaverWorkflow = () => {
             </Collapsible>
 
             {/* Read-only: Summary Cards */}
-            {isReadOnly && (
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="bg-white rounded-lg border border-[hsl(var(--wq-border))] p-4 text-center">
-                  <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">
-                    Total Clients Reassigned
-                  </p>
-                  <p className="text-3xl font-bold text-primary">{reassignments.length}</p>
-                </div>
-                <div className="bg-white rounded-lg border border-[hsl(var(--wq-border))] p-4 text-center">
-                  <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">
-                    Team Members Affected
-                  </p>
-                  <p className="text-3xl font-bold text-primary">{teamMembersAffected}</p>
-                </div>
-                <div className="bg-white rounded-lg border border-[hsl(var(--wq-border))] p-4 text-center">
-                  <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">
-                    Total Capacity Moved
-                  </p>
-                  <p className="text-3xl font-bold text-primary">
-                    {totalCapacity.toFixed(1)} chairs
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Assignment Details Section - Only show if not read-only */}
             {!isReadOnly && (
