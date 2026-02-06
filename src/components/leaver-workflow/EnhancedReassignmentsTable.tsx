@@ -27,15 +27,16 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
   isReadOnly = false,
   clients = [],
 }) => {
-  // Get capacity for a client
-  const getClientCapacity = (clientId: string) => {
-    const client = clients.find((c) => c.id === clientId);
+  // Get capacity for a client - prefer reassignment record, fallback to clients list
+  const getClientCapacity = (reassignment: Reassignment) => {
+    if (reassignment.capacityRequirement != null) return reassignment.capacityRequirement;
+    const client = clients.find((c) => c.id === reassignment.clientId);
     return client?.capacityRequirement || 1.0;
   };
 
   // Calculate totals
   const totalCapacityReassigned = reassignments.reduce(
-    (sum, r) => sum + getClientCapacity(r.clientId),
+    (sum, r) => sum + getClientCapacity(r),
     0
   );
 
@@ -82,7 +83,7 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
                 <TableCell className="text-primary text-sm">{reassignment.industry}</TableCell>
                 <TableCell className="text-primary text-sm">
                   <span className="bg-[hsl(var(--wq-bg-muted))] px-2 py-0.5 rounded text-xs">
-                    {getClientCapacity(reassignment.clientId).toFixed(1)} chair
+                    {getClientCapacity(reassignment).toFixed(1)} chair
                   </span>
                 </TableCell>
                 <TableCell className="text-primary text-sm font-medium">

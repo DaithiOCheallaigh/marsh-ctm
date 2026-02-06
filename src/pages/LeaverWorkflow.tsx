@@ -58,8 +58,12 @@ const LeaverWorkflow = () => {
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [pendingClients, setPendingClients] = useState<(LeaverClient & { capacityRequirement?: number })[]>([]);
   const [pendingSelectedClientIds, setPendingSelectedClientIds] = useState<string[]>([]);
-  const [reassignments, setReassignments] = useState<Reassignment[]>([]);
-  const [assignedClientIds, setAssignedClientIds] = useState<string[]>([]);
+  const [reassignments, setReassignments] = useState<Reassignment[]>(
+    () => workItem?.leaverReassignments ?? []
+  );
+  const [assignedClientIds, setAssignedClientIds] = useState<string[]>(
+    () => workItem?.leaverReassignments?.map(r => r.clientId) ?? []
+  );
 
   // Modal state
   const [showCompleteModal, setShowCompleteModal] = useState(false);
@@ -259,8 +263,17 @@ const LeaverWorkflow = () => {
   const confirmComplete = () => {
     setShowCompleteModal(false);
 
-    // Mark the work item as completed in the context
+    // Save reassignments and mark work item as completed
     if (id) {
+      updateWorkItem(id, {
+        leaverReassignments: reassignments.map(r => {
+          const client = clientsWithCapacity.find(c => c.id === r.clientId);
+          return {
+            ...r,
+            capacityRequirement: client?.capacityRequirement || 1.0,
+          };
+        }),
+      });
       completeWorkItem(id);
     }
 
@@ -430,7 +443,7 @@ const LeaverWorkflow = () => {
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="p-6 grid grid-cols-5 gap-6">
+                  <div className="p-6 grid grid-cols-3 gap-x-12 gap-y-5">
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Name</p>
                       <p className="text-primary font-semibold text-sm">{leaverName}</p>
@@ -444,16 +457,18 @@ const LeaverWorkflow = () => {
                       <p className="text-primary font-semibold text-sm">{leaverLocation}</p>
                     </div>
                     <div>
-                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Leaver ID
-                      </p>
+                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Leaver ID</p>
                       <p className="text-primary font-semibold text-sm">{workItem.id}</p>
                     </div>
                     <div>
-                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Leaving Date
-                      </p>
+                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Leaving Date</p>
                       <p className="text-primary font-semibold text-sm">{workItem.dueDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Team Name</p>
+                      <p className="text-primary font-semibold text-sm">
+                        {workItem.teams?.[0]?.teamName || "Property Risk Assessment"}
+                      </p>
                     </div>
                   </div>
                 </CollapsibleContent>
