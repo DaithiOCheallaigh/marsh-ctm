@@ -289,6 +289,19 @@ const LeaverWorkflow = () => {
     navigate("/");
   };
 
+  // Handle cancel work item
+  const handleCancelWorkItem = (notes: string) => {
+    if (id) {
+      cancelWorkItem(id, notes);
+    }
+    setShowCancelModal(false);
+    toast({
+      title: "Work Item Cancelled",
+      description: "The work item has been cancelled.",
+    });
+    navigate("/");
+  };
+
   // Handle breadcrumb click
   const handleBreadcrumbClick = (e: React.MouseEvent) => {
     if (reassignments.length > 0 && !isReadOnly) {
