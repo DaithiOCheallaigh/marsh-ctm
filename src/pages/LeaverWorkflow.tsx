@@ -14,6 +14,7 @@ import {
   LeaverClient,
   Reassignment,
 } from "@/data/leaverClients";
+import { teamMembers } from "@/data/teamMembers";
 import {
   EnhancedAssignmentPanel,
   LeaverTeamMember,
