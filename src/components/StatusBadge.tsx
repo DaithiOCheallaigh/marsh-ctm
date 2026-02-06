@@ -48,6 +48,12 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       text: 'text-[hsl(210,15%,45%)]',
       border: 'border-[hsl(210,15%,45%,0.2)]',
       icon: null
+    },
+    Cancelled: {
+      bg: 'bg-red-50',
+      text: 'text-destructive',
+      border: 'border-red-200',
+      icon: null
     }
   };
 
