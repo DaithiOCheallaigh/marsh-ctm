@@ -377,11 +377,13 @@ const LeaverWorkflow = () => {
                     "px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5",
                     workItem.status === "Pending"
                       ? "bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))] border-[hsl(var(--wq-status-pending-text))]"
+                      : workItem.status === "Cancelled"
+                      ? "bg-red-50 text-destructive border-red-200"
                       : "bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]"
                   )}
                 >
                   {isReadOnly && <Lock className="w-3 h-3" />}
-                  {workItem.status === "Pending" ? "In Progress" : "Completed"}
+                  {workItem.status === "Pending" ? "In Progress" : workItem.status}
                 </span>
               </div>
             </div>
