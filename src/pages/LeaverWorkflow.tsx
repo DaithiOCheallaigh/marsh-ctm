@@ -443,7 +443,7 @@ const LeaverWorkflow = () => {
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="p-6 grid grid-cols-5 gap-6">
+                  <div className="p-6 grid grid-cols-3 gap-x-12 gap-y-5">
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Name</p>
                       <p className="text-primary font-semibold text-sm">{leaverName}</p>
@@ -457,16 +457,18 @@ const LeaverWorkflow = () => {
                       <p className="text-primary font-semibold text-sm">{leaverLocation}</p>
                     </div>
                     <div>
-                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Leaver ID
-                      </p>
+                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Leaver ID</p>
                       <p className="text-primary font-semibold text-sm">{workItem.id}</p>
                     </div>
                     <div>
-                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        Leaving Date
-                      </p>
+                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Leaving Date</p>
                       <p className="text-primary font-semibold text-sm">{workItem.dueDate}</p>
+                    </div>
+                    <div>
+                      <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">Team Name</p>
+                      <p className="text-primary font-semibold text-sm">
+                        {workItem.teams?.[0]?.teamName || "Property Risk Assessment"}
+                      </p>
                     </div>
                   </div>
                 </CollapsibleContent>
