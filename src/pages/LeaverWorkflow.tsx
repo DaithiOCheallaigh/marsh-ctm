@@ -523,6 +523,7 @@ const LeaverWorkflow = () => {
                         pendingSelectedClientIds={pendingSelectedClientIds}
                         onTogglePendingClient={handleTogglePendingClient}
                         teamId={leaverTeamId}
+                        excludeMemberIds={[...new Set(reassignments.map(r => r.reassignedToId))]}
                       />
                     </div>
                   </CollapsibleContent>

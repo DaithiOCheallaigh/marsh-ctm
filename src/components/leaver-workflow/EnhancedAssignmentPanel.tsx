@@ -168,6 +168,7 @@ export const EnhancedAssignmentPanel: React.FC<EnhancedAssignmentPanelProps> = (
               onSelectMember={onSelectMember}
               selectedClientsCapacity={selectedClientsCapacity}
               teamId={teamId}
+              excludeMemberIds={excludeMemberIds}
             />
           </div>
 
