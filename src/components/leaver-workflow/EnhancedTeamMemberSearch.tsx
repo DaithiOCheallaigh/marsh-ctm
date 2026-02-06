@@ -10,6 +10,7 @@ export interface LeaverTeamMember {
   name: string;
   role: string;
   location: string;
+  expertise: string[];
   currentCapacity: number;
   maxCapacity: number;
   availableCapacity: number;
