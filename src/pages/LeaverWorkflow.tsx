@@ -603,7 +603,7 @@ const LeaverWorkflow = () => {
         onClose={() => setShowUnsavedModal(false)}
         onSaveAndExit={handleSaveAndExit}
         onExitWithoutSaving={handleExitWithoutSaving}
-        pendingCount={reassignments.length}
+        pendingCount={reassignments.length + pendingClients.length}
       />
       {pendingAssignmentData && (
         <CapacityWarningModal
