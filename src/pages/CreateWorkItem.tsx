@@ -713,36 +713,37 @@ const CreateWorkItem = () => {
                     />
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="p-6">
-                      <p className="text-[hsl(var(--wq-text-secondary))] text-sm mb-6 text-center">
-                        Review your selections and click "Create Work Item" to complete.
-                      </p>
-                      <div className={cn(
-                        "grid gap-4",
-                        workType === "leaver" ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2 md:grid-cols-4"
-                      )}>
-                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                    <div className="p-6 space-y-6">
+                      <div className="grid grid-cols-3 gap-x-8 gap-y-5">
+                        <div>
                           <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Work Type</p>
                           <p className="text-sm font-semibold text-primary capitalize">{workType.replace('-', ' ') || '—'}</p>
                         </div>
-                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                        <div>
                           <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Assigned To</p>
                           <p className="text-sm font-semibold text-primary">{getAssigneeName() || '—'}</p>
                         </div>
-                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                        {workType === "leaver" ? (
+                          <div>
+                            <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Team Name</p>
+                            <p className="text-sm font-semibold text-primary">{leaverTeamName || '—'}</p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Due Date</p>
+                            <p className="text-sm font-semibold text-primary">{dueDate ? format(dueDate, "dd MMM yyyy") : '—'}</p>
+                          </div>
+                        )}
+                        <div>
                           <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">{workType === "leaver" ? "Leaver Name" : "Client/Colleague"}</p>
                           <p className="text-sm font-semibold text-primary">{getClientName() || '—'}</p>
                         </div>
                         {workType === "leaver" && (
-                          <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
-                            <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Team Name</p>
-                            <p className="text-sm font-semibold text-primary">{leaverTeamName || '—'}</p>
+                          <div>
+                            <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Due Date</p>
+                            <p className="text-sm font-semibold text-primary">{dueDate ? format(dueDate, "dd MMM yyyy") : '—'}</p>
                           </div>
                         )}
-                        <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
-                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Due Date</p>
-                          <p className="text-sm font-semibold text-primary">{dueDate ? format(dueDate, "dd MMM yyyy") : '—'}</p>
-                        </div>
                       </div>
                     </div>
                   </CollapsibleContent>
