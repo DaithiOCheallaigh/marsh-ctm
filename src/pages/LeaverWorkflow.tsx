@@ -266,10 +266,13 @@ const LeaverWorkflow = () => {
     // Save reassignments and mark work item as completed
     if (id) {
       updateWorkItem(id, {
-        leaverReassignments: reassignments.map(r => ({
-          ...r,
-          capacityRequirement: getClientCapacity(r.clientId),
-        })),
+        leaverReassignments: reassignments.map(r => {
+          const client = clientsWithCapacity.find(c => c.id === r.clientId);
+          return {
+            ...r,
+            capacityRequirement: client?.capacityRequirement || 1.0,
+          };
+        }),
       });
       completeWorkItem(id);
     }
