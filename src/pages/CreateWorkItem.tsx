@@ -30,6 +30,15 @@ import { getFieldStateClasses } from "@/components/form/FormDirtyContext";
 import { managers } from "@/data/teamMembers";
 import { Client } from "@/data/clients";
 import { WorkItemTeamConfig } from "@/types/teamAssignment";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { AlertCircle } from "lucide-react";
 
 // Convert managers to searchable persons
 const managerPersons: SearchablePerson[] = managers.map((manager) => ({
@@ -92,6 +101,10 @@ const CreateWorkItem = () => {
   // Leaver fields
   const [leaverName, setLeaverName] = useState("");
   const [leavingDate, setLeavingDate] = useState<Date | undefined>();
+  const [selectedLeaverId, setSelectedLeaverId] = useState("");
+  const [leaverTeamName, setLeaverTeamName] = useState("");
+  const [showNoTeamModal, setShowNoTeamModal] = useState(false);
+  const [noTeamEmployeeName, setNoTeamEmployeeName] = useState("");
 
   // New Joiner fields
   const [colleagueName, setColleagueName] = useState("");
@@ -166,6 +179,9 @@ const CreateWorkItem = () => {
 
   // Section completion checks
   const isSection1Complete = () => {
+    if (workType === "leaver") {
+      return true; // For leaver, only work type + priority needed in section 1
+    }
     return workType !== "" && assignTo !== "" && dueDate !== undefined;
   };
 
@@ -179,7 +195,7 @@ const CreateWorkItem = () => {
         hasRequiredFields = colleagueName !== "";
         break;
       case "leaver":
-        hasRequiredFields = leaverName !== "";
+        hasRequiredFields = leaverName !== "" && leavingDate !== undefined && dueDate !== undefined && assignTo !== "";
         break;
       case "offboarding":
         hasRequiredFields = offboardingClientName !== "";
@@ -465,7 +481,8 @@ const CreateWorkItem = () => {
                       />
                     </div>
 
-                    {/* Assign To - Managers Only */}
+                    {/* Assign To - Managers Only (hidden for leaver, auto-populated) */}
+                    {workType !== "leaver" && (
                     <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                       <Label className="text-right text-sm font-medium text-text-secondary">
                         Assigned To<span className="text-[hsl(0,100%,50%)]">*</span>
@@ -483,8 +500,10 @@ const CreateWorkItem = () => {
                         </p>
                       </div>
                     </div>
+                    )}
 
-                    {/* Due Date */}
+                    {/* Due Date (hidden for leaver, handled in LeaverFields) */}
+                    {workType !== "leaver" && (
                     <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                       <Label className="text-right text-sm font-medium text-text-secondary">
                         Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
@@ -533,6 +552,7 @@ const CreateWorkItem = () => {
                         </PopoverContent>
                       </Popover>
                     </div>
+                    )}
                   </div>
                 </CollapsibleContent>
               </div>
@@ -582,6 +602,19 @@ const CreateWorkItem = () => {
                           setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
                           leavingDate={leavingDate}
                           setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
+                          dueDate={dueDate}
+                          setDueDate={(val) => { setDueDate(val); markDirty("dueDate"); }}
+                          selectedLeaverId={selectedLeaverId}
+                          setSelectedLeaverId={setSelectedLeaverId}
+                          onManagerAutoPopulated={(managerId, _managerName) => {
+                            setAssignTo(managerId);
+                            markDirty("assignTo");
+                          }}
+                          onTeamResolved={(teamName) => setLeaverTeamName(teamName)}
+                          onNoTeamError={(employeeName) => {
+                            setNoTeamEmployeeName(employeeName);
+                            setShowNoTeamModal(true);
+                          }}
                         />
                       )}
 
@@ -684,7 +717,10 @@ const CreateWorkItem = () => {
                       <p className="text-[hsl(var(--wq-text-secondary))] text-sm mb-6 text-center">
                         Review your selections and click "Create Work Item" to complete.
                       </p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className={cn(
+                        "grid gap-4",
+                        workType === "leaver" ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2 md:grid-cols-4"
+                      )}>
                         <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
                           <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Work Type</p>
                           <p className="text-sm font-semibold text-primary capitalize">{workType.replace('-', ' ') || '—'}</p>
@@ -694,9 +730,15 @@ const CreateWorkItem = () => {
                           <p className="text-sm font-semibold text-primary">{getAssigneeName() || '—'}</p>
                         </div>
                         <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
-                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Client/Colleague</p>
+                          <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">{workType === "leaver" ? "Leaver Name" : "Client/Colleague"}</p>
                           <p className="text-sm font-semibold text-primary">{getClientName() || '—'}</p>
                         </div>
+                        {workType === "leaver" && (
+                          <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
+                            <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Team Name</p>
+                            <p className="text-sm font-semibold text-primary">{leaverTeamName || '—'}</p>
+                          </div>
+                        )}
                         <div className="p-4 bg-[hsl(var(--wq-bg-header))] rounded-lg border border-[hsl(var(--wq-border))]">
                           <p className="text-xs text-[hsl(var(--wq-text-muted))] mb-1">Due Date</p>
                           <p className="text-sm font-semibold text-primary">{dueDate ? format(dueDate, "dd MMM yyyy") : '—'}</p>
@@ -730,6 +772,37 @@ const CreateWorkItem = () => {
           </main>
         </div>
       </div>
+      {/* No Team Assignment Modal for Leaver */}
+      <Dialog open={showNoTeamModal} onOpenChange={setShowNoTeamModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" />
+              Cannot Create Work Item
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              <strong>{noTeamEmployeeName}</strong> is not assigned to any team within the application. A Leaver work item cannot be created for employees without team assignments.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNoTeamModal(false);
+                navigate("/");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setShowNoTeamModal(false)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Select Different Employee
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </FormDirtyContext.Provider>
   );
 };
