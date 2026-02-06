@@ -102,8 +102,7 @@ const LeaverFields = ({
         <SearchablePersonInput value={selectedLeaverId} onChange={handlePersonChange} placeholder="Search colleague name" persons={leaverPersons} />
       </div>
 
-      {/* Show employee info when selected */}
-      {resolvedEmployee && resolvedTeam}
+      {/* Employee info is used for manager auto-population via useEffect */}
 
       {/* Leaving Date */}
       <div className="grid grid-cols-[180px_1fr] items-center gap-4">
