@@ -481,7 +481,8 @@ const CreateWorkItem = () => {
                       />
                     </div>
 
-                    {/* Assign To - Managers Only */}
+                    {/* Assign To - Managers Only (hidden for leaver, auto-populated) */}
+                    {workType !== "leaver" && (
                     <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                       <Label className="text-right text-sm font-medium text-text-secondary">
                         Assigned To<span className="text-[hsl(0,100%,50%)]">*</span>
@@ -499,8 +500,10 @@ const CreateWorkItem = () => {
                         </p>
                       </div>
                     </div>
+                    )}
 
-                    {/* Due Date */}
+                    {/* Due Date (hidden for leaver, handled in LeaverFields) */}
+                    {workType !== "leaver" && (
                     <div className="grid grid-cols-[180px_1fr] items-center gap-4">
                       <Label className="text-right text-sm font-medium text-text-secondary">
                         Due Date<span className="text-[hsl(0,100%,50%)]">*</span>
@@ -549,6 +552,7 @@ const CreateWorkItem = () => {
                         </PopoverContent>
                       </Popover>
                     </div>
+                    )}
                   </div>
                 </CollapsibleContent>
               </div>
