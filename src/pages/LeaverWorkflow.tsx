@@ -259,8 +259,14 @@ const LeaverWorkflow = () => {
   const confirmComplete = () => {
     setShowCompleteModal(false);
 
-    // Mark the work item as completed in the context
+    // Save reassignments and mark work item as completed
     if (id) {
+      updateWorkItem(id, {
+        leaverReassignments: reassignments.map(r => ({
+          ...r,
+          capacityRequirement: getClientCapacity(r.clientId),
+        })),
+      });
       completeWorkItem(id);
     }
 
