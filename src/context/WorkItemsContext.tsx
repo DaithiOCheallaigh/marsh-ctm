@@ -52,9 +52,10 @@ export interface WorkItem {
   assignee: string;
   delegateManager?: string;
   priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'Completed';
-  backendStatus?: 'Pending' | 'Completed' | 'Partially Completed'; // Backend tracking for partial completion
+  status: 'Pending' | 'Completed' | 'Cancelled';
+  backendStatus?: 'Pending' | 'Completed' | 'Partially Completed' | 'Cancelled'; // Backend tracking
   partialCompletionJustification?: string; // Required justification for partial completion
+  cancellationNotes?: string; // Required notes for cancellation
   description?: string;
   teams?: TeamConfig[];
   attachments?: Attachment[];
@@ -68,6 +69,7 @@ interface WorkItemsContextType {
   addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>) => string;
   updateWorkItem: (id: string, updates: Partial<WorkItem>) => void;
   completeWorkItem: (id: string) => void;
+  cancelWorkItem: (id: string, notes: string) => void;
   deleteWorkItem: (id: string) => void;
 }
 
@@ -533,12 +535,22 @@ export const WorkItemsProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const cancelWorkItem = (id: string, notes: string) => {
+    setWorkItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, status: 'Cancelled' as const, backendStatus: 'Cancelled' as const, cancellationNotes: notes, isReadOnly: true, lastModified: new Date().toISOString() }
+          : item
+      )
+    );
+  };
+
   const deleteWorkItem = (id: string) => {
     setWorkItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   return (
-    <WorkItemsContext.Provider value={{ workItems, addWorkItem, updateWorkItem, completeWorkItem, deleteWorkItem }}>
+    <WorkItemsContext.Provider value={{ workItems, addWorkItem, updateWorkItem, completeWorkItem, cancelWorkItem, deleteWorkItem }}>
       {children}
     </WorkItemsContext.Provider>
   );

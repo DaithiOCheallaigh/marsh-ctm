@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface StatusBadgeProps {
-  status: 'Pending' | 'Completed' | 'Draft';
+  status: 'Pending' | 'Completed' | 'Draft' | 'Cancelled';
   isPartiallyCompleted?: boolean;
   assignedCount?: number;
   totalCount?: number;
@@ -47,6 +47,12 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       bg: 'bg-[hsl(210,20%,93%)]',
       text: 'text-[hsl(210,15%,45%)]',
       border: 'border-[hsl(210,15%,45%,0.2)]',
+      icon: null
+    },
+    Cancelled: {
+      bg: 'bg-red-50',
+      text: 'text-destructive',
+      border: 'border-red-200',
       icon: null
     }
   };

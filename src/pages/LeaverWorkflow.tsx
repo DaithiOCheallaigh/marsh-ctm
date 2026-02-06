@@ -20,6 +20,7 @@ import {
   CompleteReassignmentModal,
   UnsavedChangesModal,
   CapacityWarningModal,
+  CancelWorkItemModal,
 } from "@/components/leaver-workflow";
 import { EnhancedReassignmentsTable } from "@/components/leaver-workflow/EnhancedReassignmentsTable";
 
@@ -33,7 +34,7 @@ const LeaverWorkflow = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
-  const { workItems, completeWorkItem, updateWorkItem } = useWorkItems();
+  const { workItems, completeWorkItem, cancelWorkItem, updateWorkItem } = useWorkItems();
 
   // Find the work item from context
   const workItem = workItems.find((item) => item.id === id);
@@ -54,6 +55,7 @@ const LeaverWorkflow = () => {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [pendingAssignmentData, setPendingAssignmentData] = useState<{
     clients: (LeaverClient & { capacityRequirement?: number })[];
     member: LeaverTeamMember;
@@ -74,8 +76,8 @@ const LeaverWorkflow = () => {
     }
   }, [workItem, id, navigate]);
 
-  // Check if work item is completed (read-only mode)
-  const isReadOnly = workItem?.status === "Completed";
+  const isReadOnly = workItem?.status === "Completed" || workItem?.status === "Cancelled";
+  const isCancelled = workItem?.status === "Cancelled";
 
   // Toggle client selection in From panel
   const handleToggleClient = useCallback((clientId: string) => {
@@ -287,6 +289,19 @@ const LeaverWorkflow = () => {
     navigate("/");
   };
 
+  // Handle cancel work item
+  const handleCancelWorkItem = (notes: string) => {
+    if (id) {
+      cancelWorkItem(id, notes);
+    }
+    setShowCancelModal(false);
+    toast({
+      title: "Work Item Cancelled",
+      description: "The work item has been cancelled.",
+    });
+    navigate("/");
+  };
+
   // Handle breadcrumb click
   const handleBreadcrumbClick = (e: React.MouseEvent) => {
     if (reassignments.length > 0 && !isReadOnly) {
@@ -362,11 +377,13 @@ const LeaverWorkflow = () => {
                     "px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5",
                     workItem.status === "Pending"
                       ? "bg-[hsl(var(--wq-status-pending-bg))] text-[hsl(var(--wq-status-pending-text))] border-[hsl(var(--wq-status-pending-text))]"
+                      : workItem.status === "Cancelled"
+                      ? "bg-red-50 text-destructive border-red-200"
                       : "bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]"
                   )}
                 >
                   {isReadOnly && <Lock className="w-3 h-3" />}
-                  {workItem.status === "Pending" ? "In Progress" : "Completed"}
+                  {workItem.status === "Pending" ? "In Progress" : workItem.status}
                 </span>
               </div>
             </div>
@@ -377,7 +394,9 @@ const LeaverWorkflow = () => {
                 <div className="flex items-center gap-2">
                   <Lock className="w-4 h-4 text-[hsl(var(--wq-text-muted))]" />
                   <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
-                    This work item is completed and read-only.
+                    {isCancelled
+                      ? "This work item has been cancelled."
+                      : "This work item is completed and read-only."}
                   </span>
                 </div>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -518,19 +537,27 @@ const LeaverWorkflow = () => {
             {/* Footer Actions */}
             {!isReadOnly ? (
               <div className="flex items-center justify-between">
-                {/* Validation message */}
-                {reassignments.length > 0 && !allClientsAssigned && (
-                  <div className="text-sm text-destructive">
-                    ⚠ {remainingClients} client{remainingClients > 1 ? "s" : ""} remaining
-                    - all must be reassigned
-                  </div>
-                )}
-                {reassignments.length > 0 && allClientsAssigned && (
-                  <div className="text-sm text-[hsl(var(--wq-status-completed-text))]">
-                    ✓ All clients reassigned
-                  </div>
-                )}
-                {reassignments.length === 0 && <div />}
+                {/* Left side: Cancel + Validation */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowCancelModal(true)}
+                    disabled={reassignments.length > 0}
+                  >
+                    Cancel Work Item
+                  </Button>
+                  {reassignments.length > 0 && !allClientsAssigned && (
+                    <div className="text-sm text-destructive">
+                      ⚠ {remainingClients} client{remainingClients > 1 ? "s" : ""} remaining
+                      - all must be reassigned
+                    </div>
+                  )}
+                  {reassignments.length > 0 && allClientsAssigned && (
+                    <div className="text-sm text-[hsl(var(--wq-status-completed-text))]">
+                      ✓ All clients reassigned
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex gap-4">
                   <Button variant="outline" onClick={handleExit} className="text-primary">
@@ -541,7 +568,7 @@ const LeaverWorkflow = () => {
                     disabled={!allClientsAssigned || reassignments.length === 0}
                     className="bg-primary hover:bg-primary/90"
                   >
-                    Complete
+                    Complete Work Item
                   </Button>
                 </div>
               </div>
@@ -584,6 +611,11 @@ const LeaverWorkflow = () => {
           projectedCapacity={pendingAssignmentData.projectedCapacity}
         />
       )}
+      <CancelWorkItemModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelWorkItem}
+      />
     </>
   );
 };
