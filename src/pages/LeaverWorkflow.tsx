@@ -34,7 +34,7 @@ const LeaverWorkflow = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
-  const { workItems, completeWorkItem, updateWorkItem } = useWorkItems();
+  const { workItems, completeWorkItem, cancelWorkItem, updateWorkItem } = useWorkItems();
 
   // Find the work item from context
   const workItem = workItems.find((item) => item.id === id);
