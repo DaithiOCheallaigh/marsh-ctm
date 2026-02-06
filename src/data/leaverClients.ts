@@ -164,4 +164,5 @@ export interface Reassignment {
   reassignedToName: string;
   role: string;
   location: string;
+  capacityRequirement?: number;
 }
