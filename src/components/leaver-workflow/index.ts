@@ -12,3 +12,4 @@ export { CompleteReassignmentModal } from "./CompleteReassignmentModal";
 export { UnsavedChangesModal } from "./UnsavedChangesModal";
 export { CapacityIndicator } from "./CapacityIndicator";
 export { CapacityWarningModal } from "./CapacityWarningModal";
+export { CancelWorkItemModal } from "./CancelWorkItemModal";

@@ -535,12 +535,22 @@ export const WorkItemsProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const cancelWorkItem = (id: string, notes: string) => {
+    setWorkItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, status: 'Cancelled' as const, backendStatus: 'Cancelled' as const, cancellationNotes: notes, isReadOnly: true, lastModified: new Date().toISOString() }
+          : item
+      )
+    );
+  };
+
   const deleteWorkItem = (id: string) => {
     setWorkItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   return (
-    <WorkItemsContext.Provider value={{ workItems, addWorkItem, updateWorkItem, completeWorkItem, deleteWorkItem }}>
+    <WorkItemsContext.Provider value={{ workItems, addWorkItem, updateWorkItem, completeWorkItem, cancelWorkItem, deleteWorkItem }}>
       {children}
     </WorkItemsContext.Provider>
   );

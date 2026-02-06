@@ -42,12 +42,18 @@ export const LeaverClientCard: React.FC<LeaverClientCardProps> = ({
           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
         />
       )}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <p className="text-primary font-semibold text-sm">{client.name}</p>
         <p className="text-[hsl(var(--wq-text-secondary))] text-xs">
-          {client.industry} | {client.role}
+          {client.role}
+          {client.chairName && <> · {client.chairName}</>}
         </p>
       </div>
+      {client.workload !== undefined && (
+        <span className="text-xs text-[hsl(var(--wq-text-muted))] bg-[hsl(var(--wq-bg-muted))] px-2 py-1 rounded">
+          {client.workload}%
+        </span>
+      )}
       {capacityRequirement !== undefined && (
         <span className="text-xs text-[hsl(var(--wq-text-muted))] bg-[hsl(var(--wq-bg-muted))] px-2 py-1 rounded">
           {capacityRequirement.toFixed(1)} chair

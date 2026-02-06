@@ -6,6 +6,8 @@ export interface LeaverClient {
   name: string;
   industry: string;
   role: string;
+  chairName?: string;
+  workload?: number;
 }
 
 // Mock data for John Grimes (leaver)
@@ -15,30 +17,40 @@ export const leaverClients: LeaverClient[] = [
     name: "The Palms South Properties",
     industry: "Corporate",
     role: "Senior Account Manager",
+    chairName: "Primary",
+    workload: 25,
   },
   {
     id: "lc_002",
     name: "Scout Healthcare",
     industry: "Healthcare",
     role: "Project Manager",
+    chairName: "Primary",
+    workload: 20,
   },
   {
     id: "lc_003",
     name: "Easy Post",
     industry: "Government",
     role: "Project Lead",
+    chairName: "Secondary",
+    workload: 15,
   },
   {
     id: "lc_004",
     name: "Home Depot",
     industry: "Corporate",
     role: "Senior Account Manager",
+    chairName: "Primary",
+    workload: 25,
   },
   {
     id: "lc_005",
     name: "Walmart Inc.",
     industry: "Corporate",
     role: "Product Owner",
+    chairName: "Secondary",
+    workload: 15,
   },
 ];
 

@@ -44,24 +44,17 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
         </DialogHeader>
         <DialogFooter className="flex flex-col gap-3 sm:flex-col">
           <Button 
-            onClick={onSaveAndExit} 
+            onClick={onClose} 
             className="w-full bg-primary hover:bg-primary/90"
           >
-            Save as Draft
+            Stay on Page
           </Button>
           <Button
-            variant="outline"
+            variant="destructive"
             onClick={onExitWithoutSaving}
             className="w-full"
           >
-            Exit Without Saving
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="w-full text-[hsl(var(--wq-text-secondary))]"
-          >
-            Cancel
+            Discard Changes
           </Button>
         </DialogFooter>
       </DialogContent>
