@@ -48,6 +48,11 @@ export const LeaverClientCard: React.FC<LeaverClientCardProps> = ({
           {client.role}
           {client.chairName && <> · {client.chairName}</>}
         </p>
+        {client.workload !== undefined && (
+          <p className="text-[hsl(var(--wq-text-muted))] text-xs mt-0.5">
+            Workload: {client.workload}%
+          </p>
+        )}
       </div>
     </div>
   );
