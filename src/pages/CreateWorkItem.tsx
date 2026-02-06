@@ -180,7 +180,7 @@ const CreateWorkItem = () => {
   // Section completion checks
   const isSection1Complete = () => {
     if (workType === "leaver") {
-      return workType !== "";
+      return true; // For leaver, only work type + priority needed in section 1
     }
     return workType !== "" && assignTo !== "" && dueDate !== undefined;
   };
