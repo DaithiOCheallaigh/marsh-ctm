@@ -14,6 +14,7 @@ import {
   LeaverClient,
   Reassignment,
 } from "@/data/leaverClients";
+import { teamMembers } from "@/data/teamMembers";
 import {
   EnhancedAssignmentPanel,
   LeaverTeamMember,
@@ -93,17 +94,52 @@ const LeaverWorkflow = () => {
     );
   }, []);
 
-  // Handle assign action with capacity warning
-  const handleAssign = useCallback(() => {
+  // Derive leaver's teamId from teamMembers data
+  const leaverTeamId = useMemo(() => {
+    const leaverMember = teamMembers.find(
+      (m) => m.name === workItem?.clientName
+    );
+    return leaverMember?.teamId || "team_001";
+  }, [workItem?.clientName]);
+
+  // Handle move to pending (right arrow) - AC3
+  const handleMoveToPending = useCallback(() => {
     if (!selectedMember || selectedClientIds.length === 0) return;
 
-    // Get selected clients with capacity
-    const clientsToAssign = clientsWithCapacity.filter((client) =>
+    const clientsToMove = clientsWithCapacity.filter((client) =>
       selectedClientIds.includes(client.id)
     );
 
+    setPendingClients((prev) => [...prev, ...clientsToMove]);
+    setSelectedClientIds([]);
+
+    toast({
+      title: "Clients Staged",
+      description: `${clientsToMove.length} client(s) moved to pending reassignment.`,
+    });
+  }, [selectedMember, selectedClientIds, toast]);
+
+  // Handle remove from pending (left arrow) - AC4
+  const handleRemoveFromPending = useCallback(() => {
+    if (pendingSelectedClientIds.length === 0) return;
+
+    setPendingClients((prev) =>
+      prev.filter((client) => !pendingSelectedClientIds.includes(client.id))
+    );
+    setPendingSelectedClientIds([]);
+
+    toast({
+      title: "Clients Returned",
+      description: "Selected clients returned to the available list.",
+    });
+  }, [pendingSelectedClientIds, toast]);
+
+  // Handle confirm assign (Assign button) - AC5: locks the client-user pairs
+  const handleConfirmAssign = useCallback(() => {
+    if (!selectedMember || pendingClients.length === 0) return;
+
     // Calculate capacity impact
-    const additionalCapacity = clientsToAssign.reduce(
+    const additionalCapacity = pendingClients.reduce(
       (sum, c) => sum + (c.capacityRequirement || 1) * 20,
       0
     );
@@ -112,7 +148,7 @@ const LeaverWorkflow = () => {
     // Check if over capacity
     if (projectedCapacity > 100) {
       setPendingAssignmentData({
-        clients: clientsToAssign,
+        clients: pendingClients,
         member: selectedMember,
         projectedCapacity,
       });
@@ -120,16 +156,15 @@ const LeaverWorkflow = () => {
       return;
     }
 
-    // Proceed with assignment
-    executeAssignment(clientsToAssign, selectedMember);
-  }, [selectedMember, selectedClientIds]);
+    executeAssignment(pendingClients, selectedMember);
+  }, [selectedMember, pendingClients]);
 
   const executeAssignment = useCallback(
     (
       clientsToAssign: (LeaverClient & { capacityRequirement?: number })[],
       member: LeaverTeamMember
     ) => {
-      // Create new reassignments with capacity info
+      // Create locked reassignment records - AC5
       const newReassignments: Reassignment[] = clientsToAssign.map((client) => ({
         id: `r_${Date.now()}_${client.id}`,
         clientId: client.id,
@@ -141,19 +176,17 @@ const LeaverWorkflow = () => {
         location: member.location,
       }));
 
-      // Update state
+      // Lock: add to reassignments and assignedClientIds
       setReassignments((prev) => [...prev, ...newReassignments]);
       setAssignedClientIds((prev) => [...prev, ...clientsToAssign.map((c) => c.id)]);
 
-      // Add clients to pending list for the team member
-      setPendingClients((prev) => [...prev, ...clientsToAssign]);
-
-      // Clear selections
-      setSelectedClientIds([]);
+      // Clear pending staging area
+      setPendingClients([]);
+      setPendingSelectedClientIds([]);
 
       toast({
         title: "Clients Assigned",
-        description: `${clientsToAssign.length} client(s) assigned to ${member.name}.`,
+        description: `${clientsToAssign.length} client(s) locked to ${member.name}.`,
       });
     },
     [toast]
@@ -167,61 +200,23 @@ const LeaverWorkflow = () => {
     setShowCapacityWarning(false);
   }, [pendingAssignmentData, executeAssignment]);
 
-  // Handle unassign action
-  const handleUnassign = useCallback(() => {
-    if (pendingSelectedClientIds.length === 0) return;
-
-    // Remove from reassignments
-    setReassignments((prev) =>
-      prev.filter((r) => !pendingSelectedClientIds.includes(r.clientId))
-    );
-
-    // Remove from assigned clients
-    setAssignedClientIds((prev) =>
-      prev.filter((id) => !pendingSelectedClientIds.includes(id))
-    );
-
-    // Remove from pending clients
-    setPendingClients((prev) =>
-      prev.filter((client) => !pendingSelectedClientIds.includes(client.id))
-    );
-
-    // Clear selection
-    setPendingSelectedClientIds([]);
-
-    toast({
-      title: "Clients Unassigned",
-      description: "Selected clients have been returned to the available list.",
-    });
-  }, [pendingSelectedClientIds, toast]);
-
-  // Handle remove reassignment from table
+  // Handle remove reassignment from table (trash icon on locked pairs)
   const handleRemoveReassignment = useCallback(
     (reassignmentId: string) => {
       const reassignment = reassignments.find((r) => r.id === reassignmentId);
       if (!reassignment) return;
 
-      // Remove from reassignments
       setReassignments((prev) => prev.filter((r) => r.id !== reassignmentId));
-
-      // Remove from assigned clients
       setAssignedClientIds((prev) =>
         prev.filter((id) => id !== reassignment.clientId)
       );
-
-      // Remove from pending clients if it was assigned to current selected member
-      if (selectedMember && reassignment.reassignedToId === selectedMember.id) {
-        setPendingClients((prev) =>
-          prev.filter((client) => client.id !== reassignment.clientId)
-        );
-      }
 
       toast({
         title: "Reassignment Removed",
         description: `${reassignment.clientName} has been removed from reassignments.`,
       });
     },
-    [reassignments, selectedMember, toast]
+    [reassignments, toast]
   );
 
   // Validate all clients are assigned
@@ -513,10 +508,12 @@ const LeaverWorkflow = () => {
                         selectedClientIds={selectedClientIds}
                         onToggleClient={handleToggleClient}
                         pendingClients={pendingClients}
-                        onAssign={handleAssign}
-                        onUnassign={handleUnassign}
+                        onMoveToPending={handleMoveToPending}
+                        onRemoveFromPending={handleRemoveFromPending}
+                        onConfirmAssign={handleConfirmAssign}
                         pendingSelectedClientIds={pendingSelectedClientIds}
                         onTogglePendingClient={handleTogglePendingClient}
+                        teamId={leaverTeamId}
                       />
                     </div>
                   </CollapsibleContent>

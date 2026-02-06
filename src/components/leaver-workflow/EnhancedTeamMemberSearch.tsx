@@ -10,6 +10,7 @@ export interface LeaverTeamMember {
   name: string;
   role: string;
   location: string;
+  expertise: string[];
   currentCapacity: number;
   maxCapacity: number;
   availableCapacity: number;
@@ -60,6 +61,7 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
           name: m.name,
           role: m.role,
           location: m.location,
+          expertise: m.expertise || [],
           currentCapacity: totalWorkload,
           maxCapacity: 100,
           availableCapacity: 100 - totalWorkload,
@@ -167,7 +169,11 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
           <div className="flex items-start justify-between mb-3">
             <div>
               <p className="text-primary font-semibold text-sm">{selectedMember.name}</p>
-              <p className="text-[hsl(var(--wq-text-secondary))] text-xs">{selectedMember.role}</p>
+              {selectedMember.expertise.length > 0 && (
+                <p className="text-[hsl(var(--wq-text-secondary))] text-xs">
+                  {selectedMember.expertise.join(", ")}
+                </p>
+              )}
               <p className="text-[hsl(var(--wq-text-muted))] text-xs">{selectedMember.location}</p>
             </div>
             <button
