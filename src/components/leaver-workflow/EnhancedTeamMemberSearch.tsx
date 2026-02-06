@@ -61,6 +61,7 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
           name: m.name,
           role: m.role,
           location: m.location,
+          expertise: m.expertise || [],
           currentCapacity: totalWorkload,
           maxCapacity: 100,
           availableCapacity: 100 - totalWorkload,
