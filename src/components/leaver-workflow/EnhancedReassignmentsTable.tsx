@@ -36,7 +36,7 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
 
   // Calculate totals
   const totalCapacityReassigned = reassignments.reduce(
-    (sum, r) => sum + getClientCapacity(r.clientId),
+    (sum, r) => sum + getClientCapacity(r),
     0
   );
 
