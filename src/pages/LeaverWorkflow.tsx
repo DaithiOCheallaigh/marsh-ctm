@@ -408,19 +408,13 @@ const LeaverWorkflow = () => {
 
             {/* Read-only banner */}
             {isReadOnly && (
-              <div className="flex items-center justify-between p-3 mb-4 bg-[hsl(var(--wq-bg-muted))] border border-[hsl(var(--wq-border))] rounded-lg">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 mb-4 bg-[hsl(var(--wq-bg-muted))] border border-[hsl(var(--wq-border))] rounded-lg">
                   <Lock className="w-4 h-4 text-[hsl(var(--wq-text-muted))]" />
                   <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
                     {isCancelled
                       ? "This work item has been cancelled."
                       : "This work item is completed and read-only."}
                   </span>
-                </div>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <FileDown className="w-4 h-4" />
-                  Export
-                </Button>
               </div>
             )}
 
