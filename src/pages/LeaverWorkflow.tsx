@@ -611,6 +611,11 @@ const LeaverWorkflow = () => {
           projectedCapacity={pendingAssignmentData.projectedCapacity}
         />
       )}
+      <CancelWorkItemModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelWorkItem}
+      />
     </>
   );
 };
