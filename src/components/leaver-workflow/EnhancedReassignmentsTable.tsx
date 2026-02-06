@@ -83,7 +83,7 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
                 <TableCell className="text-primary text-sm">{reassignment.industry}</TableCell>
                 <TableCell className="text-primary text-sm">
                   <span className="bg-[hsl(var(--wq-bg-muted))] px-2 py-0.5 rounded text-xs">
-                    {getClientCapacity(reassignment.clientId).toFixed(1)} chair
+                    {getClientCapacity(reassignment).toFixed(1)} chair
                   </span>
                 </TableCell>
                 <TableCell className="text-primary text-sm font-medium">
