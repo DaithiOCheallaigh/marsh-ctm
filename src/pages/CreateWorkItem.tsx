@@ -195,7 +195,7 @@ const CreateWorkItem = () => {
         hasRequiredFields = colleagueName !== "";
         break;
       case "leaver":
-        hasRequiredFields = leaverName !== "";
+        hasRequiredFields = leaverName !== "" && leavingDate !== undefined && dueDate !== undefined && assignTo !== "";
         break;
       case "offboarding":
         hasRequiredFields = offboardingClientName !== "";
