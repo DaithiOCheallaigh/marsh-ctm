@@ -55,6 +55,7 @@ const LeaverWorkflow = () => {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [pendingAssignmentData, setPendingAssignmentData] = useState<{
     clients: (LeaverClient & { capacityRequirement?: number })[];
     member: LeaverTeamMember;
