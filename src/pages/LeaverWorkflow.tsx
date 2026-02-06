@@ -58,8 +58,12 @@ const LeaverWorkflow = () => {
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [pendingClients, setPendingClients] = useState<(LeaverClient & { capacityRequirement?: number })[]>([]);
   const [pendingSelectedClientIds, setPendingSelectedClientIds] = useState<string[]>([]);
-  const [reassignments, setReassignments] = useState<Reassignment[]>([]);
-  const [assignedClientIds, setAssignedClientIds] = useState<string[]>([]);
+  const [reassignments, setReassignments] = useState<Reassignment[]>(
+    () => workItem?.leaverReassignments ?? []
+  );
+  const [assignedClientIds, setAssignedClientIds] = useState<string[]>(
+    () => workItem?.leaverReassignments?.map(r => r.clientId) ?? []
+  );
 
   // Modal state
   const [showCompleteModal, setShowCompleteModal] = useState(false);

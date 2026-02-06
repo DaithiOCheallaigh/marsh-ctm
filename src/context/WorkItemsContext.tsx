@@ -62,6 +62,19 @@ export interface WorkItem {
   isReadOnly?: boolean;
   lastModified?: string;
   savedAssignments?: SavedAssignment[];
+  leaverReassignments?: LeaverReassignmentRecord[];
+}
+
+export interface LeaverReassignmentRecord {
+  id: string;
+  clientId: string;
+  clientName: string;
+  industry: string;
+  reassignedToId: string;
+  reassignedToName: string;
+  role: string;
+  location: string;
+  capacityRequirement?: number;
 }
 
 interface WorkItemsContextType {
