@@ -101,6 +101,10 @@ const CreateWorkItem = () => {
   // Leaver fields
   const [leaverName, setLeaverName] = useState("");
   const [leavingDate, setLeavingDate] = useState<Date | undefined>();
+  const [selectedLeaverId, setSelectedLeaverId] = useState("");
+  const [leaverTeamName, setLeaverTeamName] = useState("");
+  const [showNoTeamModal, setShowNoTeamModal] = useState(false);
+  const [noTeamEmployeeName, setNoTeamEmployeeName] = useState("");
 
   // New Joiner fields
   const [colleagueName, setColleagueName] = useState("");
