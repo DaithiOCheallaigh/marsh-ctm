@@ -104,7 +104,7 @@ const LeaverFields = ({
       {/* Leaver Name */}
       <div className="grid grid-cols-[180px_1fr] items-center gap-4">
         <Label className="text-right text-sm font-medium text-text-secondary">
-          Leaver Name<span className="text-[hsl(0,100%,50%)]">*</span>
+          Leaver Name/ID<span className="text-[hsl(0,100%,50%)]">*</span>
         </Label>
         <SearchablePersonInput
           value={selectedLeaverId}
