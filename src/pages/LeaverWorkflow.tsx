@@ -308,7 +308,7 @@ const LeaverWorkflow = () => {
 
   // Handle breadcrumb click
   const handleBreadcrumbClick = (e: React.MouseEvent) => {
-    if (reassignments.length > 0 && !isReadOnly) {
+    if ((reassignments.length > 0 || pendingClients.length > 0) && !isReadOnly) {
       e.preventDefault();
       setShowUnsavedModal(true);
     }
