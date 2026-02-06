@@ -27,9 +27,10 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
   isReadOnly = false,
   clients = [],
 }) => {
-  // Get capacity for a client
-  const getClientCapacity = (clientId: string) => {
-    const client = clients.find((c) => c.id === clientId);
+  // Get capacity for a client - prefer reassignment record, fallback to clients list
+  const getClientCapacity = (reassignment: Reassignment) => {
+    if (reassignment.capacityRequirement != null) return reassignment.capacityRequirement;
+    const client = clients.find((c) => c.id === reassignment.clientId);
     return client?.capacityRequirement || 1.0;
   };
 
