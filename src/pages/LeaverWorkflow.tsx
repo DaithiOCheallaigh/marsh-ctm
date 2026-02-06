@@ -537,19 +537,27 @@ const LeaverWorkflow = () => {
             {/* Footer Actions */}
             {!isReadOnly ? (
               <div className="flex items-center justify-between">
-                {/* Validation message */}
-                {reassignments.length > 0 && !allClientsAssigned && (
-                  <div className="text-sm text-destructive">
-                    ⚠ {remainingClients} client{remainingClients > 1 ? "s" : ""} remaining
-                    - all must be reassigned
-                  </div>
-                )}
-                {reassignments.length > 0 && allClientsAssigned && (
-                  <div className="text-sm text-[hsl(var(--wq-status-completed-text))]">
-                    ✓ All clients reassigned
-                  </div>
-                )}
-                {reassignments.length === 0 && <div />}
+                {/* Left side: Cancel + Validation */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowCancelModal(true)}
+                    disabled={reassignments.length > 0}
+                  >
+                    Cancel Work Item
+                  </Button>
+                  {reassignments.length > 0 && !allClientsAssigned && (
+                    <div className="text-sm text-destructive">
+                      ⚠ {remainingClients} client{remainingClients > 1 ? "s" : ""} remaining
+                      - all must be reassigned
+                    </div>
+                  )}
+                  {reassignments.length > 0 && allClientsAssigned && (
+                    <div className="text-sm text-[hsl(var(--wq-status-completed-text))]">
+                      ✓ All clients reassigned
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex gap-4">
                   <Button variant="outline" onClick={handleExit} className="text-primary">
@@ -560,7 +568,7 @@ const LeaverWorkflow = () => {
                     disabled={!allClientsAssigned || reassignments.length === 0}
                     className="bg-primary hover:bg-primary/90"
                   >
-                    Complete
+                    Complete Work Item
                   </Button>
                 </div>
               </div>
