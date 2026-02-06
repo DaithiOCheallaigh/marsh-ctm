@@ -11,18 +11,15 @@ import { PriorityBadge } from "@/components/PriorityBadge";
 import { useWorkItems } from "@/context/WorkItemsContext";
 import {
   leaverClients,
-  LeaverClient,
   Reassignment,
 } from "@/data/leaverClients";
 import { teamMembers } from "@/data/teamMembers";
 import {
-  EnhancedAssignmentPanel,
-  LeaverTeamMember,
   CompleteReassignmentModal,
   UnsavedChangesModal,
-  CapacityWarningModal,
   CancelWorkItemModal,
 } from "@/components/leaver-workflow";
+import { LeaverAssignmentPanelV2 } from "@/components/leaver-workflow/LeaverAssignmentPanelV2";
 import { EnhancedReassignmentsTable } from "@/components/leaver-workflow/EnhancedReassignmentsTable";
 
 // Mock client data with capacity
@@ -44,20 +41,7 @@ const LeaverWorkflow = () => {
   const [workDetailsOpen, setWorkDetailsOpen] = useState(true);
   const [assignmentDetailsOpen, setAssignmentDetailsOpen] = useState(true);
 
-  // Assignment state
-  const [selectedMember, setSelectedMember] = useState<LeaverTeamMember | null>(null);
-  const handleSelectMember = useCallback((member: LeaverTeamMember | null) => {
-    // Clear pending staging when changing member to prevent cross-member assignment
-    if (member?.id !== selectedMember?.id) {
-      setPendingClients([]);
-      setPendingSelectedClientIds([]);
-      setSelectedClientIds([]);
-    }
-    setSelectedMember(member);
-  }, [selectedMember?.id]);
-  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
-  const [pendingClients, setPendingClients] = useState<(LeaverClient & { capacityRequirement?: number })[]>([]);
-  const [pendingSelectedClientIds, setPendingSelectedClientIds] = useState<string[]>([]);
+  // Assignment state (V2: panel handles member/client selection internally)
   const [reassignments, setReassignments] = useState<Reassignment[]>(
     () => workItem?.leaverReassignments ?? []
   );
@@ -68,13 +52,7 @@ const LeaverWorkflow = () => {
   // Modal state
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
-  const [showCapacityWarning, setShowCapacityWarning] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [pendingAssignmentData, setPendingAssignmentData] = useState<{
-    clients: (LeaverClient & { capacityRequirement?: number })[];
-    member: LeaverTeamMember;
-    projectedCapacity: number;
-  } | null>(null);
 
   // Calculate totals
   const totalCapacity = useMemo(() => {
@@ -93,20 +71,6 @@ const LeaverWorkflow = () => {
   const isReadOnly = workItem?.status === "Completed" || workItem?.status === "Cancelled";
   const isCancelled = workItem?.status === "Cancelled";
 
-  // Toggle client selection in From panel
-  const handleToggleClient = useCallback((clientId: string) => {
-    setSelectedClientIds((prev) =>
-      prev.includes(clientId) ? prev.filter((id) => id !== clientId) : [...prev, clientId]
-    );
-  }, []);
-
-  // Toggle pending client selection in To panel
-  const handleTogglePendingClient = useCallback((clientId: string) => {
-    setPendingSelectedClientIds((prev) =>
-      prev.includes(clientId) ? prev.filter((id) => id !== clientId) : [...prev, clientId]
-    );
-  }, []);
-
   // Derive leaver's teamId from teamMembers data
   const leaverTeamId = useMemo(() => {
     const leaverMember = teamMembers.find(
@@ -115,69 +79,16 @@ const LeaverWorkflow = () => {
     return leaverMember?.teamId || "team_001";
   }, [workItem?.clientName]);
 
-  // Handle move to pending (right arrow) - AC3
-  const handleMoveToPending = useCallback(() => {
-    if (!selectedMember || selectedClientIds.length === 0) return;
-
-    const clientsToMove = clientsWithCapacity.filter((client) =>
-      selectedClientIds.includes(client.id)
-    );
-
-    setPendingClients((prev) => [...prev, ...clientsToMove]);
-    setSelectedClientIds([]);
-
-    toast({
-      title: "Clients Staged",
-      description: `${clientsToMove.length} client(s) moved to pending reassignment.`,
-    });
-  }, [selectedMember, selectedClientIds, toast]);
-
-  // Handle remove from pending (left arrow) - AC4
-  const handleRemoveFromPending = useCallback(() => {
-    if (pendingSelectedClientIds.length === 0) return;
-
-    setPendingClients((prev) =>
-      prev.filter((client) => !pendingSelectedClientIds.includes(client.id))
-    );
-    setPendingSelectedClientIds([]);
-
-    toast({
-      title: "Clients Returned",
-      description: "Selected clients returned to the available list.",
-    });
-  }, [pendingSelectedClientIds, toast]);
-
-  // Handle confirm assign (Assign button) - AC5: locks the client-user pairs
-  const handleConfirmAssign = useCallback(() => {
-    if (!selectedMember || pendingClients.length === 0) return;
-
-    // Calculate capacity impact
-    const additionalCapacity = pendingClients.reduce(
-      (sum, c) => sum + (c.capacityRequirement || 1) * 20,
-      0
-    );
-    const projectedCapacity = selectedMember.currentCapacity + additionalCapacity;
-
-    // Check if over capacity
-    if (projectedCapacity > 100) {
-      setPendingAssignmentData({
-        clients: pendingClients,
-        member: selectedMember,
-        projectedCapacity,
-      });
-      setShowCapacityWarning(true);
-      return;
-    }
-
-    executeAssignment(pendingClients, selectedMember);
-  }, [selectedMember, pendingClients]);
-
-  const executeAssignment = useCallback(
+  // V2: Handle assignment from the new panel
+  const handleV2Assign = useCallback(
     (
-      clientsToAssign: (LeaverClient & { capacityRequirement?: number })[],
-      member: LeaverTeamMember
+      member: { id: string; name: string; role: string; location: string },
+      clientIds: string[]
     ) => {
-      // Create locked reassignment records - AC5
+      const clientsToAssign = clientsWithCapacity.filter((c) =>
+        clientIds.includes(c.id)
+      );
+
       const newReassignments: Reassignment[] = clientsToAssign.map((client) => ({
         id: `r_${Date.now()}_${client.id}`,
         clientId: client.id,
@@ -189,14 +100,8 @@ const LeaverWorkflow = () => {
         location: member.location,
       }));
 
-      // Lock: add to reassignments and assignedClientIds
       setReassignments((prev) => [...prev, ...newReassignments]);
-      setAssignedClientIds((prev) => [...prev, ...clientsToAssign.map((c) => c.id)]);
-
-      // Clear pending staging area and deselect member
-      setPendingClients([]);
-      setPendingSelectedClientIds([]);
-      setSelectedMember(null);
+      setAssignedClientIds((prev) => [...prev, ...clientIds]);
 
       toast({
         title: "Clients Assigned",
@@ -205,14 +110,6 @@ const LeaverWorkflow = () => {
     },
     [toast]
   );
-
-  const handleCapacityWarningProceed = useCallback(() => {
-    if (pendingAssignmentData) {
-      executeAssignment(pendingAssignmentData.clients, pendingAssignmentData.member);
-      setPendingAssignmentData(null);
-    }
-    setShowCapacityWarning(false);
-  }, [pendingAssignmentData, executeAssignment]);
 
   // Handle remove reassignment from table (trash icon on locked pairs)
   const handleRemoveReassignment = useCallback(
@@ -286,7 +183,7 @@ const LeaverWorkflow = () => {
 
   // Handle exit
   const handleExit = () => {
-    if ((reassignments.length > 0 || pendingClients.length > 0) && !isReadOnly) {
+    if (reassignments.length > 0 && !isReadOnly) {
       setShowUnsavedModal(true);
     } else {
       navigate("/");
@@ -322,7 +219,7 @@ const LeaverWorkflow = () => {
 
   // Handle breadcrumb click
   const handleBreadcrumbClick = (e: React.MouseEvent) => {
-    if ((reassignments.length > 0 || pendingClients.length > 0) && !isReadOnly) {
+    if (reassignments.length > 0 && !isReadOnly) {
       e.preventDefault();
       setShowUnsavedModal(true);
     }
@@ -492,22 +389,13 @@ const LeaverWorkflow = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="p-6">
-                      <EnhancedAssignmentPanel
+                      <LeaverAssignmentPanelV2
                         leaverName={leaverName}
                         leaverTeam={workItem?.teams?.[0]?.teamName || "Property Risk Assessment"}
                         totalCapacity={totalCapacity}
                         clients={clientsWithCapacity}
                         assignedClientIds={assignedClientIds}
-                        selectedMember={selectedMember}
-                        onSelectMember={handleSelectMember}
-                        selectedClientIds={selectedClientIds}
-                        onToggleClient={handleToggleClient}
-                        pendingClients={pendingClients}
-                        onMoveToPending={handleMoveToPending}
-                        onRemoveFromPending={handleRemoveFromPending}
-                        onConfirmAssign={handleConfirmAssign}
-                        pendingSelectedClientIds={pendingSelectedClientIds}
-                        onTogglePendingClient={handleTogglePendingClient}
+                        onAssign={handleV2Assign}
                         teamId={leaverTeamId}
                         excludeMemberIds={[...new Set(reassignments.map(r => r.reassignedToId))]}
                       />
@@ -594,20 +482,8 @@ const LeaverWorkflow = () => {
         onClose={() => setShowUnsavedModal(false)}
         onSaveAndExit={handleSaveAndExit}
         onExitWithoutSaving={handleExitWithoutSaving}
-        pendingCount={reassignments.length + pendingClients.length}
+        pendingCount={reassignments.length}
       />
-      {pendingAssignmentData && (
-        <CapacityWarningModal
-          isOpen={showCapacityWarning}
-          onClose={() => {
-            setShowCapacityWarning(false);
-            setPendingAssignmentData(null);
-          }}
-          onProceed={handleCapacityWarningProceed}
-          teamMemberName={pendingAssignmentData.member.name}
-          projectedCapacity={pendingAssignmentData.projectedCapacity}
-        />
-      )}
       <CancelWorkItemModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
