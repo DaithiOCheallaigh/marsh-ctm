@@ -772,6 +772,37 @@ const CreateWorkItem = () => {
           </main>
         </div>
       </div>
+      {/* No Team Assignment Modal for Leaver */}
+      <Dialog open={showNoTeamModal} onOpenChange={setShowNoTeamModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" />
+              Cannot Create Work Item
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              <strong>{noTeamEmployeeName}</strong> is not assigned to any team within the application. A Leaver work item cannot be created for employees without team assignments.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNoTeamModal(false);
+                navigate("/");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setShowNoTeamModal(false)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Select Different Employee
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </FormDirtyContext.Provider>
   );
 };
