@@ -179,6 +179,9 @@ const CreateWorkItem = () => {
 
   // Section completion checks
   const isSection1Complete = () => {
+    if (workType === "leaver") {
+      return workType !== "";
+    }
     return workType !== "" && assignTo !== "" && dueDate !== undefined;
   };
 
