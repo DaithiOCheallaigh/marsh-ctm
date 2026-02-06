@@ -46,6 +46,15 @@ const LeaverWorkflow = () => {
 
   // Assignment state
   const [selectedMember, setSelectedMember] = useState<LeaverTeamMember | null>(null);
+  const handleSelectMember = useCallback((member: LeaverTeamMember | null) => {
+    // Clear pending staging when changing member to prevent cross-member assignment
+    if (member?.id !== selectedMember?.id) {
+      setPendingClients([]);
+      setPendingSelectedClientIds([]);
+      setSelectedClientIds([]);
+    }
+    setSelectedMember(member);
+  }, [selectedMember?.id]);
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [pendingClients, setPendingClients] = useState<(LeaverClient & { capacityRequirement?: number })[]>([]);
   const [pendingSelectedClientIds, setPendingSelectedClientIds] = useState<string[]>([]);
