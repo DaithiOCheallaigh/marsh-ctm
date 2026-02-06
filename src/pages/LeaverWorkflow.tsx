@@ -566,8 +566,12 @@ const LeaverWorkflow = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex justify-end">
-                <Button onClick={() => navigate("/")} className="bg-primary hover:bg-primary/90">
+              <div className="flex justify-start">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/")} 
+                  className="text-primary border-primary hover:bg-[hsl(var(--wq-bg-hover))]"
+                >
                   Back to Work Queue
                 </Button>
               </div>
