@@ -440,7 +440,7 @@ const LeaverWorkflow = () => {
                     </div>
                     <div>
                       <p className="text-[hsl(var(--wq-text-muted))] text-xs mb-1">
-                        PeopleSoft ID
+                        Leaver ID
                       </p>
                       <p className="text-primary font-semibold text-sm">{workItem.id}</p>
                     </div>
