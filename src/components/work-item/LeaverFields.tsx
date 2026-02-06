@@ -150,6 +150,20 @@ const LeaverFields = ({
           </p>
         </div>
       </div>
+
+      {/* Manager - Auto-populated */}
+      <div className="grid grid-cols-[180px_1fr] items-center gap-4">
+        <Label className="text-right text-sm font-medium text-text-secondary">
+          Manager
+        </Label>
+        <div className="max-w-md px-3 py-2.5 border border-[hsl(var(--wq-border))] rounded-lg bg-[hsl(var(--wq-bg-header))] text-sm text-primary">
+          {resolvedTeam ? (
+            <span className="font-medium">{resolvedTeam.primaryManager}</span>
+          ) : (
+            <span className="text-muted-foreground italic">Auto-populated based on Leaver selection</span>
+          )}
+        </div>
+      </div>
     </div>;
 };
 export default LeaverFields;
