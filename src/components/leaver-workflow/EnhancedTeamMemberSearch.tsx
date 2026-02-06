@@ -38,9 +38,14 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
   const availableMembers = useMemo(() => {
     let members = teamMembers;
     
-    // Optionally filter by team
+    // Filter by team
     if (teamId) {
       members = members.filter(m => m.teamId === teamId);
+    }
+
+    // Exclude already-assigned members
+    if (excludeMemberIds.length > 0) {
+      members = members.filter(m => !excludeMemberIds.includes(m.id));
     }
 
     // Filter by search
