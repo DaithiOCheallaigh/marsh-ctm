@@ -189,9 +189,10 @@ const LeaverWorkflow = () => {
       setReassignments((prev) => [...prev, ...newReassignments]);
       setAssignedClientIds((prev) => [...prev, ...clientsToAssign.map((c) => c.id)]);
 
-      // Clear pending staging area
+      // Clear pending staging area and deselect member
       setPendingClients([]);
       setPendingSelectedClientIds([]);
+      setSelectedMember(null);
 
       toast({
         title: "Clients Assigned",
