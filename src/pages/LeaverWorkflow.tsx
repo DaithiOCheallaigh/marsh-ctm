@@ -272,7 +272,7 @@ const LeaverWorkflow = () => {
 
   // Handle exit
   const handleExit = () => {
-    if (reassignments.length > 0 && !isReadOnly) {
+    if ((reassignments.length > 0 || pendingClients.length > 0) && !isReadOnly) {
       setShowUnsavedModal(true);
     } else {
       navigate("/");
