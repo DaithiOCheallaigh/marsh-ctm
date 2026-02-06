@@ -75,7 +75,7 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
         };
       })
       .sort((a, b) => b.availableCapacity - a.availableCapacity);
-  }, [searchQuery, teamId]);
+  }, [searchQuery, teamId, excludeMemberIds]);
 
   const handleSelect = (member: LeaverTeamMember) => {
     onSelectMember(member);
