@@ -46,6 +46,15 @@ const LeaverWorkflow = () => {
 
   // Assignment state
   const [selectedMember, setSelectedMember] = useState<LeaverTeamMember | null>(null);
+  const handleSelectMember = useCallback((member: LeaverTeamMember | null) => {
+    // Clear pending staging when changing member to prevent cross-member assignment
+    if (member?.id !== selectedMember?.id) {
+      setPendingClients([]);
+      setPendingSelectedClientIds([]);
+      setSelectedClientIds([]);
+    }
+    setSelectedMember(member);
+  }, [selectedMember?.id]);
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [pendingClients, setPendingClients] = useState<(LeaverClient & { capacityRequirement?: number })[]>([]);
   const [pendingSelectedClientIds, setPendingSelectedClientIds] = useState<string[]>([]);
@@ -263,7 +272,7 @@ const LeaverWorkflow = () => {
 
   // Handle exit
   const handleExit = () => {
-    if (reassignments.length > 0 && !isReadOnly) {
+    if ((reassignments.length > 0 || pendingClients.length > 0) && !isReadOnly) {
       setShowUnsavedModal(true);
     } else {
       navigate("/");
@@ -299,7 +308,7 @@ const LeaverWorkflow = () => {
 
   // Handle breadcrumb click
   const handleBreadcrumbClick = (e: React.MouseEvent) => {
-    if (reassignments.length > 0 && !isReadOnly) {
+    if ((reassignments.length > 0 || pendingClients.length > 0) && !isReadOnly) {
       e.preventDefault();
       setShowUnsavedModal(true);
     }
@@ -504,7 +513,7 @@ const LeaverWorkflow = () => {
                         clients={clientsWithCapacity}
                         assignedClientIds={assignedClientIds}
                         selectedMember={selectedMember}
-                        onSelectMember={setSelectedMember}
+                        onSelectMember={handleSelectMember}
                         selectedClientIds={selectedClientIds}
                         onToggleClient={handleToggleClient}
                         pendingClients={pendingClients}
@@ -594,7 +603,7 @@ const LeaverWorkflow = () => {
         onClose={() => setShowUnsavedModal(false)}
         onSaveAndExit={handleSaveAndExit}
         onExitWithoutSaving={handleExitWithoutSaving}
-        pendingCount={reassignments.length}
+        pendingCount={reassignments.length + pendingClients.length}
       />
       {pendingAssignmentData && (
         <CapacityWarningModal
