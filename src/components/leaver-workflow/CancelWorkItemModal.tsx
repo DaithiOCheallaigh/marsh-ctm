@@ -42,12 +42,12 @@ export const CancelWorkItemModal: React.FC<CancelWorkItemModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center text-destructive">
-            Cancel Work Item
+          <DialogTitle className="text-center text-primary">
+            Cancel Work Item?
           </DialogTitle>
           <DialogDescription className="text-center text-[hsl(var(--wq-text-secondary))]">
-            Are you sure you want to cancel this work item? This action cannot be undone.
-            All reassignment data will be permanently removed.
+            Are you sure you want to cancel this work item? This action cannot be undone
+            and will permanently remove the work item from the work queue.
           </DialogDescription>
         </DialogHeader>
 
@@ -69,21 +69,21 @@ export const CancelWorkItemModal: React.FC<CancelWorkItemModalProps> = ({
           )}
         </div>
 
-        <DialogFooter className="flex flex-col gap-3 sm:flex-col">
+        <DialogFooter className="flex flex-row gap-3 sm:flex-row">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            className="flex-1"
+          >
+            Back
+          </Button>
           <Button
             onClick={handleConfirm}
             disabled={!isValid}
             variant="destructive"
-            className="w-full"
+            className="flex-1"
           >
-            Confirm Cancellation
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            className="w-full"
-          >
-            Go Back
+            Cancel Work Item
           </Button>
         </DialogFooter>
       </DialogContent>
