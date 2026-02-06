@@ -21,6 +21,7 @@ interface EnhancedTeamMemberSearchProps {
   onSelectMember: (member: LeaverTeamMember | null) => void;
   selectedClientsCapacity?: number;
   teamId?: string;
+  excludeMemberIds?: string[];
 }
 
 export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> = ({
@@ -28,6 +29,7 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
   onSelectMember,
   selectedClientsCapacity = 0,
   teamId,
+  excludeMemberIds = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
