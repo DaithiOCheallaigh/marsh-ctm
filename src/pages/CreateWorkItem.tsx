@@ -30,6 +30,15 @@ import { getFieldStateClasses } from "@/components/form/FormDirtyContext";
 import { managers } from "@/data/teamMembers";
 import { Client } from "@/data/clients";
 import { WorkItemTeamConfig } from "@/types/teamAssignment";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { AlertCircle } from "lucide-react";
 
 // Convert managers to searchable persons
 const managerPersons: SearchablePerson[] = managers.map((manager) => ({
