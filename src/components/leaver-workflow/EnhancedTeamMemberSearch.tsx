@@ -21,6 +21,7 @@ interface EnhancedTeamMemberSearchProps {
   onSelectMember: (member: LeaverTeamMember | null) => void;
   selectedClientsCapacity?: number;
   teamId?: string;
+  excludeMemberIds?: string[];
 }
 
 export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> = ({
@@ -28,6 +29,7 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
   onSelectMember,
   selectedClientsCapacity = 0,
   teamId,
+  excludeMemberIds = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -36,9 +38,14 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
   const availableMembers = useMemo(() => {
     let members = teamMembers;
     
-    // Optionally filter by team
+    // Filter by team
     if (teamId) {
       members = members.filter(m => m.teamId === teamId);
+    }
+
+    // Exclude already-assigned members
+    if (excludeMemberIds.length > 0) {
+      members = members.filter(m => !excludeMemberIds.includes(m.id));
     }
 
     // Filter by search
@@ -68,7 +75,7 @@ export const EnhancedTeamMemberSearch: React.FC<EnhancedTeamMemberSearchProps> =
         };
       })
       .sort((a, b) => b.availableCapacity - a.availableCapacity);
-  }, [searchQuery, teamId]);
+  }, [searchQuery, teamId, excludeMemberIds]);
 
   const handleSelect = (member: LeaverTeamMember) => {
     onSelectMember(member);
