@@ -508,10 +508,12 @@ const LeaverWorkflow = () => {
                         selectedClientIds={selectedClientIds}
                         onToggleClient={handleToggleClient}
                         pendingClients={pendingClients}
-                        onAssign={handleAssign}
-                        onUnassign={handleUnassign}
+                        onMoveToPending={handleMoveToPending}
+                        onRemoveFromPending={handleRemoveFromPending}
+                        onConfirmAssign={handleConfirmAssign}
                         pendingSelectedClientIds={pendingSelectedClientIds}
                         onTogglePendingClient={handleTogglePendingClient}
+                        teamId={leaverTeamId}
                       />
                     </div>
                   </CollapsibleContent>
