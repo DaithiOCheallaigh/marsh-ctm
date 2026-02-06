@@ -52,8 +52,8 @@ export interface WorkItem {
   assignee: string;
   delegateManager?: string;
   priority: 'High' | 'Medium' | 'Low';
-  status: 'Pending' | 'Completed';
-  backendStatus?: 'Pending' | 'Completed' | 'Partially Completed'; // Backend tracking for partial completion
+  status: 'Pending' | 'Completed' | 'Cancelled';
+  backendStatus?: 'Pending' | 'Completed' | 'Partially Completed' | 'Cancelled'; // Backend tracking
   partialCompletionJustification?: string; // Required justification for partial completion
   description?: string;
   teams?: TeamConfig[];
