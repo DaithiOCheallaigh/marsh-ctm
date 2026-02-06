@@ -232,7 +232,7 @@ const CreateWorkItem = () => {
     if (isSection1Complete() && isSection2Complete() && !openSections.has(3)) {
       setOpenSections(prev => new Set([...prev, 3]));
     }
-  }, [onboardingClientName, selectedClient, colleagueName, leaverName, offboardingClientName, workType]);
+  }, [onboardingClientName, selectedClient, colleagueName, leaverName, offboardingClientName, workType, leavingDate, dueDate, assignTo]);
 
   const handleSubmit = async () => {
     if (!canSubmit()) {
