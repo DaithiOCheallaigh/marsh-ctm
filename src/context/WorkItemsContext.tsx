@@ -69,6 +69,7 @@ interface WorkItemsContextType {
   addWorkItem: (item: Omit<WorkItem, 'id' | 'dateCreated' | 'status'>) => string;
   updateWorkItem: (id: string, updates: Partial<WorkItem>) => void;
   completeWorkItem: (id: string) => void;
+  cancelWorkItem: (id: string, notes: string) => void;
   deleteWorkItem: (id: string) => void;
 }
 
