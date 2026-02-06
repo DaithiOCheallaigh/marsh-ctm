@@ -76,8 +76,8 @@ const LeaverWorkflow = () => {
     }
   }, [workItem, id, navigate]);
 
-  // Check if work item is completed (read-only mode)
-  const isReadOnly = workItem?.status === "Completed";
+  const isReadOnly = workItem?.status === "Completed" || workItem?.status === "Cancelled";
+  const isCancelled = workItem?.status === "Cancelled";
 
   // Toggle client selection in From panel
   const handleToggleClient = useCallback((clientId: string) => {
