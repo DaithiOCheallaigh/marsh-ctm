@@ -55,6 +55,7 @@ export interface WorkItem {
   status: 'Pending' | 'Completed' | 'Cancelled';
   backendStatus?: 'Pending' | 'Completed' | 'Partially Completed' | 'Cancelled'; // Backend tracking
   partialCompletionJustification?: string; // Required justification for partial completion
+  cancellationNotes?: string; // Required notes for cancellation
   description?: string;
   teams?: TeamConfig[];
   attachments?: Attachment[];
