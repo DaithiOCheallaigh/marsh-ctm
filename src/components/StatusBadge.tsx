@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface StatusBadgeProps {
-  status: 'Pending' | 'Completed' | 'Draft';
+  status: 'Pending' | 'Completed' | 'Draft' | 'Cancelled';
   isPartiallyCompleted?: boolean;
   assignedCount?: number;
   totalCount?: number;
