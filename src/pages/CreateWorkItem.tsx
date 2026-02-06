@@ -602,6 +602,19 @@ const CreateWorkItem = () => {
                           setLeaverName={(val) => { setLeaverName(val); markDirty("leaverName"); }}
                           leavingDate={leavingDate}
                           setLeavingDate={(val) => { setLeavingDate(val); markDirty("leavingDate"); }}
+                          dueDate={dueDate}
+                          setDueDate={(val) => { setDueDate(val); markDirty("dueDate"); }}
+                          selectedLeaverId={selectedLeaverId}
+                          setSelectedLeaverId={setSelectedLeaverId}
+                          onManagerAutoPopulated={(managerId, _managerName) => {
+                            setAssignTo(managerId);
+                            markDirty("assignTo");
+                          }}
+                          onTeamResolved={(teamName) => setLeaverTeamName(teamName)}
+                          onNoTeamError={(employeeName) => {
+                            setNoTeamEmployeeName(employeeName);
+                            setShowNoTeamModal(true);
+                          }}
                         />
                       )}
 
