@@ -20,6 +20,7 @@ import {
   CompleteReassignmentModal,
   UnsavedChangesModal,
   CapacityWarningModal,
+  CancelWorkItemModal,
 } from "@/components/leaver-workflow";
 import { EnhancedReassignmentsTable } from "@/components/leaver-workflow/EnhancedReassignmentsTable";
 
