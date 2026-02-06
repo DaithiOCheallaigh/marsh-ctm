@@ -1,14 +1,6 @@
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
 interface CompleteReassignmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,17 +9,15 @@ interface CompleteReassignmentModalProps {
   teamMembersAffected?: number;
   leaverName?: string;
 }
-
 export const CompleteReassignmentModal: React.FC<CompleteReassignmentModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
   totalClients,
   teamMembersAffected,
-  leaverName,
+  leaverName
 }) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-primary">
@@ -38,22 +28,7 @@ export const CompleteReassignmentModal: React.FC<CompleteReassignmentModalProps>
               You are about to finalize all reassignments{leaverName ? ` for ${leaverName}` : ""}.
               This action cannot be undone. All team members will be notified of their new assignments.
             </p>
-            {(totalClients !== undefined || teamMembersAffected !== undefined) && (
-              <div className="flex justify-center gap-6 pt-2">
-                {totalClients !== undefined && (
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{totalClients}</p>
-                    <p className="text-xs text-[hsl(var(--wq-text-muted))]">Clients Reassigned</p>
-                  </div>
-                )}
-                {teamMembersAffected !== undefined && (
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{teamMembersAffected}</p>
-                    <p className="text-xs text-[hsl(var(--wq-text-muted))]">Team Members Affected</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {totalClients !== undefined || teamMembersAffected !== undefined}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-center gap-4 sm:justify-center">
@@ -65,6 +40,5 @@ export const CompleteReassignmentModal: React.FC<CompleteReassignmentModalProps>
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
