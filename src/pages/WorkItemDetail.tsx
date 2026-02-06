@@ -379,9 +379,21 @@ const WorkItemDetail = () => {
 
   // Check if all required roles are fully assigned
   const isFullyCompleted = () => {
+    // Check chairs-based assignments
     const primaryAssigned = getPrimaryChairsAssigned();
     const totalRequired = getTotalRequired();
-    return primaryAssigned >= totalRequired;
+    if (primaryAssigned >= totalRequired) return true;
+
+    // Also check concept assignments (used by the assignment flow)
+    if (conceptAssignments.length > 0) {
+      const allRoleIds = teams.flatMap(team => team.roles.map(role => role.roleId));
+      const assignedRoleIds = conceptAssignments
+        .filter(a => a.selectedPerson)
+        .map(a => a.roleId);
+      return allRoleIds.every(roleId => assignedRoleIds.includes(roleId));
+    }
+
+    return false;
   };
 
   // Delete is only enabled for new work items with zero assignments
