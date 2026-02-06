@@ -28,6 +28,7 @@ interface EnhancedAssignmentPanelProps {
   pendingSelectedClientIds: string[];
   onTogglePendingClient: (clientId: string) => void;
   teamId?: string;
+  excludeMemberIds?: string[];
 }
 
 export const EnhancedAssignmentPanel: React.FC<EnhancedAssignmentPanelProps> = ({
@@ -47,6 +48,7 @@ export const EnhancedAssignmentPanel: React.FC<EnhancedAssignmentPanelProps> = (
   pendingSelectedClientIds,
   onTogglePendingClient,
   teamId,
+  excludeMemberIds = [],
 }) => {
   // Available clients = not assigned AND not in pending staging
   const pendingClientIds = useMemo(() => pendingClients.map((c) => c.id), [pendingClients]);
