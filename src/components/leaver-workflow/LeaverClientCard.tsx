@@ -49,16 +49,6 @@ export const LeaverClientCard: React.FC<LeaverClientCardProps> = ({
           {client.chairName && <> · {client.chairName}</>}
         </p>
       </div>
-      {client.workload !== undefined && (
-        <span className="text-xs text-[hsl(var(--wq-text-muted))] bg-[hsl(var(--wq-bg-muted))] px-2 py-1 rounded">
-          {client.workload}%
-        </span>
-      )}
-      {capacityRequirement !== undefined && (
-        <span className="text-xs text-[hsl(var(--wq-text-muted))] bg-[hsl(var(--wq-bg-muted))] px-2 py-1 rounded">
-          {capacityRequirement.toFixed(1)} chair
-        </span>
-      )}
     </div>
   );
 };
