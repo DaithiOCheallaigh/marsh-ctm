@@ -54,11 +54,10 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
         <TableHeader>
           <TableRow className="bg-[hsl(var(--wq-bg-header))]">
             <TableHead className="text-primary font-semibold text-sm">Client</TableHead>
-            <TableHead className="text-primary font-semibold text-sm">Industry</TableHead>
+            <TableHead className="text-primary font-semibold text-sm">Role</TableHead>
+            <TableHead className="text-primary font-semibold text-sm">Chair</TableHead>
             <TableHead className="text-primary font-semibold text-sm">Capacity</TableHead>
             <TableHead className="text-primary font-semibold text-sm">Reassigned To</TableHead>
-            <TableHead className="text-primary font-semibold text-sm">Role</TableHead>
-            <TableHead className="text-primary font-semibold text-sm">Location</TableHead>
             {!isReadOnly && <TableHead className="w-12"></TableHead>}
           </TableRow>
         </TableHeader>
