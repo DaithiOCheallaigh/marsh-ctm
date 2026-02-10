@@ -80,7 +80,9 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
                   {reassignment.clientName}
                 </TableCell>
                 <TableCell className="text-primary text-sm">{reassignment.role}</TableCell>
-                <TableCell className="text-primary text-sm">—</TableCell>
+                <TableCell className="text-primary text-sm">
+                  {clients.find(c => c.id === reassignment.clientId)?.chairName || '—'}
+                </TableCell>
                 <TableCell className="text-primary text-sm">
                   <span className="bg-[hsl(var(--wq-bg-muted))] px-2 py-0.5 rounded text-xs">
                     {getClientCapacity(reassignment).toFixed(1)} chair
