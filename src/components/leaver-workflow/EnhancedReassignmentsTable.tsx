@@ -54,11 +54,10 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
         <TableHeader>
           <TableRow className="bg-[hsl(var(--wq-bg-header))]">
             <TableHead className="text-primary font-semibold text-sm">Client</TableHead>
-            <TableHead className="text-primary font-semibold text-sm">Industry</TableHead>
+            <TableHead className="text-primary font-semibold text-sm">Role</TableHead>
+            <TableHead className="text-primary font-semibold text-sm">Chair</TableHead>
             <TableHead className="text-primary font-semibold text-sm">Capacity</TableHead>
             <TableHead className="text-primary font-semibold text-sm">Reassigned To</TableHead>
-            <TableHead className="text-primary font-semibold text-sm">Role</TableHead>
-            <TableHead className="text-primary font-semibold text-sm">Location</TableHead>
             {!isReadOnly && <TableHead className="w-12"></TableHead>}
           </TableRow>
         </TableHeader>
@@ -66,7 +65,7 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
           {reassignments.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={isReadOnly ? 6 : 7}
+                colSpan={isReadOnly ? 5 : 6}
                 className="text-center py-8 text-[hsl(var(--wq-text-muted))]"
               >
                 {isReadOnly
@@ -80,7 +79,8 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
                 <TableCell className="text-primary font-medium text-sm">
                   {reassignment.clientName}
                 </TableCell>
-                <TableCell className="text-primary text-sm">{reassignment.industry}</TableCell>
+                <TableCell className="text-primary text-sm">{reassignment.role}</TableCell>
+                <TableCell className="text-primary text-sm">—</TableCell>
                 <TableCell className="text-primary text-sm">
                   <span className="bg-[hsl(var(--wq-bg-muted))] px-2 py-0.5 rounded text-xs">
                     {getClientCapacity(reassignment).toFixed(1)} chair
@@ -89,8 +89,6 @@ export const EnhancedReassignmentsTable: React.FC<EnhancedReassignmentsTableProp
                 <TableCell className="text-primary text-sm font-medium">
                   {reassignment.reassignedToName}
                 </TableCell>
-                <TableCell className="text-primary text-sm">{reassignment.role}</TableCell>
-                <TableCell className="text-primary text-sm">{reassignment.location}</TableCell>
                 {!isReadOnly && onRemoveReassignment && (
                   <TableCell>
                     <button
