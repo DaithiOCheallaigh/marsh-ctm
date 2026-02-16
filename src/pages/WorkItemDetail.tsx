@@ -20,7 +20,11 @@ import {
   ConsolidatedAssignmentFlow,
   ConsolidatedAssignmentFlowV2,
   AssignmentData,
+  ConceptToggle,
+  BulkAssignConcept,
+  RoleFirstConcept,
 } from "@/components/work-item-detail/assignment-concepts";
+import type { ConceptView } from "@/components/work-item-detail/assignment-concepts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,6 +92,7 @@ const WorkItemDetail = () => {
   const [hasInitializedAssignments, setHasInitializedAssignments] = useState(false);
   const [assignmentView, setAssignmentView] = useState<"horizontal" | "vertical">("horizontal");
   const [assignmentOption, setAssignmentOption] = useState<"option1" | "option2">("option2");
+  const [conceptView, setConceptView] = useState<ConceptView>("classic");
 
   // Team-based assignment state
   const [teams, setTeams] = useState<TeamState[]>([]);
@@ -587,55 +592,70 @@ const WorkItemDetail = () => {
               {/* Assignment Requirements Header */}
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-primary">Assignment Requirements</h3>
+                {!isReadOnly && (
+                  <ConceptToggle activeView={conceptView} onViewChange={setConceptView} />
+                )}
               </div>
 
-              {/* Assignment Flow Component based on selected option and view */}
-              {assignmentOption === "option1" ? (
-                // Option 1: Current 4-step flow (Horizontal or Vertical)
-                assignmentView === "horizontal" ? (
-                  <SimplifiedAssignmentFlow
-                    availableRoles={teams.flatMap(team =>
-                      team.roles.map(role => ({
-                        roleId: role.roleId,
-                        roleName: role.roleName,
-                        teamName: team.teamName,
-                        description: `${team.teamName} - ${role.roleName}`,
-                      }))
-                    )}
-                    existingAssignments={conceptAssignments}
-                    onComplete={(assignment) => {
-                      const updatedAssignments = [
-                        ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
-                        assignment
-                      ];
-                      setConceptAssignments(updatedAssignments);
-                      
-                      if (assignment.selectedPerson) {
-                        handleAssign(
-                          assignment.roleId,
-                          0,
-                          assignment.selectedPerson,
-                          `${assignment.chairType} Chair`,
-                          assignment.workloadPercentage
-                        );
-                      }
-                      
-                      if (workItem) {
-                        updateWorkItem(workItem.id, {
-                          savedAssignments: updatedAssignments,
-                        });
-                      }
-                      
-                      setLastSavedAt(new Date());
-                      toast({
-                        title: "Progress Saved",
-                        description: `${assignment.roleName} assignment has been saved.`,
-                      });
-                    }}
-                    isReadOnly={isReadOnly}
-                  />
+              {/* Assignment Flow based on concept view */}
+              {conceptView === "classic" ? (
+                // Classic View — existing Option 2 V2 flow
+                assignmentOption === "option1" ? (
+                  assignmentView === "horizontal" ? (
+                    <SimplifiedAssignmentFlow
+                      availableRoles={teams.flatMap(team =>
+                        team.roles.map(role => ({
+                          roleId: role.roleId,
+                          roleName: role.roleName,
+                          teamName: team.teamName,
+                          description: `${team.teamName} - ${role.roleName}`,
+                        }))
+                      )}
+                      existingAssignments={conceptAssignments}
+                      onComplete={(assignment) => {
+                        const updatedAssignments = [
+                          ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
+                          assignment
+                        ];
+                        setConceptAssignments(updatedAssignments);
+                        if (assignment.selectedPerson) {
+                          handleAssign(assignment.roleId, 0, assignment.selectedPerson, `${assignment.chairType} Chair`, assignment.workloadPercentage);
+                        }
+                        if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
+                        setLastSavedAt(new Date());
+                        toast({ title: "Progress Saved", description: `${assignment.roleName} assignment has been saved.` });
+                      }}
+                      isReadOnly={isReadOnly}
+                    />
+                  ) : (
+                    <VerticalAssignmentFlow
+                      availableRoles={teams.flatMap(team =>
+                        team.roles.map(role => ({
+                          roleId: role.roleId,
+                          roleName: role.roleName,
+                          teamName: team.teamName,
+                          description: `${team.teamName} - ${role.roleName}`,
+                        }))
+                      )}
+                      existingAssignments={conceptAssignments}
+                      onComplete={(assignment) => {
+                        const updatedAssignments = [
+                          ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
+                          assignment
+                        ];
+                        setConceptAssignments(updatedAssignments);
+                        if (assignment.selectedPerson) {
+                          handleAssign(assignment.roleId, 0, assignment.selectedPerson, `${assignment.chairType} Chair`, assignment.workloadPercentage);
+                        }
+                        if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
+                        setLastSavedAt(new Date());
+                        toast({ title: "Progress Saved", description: `${assignment.roleName} assignment has been saved.` });
+                      }}
+                      isReadOnly={isReadOnly}
+                    />
+                  )
                 ) : (
-                  <VerticalAssignmentFlow
+                  <ConsolidatedAssignmentFlowV2
                     availableRoles={teams.flatMap(team =>
                       team.roles.map(role => ({
                         roleId: role.roleId,
@@ -645,41 +665,27 @@ const WorkItemDetail = () => {
                       }))
                     )}
                     existingAssignments={conceptAssignments}
-                    onComplete={(assignment) => {
+                    onComplete={(assignments) => {
                       const updatedAssignments = [
-                        ...conceptAssignments.filter(a => a.roleId !== assignment.roleId),
-                        assignment
+                        ...conceptAssignments.filter(a => !assignments.some(newA => newA.roleId === a.roleId)),
+                        ...assignments
                       ];
                       setConceptAssignments(updatedAssignments);
-                      
-                      if (assignment.selectedPerson) {
-                        handleAssign(
-                          assignment.roleId,
-                          0,
-                          assignment.selectedPerson,
-                          `${assignment.chairType} Chair`,
-                          assignment.workloadPercentage
-                        );
-                      }
-                      
-                      if (workItem) {
-                        updateWorkItem(workItem.id, {
-                          savedAssignments: updatedAssignments,
-                        });
-                      }
-                      
-                      setLastSavedAt(new Date());
-                      toast({
-                        title: "Progress Saved",
-                        description: `${assignment.roleName} assignment has been saved.`,
+                      assignments.forEach((assignment, index) => {
+                        if (assignment.selectedPerson) {
+                          handleAssign(assignment.roleId, index, assignment.selectedPerson, assignment.notes || `${assignment.chairType} Chair`, assignment.workloadPercentage);
+                        }
                       });
+                      if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
+                      setLastSavedAt(new Date());
+                      toast({ title: "Assignments Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved successfully.` });
                     }}
                     isReadOnly={isReadOnly}
                   />
                 )
-              ) : (
-                // Option 2: V2 Consolidated flow with shopping cart behavior
-                <ConsolidatedAssignmentFlowV2
+              ) : conceptView === "bulk-assign" ? (
+                // Concept 1 — Bulk Assign (Member-First)
+                <BulkAssignConcept
                   availableRoles={teams.flatMap(team =>
                     team.roles.map(role => ({
                       roleId: role.roleId,
@@ -690,37 +696,42 @@ const WorkItemDetail = () => {
                   )}
                   existingAssignments={conceptAssignments}
                   onComplete={(assignments) => {
-                    // Handle array of assignments (shopping cart)
-                    const updatedAssignments = [
-                      ...conceptAssignments.filter(a => !assignments.some(newA => newA.roleId === a.roleId)),
-                      ...assignments
-                    ];
+                    const updatedAssignments = [...conceptAssignments, ...assignments];
                     setConceptAssignments(updatedAssignments);
-                    
-                    // Apply each assignment
                     assignments.forEach((assignment, index) => {
                       if (assignment.selectedPerson) {
-                        handleAssign(
-                          assignment.roleId,
-                          index,
-                          assignment.selectedPerson,
-                          assignment.notes || `${assignment.chairType} Chair`,
-                          assignment.workloadPercentage
-                        );
+                        handleAssign(assignment.roleId, index, assignment.selectedPerson, assignment.notes || '', assignment.workloadPercentage);
                       }
                     });
-                    
-                    if (workItem) {
-                      updateWorkItem(workItem.id, {
-                        savedAssignments: updatedAssignments,
-                      });
-                    }
-                    
+                    if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
                     setLastSavedAt(new Date());
-                    toast({
-                      title: "Assignments Saved",
-                      description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved successfully.`,
+                    toast({ title: "Bulk Assignments Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved.` });
+                  }}
+                  isReadOnly={isReadOnly}
+                />
+              ) : (
+                // Concept 2 — Role-First Three-Column
+                <RoleFirstConcept
+                  availableRoles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignments) => {
+                    const updatedAssignments = [...conceptAssignments, ...assignments];
+                    setConceptAssignments(updatedAssignments);
+                    assignments.forEach((assignment, index) => {
+                      if (assignment.selectedPerson) {
+                        handleAssign(assignment.roleId, index, assignment.selectedPerson, assignment.notes || '', assignment.workloadPercentage);
+                      }
                     });
+                    if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
+                    setLastSavedAt(new Date());
+                    toast({ title: "Role Assignments Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved.` });
                   }}
                   isReadOnly={isReadOnly}
                 />

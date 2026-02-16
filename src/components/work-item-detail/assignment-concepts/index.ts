@@ -8,3 +8,7 @@ export { SimplifiedAssignmentFlow } from './SimplifiedAssignmentFlow';
 export { VerticalAssignmentFlow } from './VerticalAssignmentFlow';
 export { ConsolidatedAssignmentFlow } from './ConsolidatedAssignmentFlow';
 export { ConsolidatedAssignmentFlowV2 } from './ConsolidatedAssignmentFlowV2';
+export { ConceptToggle } from './ConceptToggle';
+export type { ConceptView } from './ConceptToggle';
+export { BulkAssignConcept } from './BulkAssignConcept';
+export { RoleFirstConcept } from './RoleFirstConcept';
