@@ -450,18 +450,11 @@ export const BulkAssignConcept = ({
               </span>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  className="border-[hsl(220,50%,20%)] text-[hsl(220,50%,20%)]"
-                  disabled={isReadOnly || assignedCount === 0}
-                >
-                  <Save className="w-4 h-4 mr-1" /> Save Progress
-                </Button>
-                <Button
                   onClick={handleCompleteAll}
                   disabled={isReadOnly || assignedCount === 0}
                   className="bg-[hsl(120,50%,35%)] hover:bg-[hsl(120,50%,30%)] text-white"
                 >
-                  <Check className="w-4 h-4 mr-1" /> Complete All Assignments
+                  <Check className="w-4 h-4 mr-1" /> Complete Assignments
                 </Button>
               </div>
             </div>
