@@ -434,22 +434,12 @@ export const CommandCentreConcept = ({
             {filteredMembers.map((member) => {
               const isSelected = selectedMemberIds.has(member.id);
               const status = getMemberStatus(member.id);
-              // role fit dots
-              const fits = roles
-                .filter((r) => (member.matchScores[r.roleId] || 0) >= 70)
-                .map((r) => ({
-                  roleId: r.roleId,
-                  abbr: ROLE_ABBR[r.roleId] || r.roleName.slice(0, 2),
-                  color: (member.matchScores[r.roleId] || 0) >= 90
-                    ? "bg-[hsl(var(--wq-status-completed-text))]"
-                    : "bg-[hsl(var(--wq-status-warning-border))]",
-                }));
 
               return (
                 <div
                   key={member.id}
                   className={cn(
-                    "p-3 rounded-lg border transition-all flex items-center gap-3",
+                    "px-3 py-2 rounded-lg border transition-all flex items-center gap-3",
                     isSelected
                       ? "border-primary ring-2 ring-primary/20 bg-white"
                       : "border-[hsl(var(--wq-border))] hover:border-primary/40 bg-white"
@@ -460,55 +450,15 @@ export const CommandCentreConcept = ({
                     onCheckedChange={() => toggleMember(member.id)}
                     disabled={isReadOnly}
                   />
-                  <div className="w-8 h-8 rounded-full bg-[hsl(220,50%,20%)] text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                    {member.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="truncate">
-                        <span className="font-medium text-sm text-[hsl(220,50%,20%)]">{member.name}</span>
-                        <p className="text-xs text-[hsl(var(--wq-text-secondary))] truncate">{member.title}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                        {fits.map((f) => (
-                          <span key={f.roleId} className={cn("text-[9px] text-white px-1.5 py-0.5 rounded-full font-semibold", f.color)}>
-                            {f.abbr}
-                          </span>
-                        ))}
-                      </div>
+                  <div className="flex-1 min-w-0 flex items-center justify-between">
+                    <div className="truncate">
+                      <span className="font-medium text-sm text-[hsl(220,50%,20%)]">{member.name}</span>
+                      <p className="text-xs text-[hsl(var(--wq-text-secondary))] truncate">{member.title}</p>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={cn("text-[10px] border-0", availColor(member.available))}>
-                        {member.available}%
-                      </Badge>
-                      {status === "assigned" && (
-                        <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-0">
-                          Assigned
-                        </Badge>
-                      )}
-                      {status === "partial" && (
-                        <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-0">
-                          Partial
-                        </Badge>
-                      )}
-                      {status === "unassigned" && (
-                        <Badge variant="secondary" className="text-[10px] border-0">Unassigned</Badge>
-                      )}
-                      {activeRoleFilter && (
-                        <span className="text-xs text-primary font-semibold ml-auto">
-                          {member.matchScores[activeRoleFilter] || 0}
-                          {(() => {
-                            const badge = getMatchBadge(member.matchScores[activeRoleFilter] || 0);
-                            return badge.label ? (
-                              <span className={cn("ml-1 text-[10px] px-1.5 py-0.5 rounded-full border", badge.className)}>
-                                {badge.label}
-                              </span>
-                            ) : null;
-                          })()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                    <span className={cn("text-xs font-semibold flex-shrink-0 ml-2", availColor(member.available))}>
+                      {member.available}% Capacity
+                    </span>
+                </div>
                 </div>
               );
             })}
