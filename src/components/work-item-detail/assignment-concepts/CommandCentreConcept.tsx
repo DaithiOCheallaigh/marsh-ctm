@@ -395,7 +395,7 @@ export const CommandCentreConcept = ({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
-                <h4 className="font-semibold text-[hsl(220,50%,20%)]">Member Pool</h4>
+                <h4 className="font-semibold text-[hsl(220,50%,20%)]">Team Members</h4>
                 <Badge variant="secondary" className="text-[10px]">{filteredMembers.length} members</Badge>
               </div>
             </div>
@@ -554,7 +554,7 @@ export const CommandCentreConcept = ({
                       <span className="flex items-center gap-1">Role <ArrowUpDown className="w-3 h-3" /></span>
                     </th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Chair</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload </th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload %</th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Status</th>
                     <th className="w-10"></th>
                   </tr>
@@ -577,19 +577,32 @@ export const CommandCentreConcept = ({
                         </td>
                         {/* Role */}
                         <td className="px-3 py-2">
-                          <span className="text-xs text-[hsl(220,50%,20%)]">
-                            {roles.find(r => r.roleId === row.roleId)?.roleName || '—'}
-                          </span>
+                          <Select value={row.roleId} onValueChange={(v) => updateRow(row.id, { roleId: v, chairId: "" })} disabled={isReadOnly}>
+                            <SelectTrigger className="h-7 text-xs border-dashed"><SelectValue placeholder="Select role" /></SelectTrigger>
+                            <SelectContent>
+                              {roles.map((r) => <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
                         </td>
                         {/* Chair */}
                         <td className="px-3 py-2">
-                          <span className="text-xs text-[hsl(220,50%,20%)]">
-                            {row.roleId ? (getChairsForRole(row.roleId).find(c => c.id === row.chairId)?.name || '—') : '—'}
-                          </span>
+                          <Select value={row.chairId} onValueChange={(v) => updateRow(row.id, { chairId: v })} disabled={isReadOnly || !row.roleId}>
+                            <SelectTrigger className="h-7 text-xs border-dashed"><SelectValue placeholder="Select chair" /></SelectTrigger>
+                            <SelectContent>
+                              {getChairsForRole(row.roleId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
                         </td>
                         {/* Workload */}
                         <td className="px-3 py-2">
-                          <span className="text-xs font-medium text-[hsl(220,50%,20%)]">+{row.workload}%</span>
+                          <Input
+                          type="number" min={1} max={100}
+                          value={row.workload}
+                          onChange={(e) => updateRow(row.id, { workload: parseInt(e.target.value) || 0 })}
+                          onFocus={(e) => e.target.select()}
+                          disabled={isReadOnly}
+                          className="h-7 w-16 text-xs" />
+
                         </td>
                         {/* Status */}
                         <td className="px-3 py-2">
