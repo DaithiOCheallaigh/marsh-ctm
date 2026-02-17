@@ -613,6 +613,7 @@ export const CommandCentreConcept = ({
                                 <div className="flex items-start gap-2">
                                   <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-1.5 flex-shrink-0" />
                                   <Input
+                                autoFocus
                                 placeholder="Add assignment notes..."
                                 value={row.notes}
                                 onChange={(e) => updateRow(row.id, { notes: e.target.value })}
