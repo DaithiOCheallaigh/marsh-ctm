@@ -406,10 +406,10 @@ export const BulkAssignConcept = ({
                           }
                           disabled={isReadOnly || !row.roleId}
                         >
-                          <SelectTrigger className="bg-white">
+                          <SelectTrigger className="bg-white" aria-label="Select chair">
                             <SelectValue placeholder="Select chair" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="z-[100]">
                             {chairs.map((c) => (
                               <SelectItem key={c.id} value={c.id}>
                                 {c.name}
