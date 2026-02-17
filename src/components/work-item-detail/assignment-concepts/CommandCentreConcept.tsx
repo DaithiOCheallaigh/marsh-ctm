@@ -617,7 +617,17 @@ export const CommandCentreConcept = ({
                                 value={row.notes}
                                 onChange={(e) => updateRow(row.id, { notes: e.target.value })}
                                 disabled={isReadOnly}
-                                className="h-8 text-xs flex-1" />
+                                className="h-8 text-xs flex-1"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    setExpandedNoteRows((prev) => {
+                                      const next = new Set(prev);
+                                      next.delete(row.id);
+                                      return next;
+                                    });
+                                  }
+                                }} />
                                 </div>
                               </td>
                             </tr>
