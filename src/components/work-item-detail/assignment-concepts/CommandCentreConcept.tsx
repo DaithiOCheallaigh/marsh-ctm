@@ -503,20 +503,7 @@ export const CommandCentreConcept = ({
             </div>
           </div>
 
-          {/* Confirm banner */}
-          {showConfirmBanner &&
-          <div className="p-3 bg-[hsl(var(--wq-status-completed-bg))] border-b border-[hsl(var(--wq-status-completed-text))] text-sm flex items-center justify-between">
-              <span className="text-[hsl(var(--wq-status-completed-text))]">
-                You're about to save {rows.filter((r) => r.roleId && r.chairId).length} assignments across {new Set(rows.filter((r) => r.roleId).map((r) => r.roleId)).size} roles. This cannot be undone.
-              </span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setShowConfirmBanner(false)}>Cancel</Button>
-                <Button size="sm" className="h-7 text-xs bg-[hsl(var(--wq-status-completed-text))] hover:bg-[hsl(120,100%,22%)] text-white" onClick={handleComplete}>
-                  Confirm & Complete
-                </Button>
-              </div>
-            </div>
-          }
+
 
           <div className="flex-1 overflow-y-auto max-h-[520px]">
             {rows.length === 0 ?
