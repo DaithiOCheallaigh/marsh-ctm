@@ -350,7 +350,7 @@ export const CommandCentreConcept = ({
   return (
     <div className="space-y-0">
       {/* ── Zone 1: Role Progress Rail ── */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className={cn("grid gap-3 mb-4", roles.length === 1 ? "grid-cols-1" : roles.length === 2 ? "grid-cols-2" : roles.length === 3 ? "grid-cols-3" : "grid-cols-4")}>
         {roles.map((role) => {
           const assigned = assignedCountByRole[role.roleId] || 0;
           const state = getRolePillState(role.roleId);
