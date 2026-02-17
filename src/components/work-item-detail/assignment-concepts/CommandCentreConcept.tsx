@@ -1,18 +1,18 @@
 import { useState, useMemo, useCallback } from "react";
 import {
   Search, X, Check, AlertTriangle, Zap, Trash2, ArrowUpDown,
-  Users, Table2, Info,
-} from "lucide-react";
+  Users, Table2, Info } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from
+"@/components/ui/select";
 import {
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from
+"@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useToast } from "@/hooks/use-toast";
@@ -32,51 +32,51 @@ interface PlaceholderMember {
 }
 
 const PLACEHOLDER_MEMBERS: PlaceholderMember[] = [
-  { id: "ph-1", name: "Jennifer Walsh", title: "Claims Specialist", matchScores: { "sr-acct-mgr": 92, "risk-eng": 70, "claims-spec": 95 }, location: "Miami, USA", available: 100, locationMatch: true, expertiseMatch: true, capacityMatch: true },
-  { id: "ph-2", name: "Lisa Park", title: "Underwriter", matchScores: { "sr-acct-mgr": 89, "risk-eng": 80, "claims-spec": 72 }, location: "Chicago, USA", available: 85, locationMatch: true, expertiseMatch: true, capacityMatch: true },
-  { id: "ph-3", name: "Robert Wilson", title: "Account Executive", matchScores: { "sr-acct-mgr": 76, "risk-eng": 85, "claims-spec": 60 }, location: "Houston, USA", available: 100, locationMatch: true, expertiseMatch: true, capacityMatch: true },
-  { id: "ph-4", name: "Emily Richardson", title: "Senior Underwriter", matchScores: { "sr-acct-mgr": 74, "risk-eng": 68, "claims-spec": 78 }, location: "Boston, USA", available: 100, locationMatch: false, expertiseMatch: true, capacityMatch: true },
-  { id: "ph-5", name: "Marcus Chen", title: "Risk Analyst", matchScores: { "sr-acct-mgr": 68, "risk-eng": 90, "claims-spec": 55 }, location: "New York, USA", available: 60, locationMatch: true, expertiseMatch: false, capacityMatch: true },
-];
+{ id: "ph-1", name: "Jennifer Walsh", title: "Claims Specialist", matchScores: { "sr-acct-mgr": 92, "risk-eng": 70, "claims-spec": 95 }, location: "Miami, USA", available: 100, locationMatch: true, expertiseMatch: true, capacityMatch: true },
+{ id: "ph-2", name: "Lisa Park", title: "Underwriter", matchScores: { "sr-acct-mgr": 89, "risk-eng": 80, "claims-spec": 72 }, location: "Chicago, USA", available: 85, locationMatch: true, expertiseMatch: true, capacityMatch: true },
+{ id: "ph-3", name: "Robert Wilson", title: "Account Executive", matchScores: { "sr-acct-mgr": 76, "risk-eng": 85, "claims-spec": 60 }, location: "Houston, USA", available: 100, locationMatch: true, expertiseMatch: true, capacityMatch: true },
+{ id: "ph-4", name: "Emily Richardson", title: "Senior Underwriter", matchScores: { "sr-acct-mgr": 74, "risk-eng": 68, "claims-spec": 78 }, location: "Boston, USA", available: 100, locationMatch: false, expertiseMatch: true, capacityMatch: true },
+{ id: "ph-5", name: "Marcus Chen", title: "Risk Analyst", matchScores: { "sr-acct-mgr": 68, "risk-eng": 90, "claims-spec": 55 }, location: "New York, USA", available: 60, locationMatch: true, expertiseMatch: false, capacityMatch: true }];
+
 
 interface RoleWithChairs {
   roleId: string;
   roleName: string;
   category: string;
   chairCount: number;
-  chairs: { id: string; name: string; description: string }[];
+  chairs: {id: string;name: string;description: string;}[];
 }
 
 const PLACEHOLDER_ROLES: RoleWithChairs[] = [
-  {
-    roleId: "sr-acct-mgr", roleName: "Senior Account Manager", category: "Property Risk", chairCount: 5,
-    chairs: [
-      { id: "c1", name: "Account Lead", description: "Primary client relationship owner, strategic decisions, contract negotiations" },
-      { id: "c2", name: "Strategic Advisor", description: "Long-term risk strategy, portfolio optimisation, executive stakeholder management" },
-      { id: "c3", name: "Renewal Coordinator", description: "Policy renewal management, terms negotiation, documentation oversight" },
-      { id: "c4", name: "Client Service Lead", description: "Day-to-day client communication, issue resolution, service delivery" },
-      { id: "c5", name: "Technical Specialist", description: "Complex risk analysis, specialised property coverage design" },
-    ],
-  },
-  {
-    roleId: "risk-eng", roleName: "Risk Engineer", category: "Property Risk", chairCount: 4,
-    chairs: [
-      { id: "c6", name: "Lead Engineer", description: "Primary risk assessment lead, inspection scheduling" },
-      { id: "c7", name: "Field Engineer", description: "On-site inspections, data collection" },
-      { id: "c8", name: "Technical Reviewer", description: "Report quality assurance, technical accuracy" },
-      { id: "c9", name: "CAT Specialist", description: "Catastrophe modeling, natural disaster risk" },
-    ],
-  },
-  {
-    roleId: "claims-spec", roleName: "Claims Specialist", category: "General Liability", chairCount: 4,
-    chairs: [
-      { id: "c10", name: "Lead Adjuster", description: "Primary claims handler, settlement authority" },
-      { id: "c11", name: "Investigation Lead", description: "Claims investigation, evidence gathering" },
-      { id: "c12", name: "Subrogation Specialist", description: "Recovery actions, third-party pursuit" },
-      { id: "c13", name: "Documentation Analyst", description: "Claims file management, compliance" },
-    ],
-  },
-];
+{
+  roleId: "sr-acct-mgr", roleName: "Senior Account Manager", category: "Property Risk", chairCount: 5,
+  chairs: [
+  { id: "c1", name: "Account Lead", description: "Primary client relationship owner, strategic decisions, contract negotiations" },
+  { id: "c2", name: "Strategic Advisor", description: "Long-term risk strategy, portfolio optimisation, executive stakeholder management" },
+  { id: "c3", name: "Renewal Coordinator", description: "Policy renewal management, terms negotiation, documentation oversight" },
+  { id: "c4", name: "Client Service Lead", description: "Day-to-day client communication, issue resolution, service delivery" },
+  { id: "c5", name: "Technical Specialist", description: "Complex risk analysis, specialised property coverage design" }]
+
+},
+{
+  roleId: "risk-eng", roleName: "Risk Engineer", category: "Property Risk", chairCount: 4,
+  chairs: [
+  { id: "c6", name: "Lead Engineer", description: "Primary risk assessment lead, inspection scheduling" },
+  { id: "c7", name: "Field Engineer", description: "On-site inspections, data collection" },
+  { id: "c8", name: "Technical Reviewer", description: "Report quality assurance, technical accuracy" },
+  { id: "c9", name: "CAT Specialist", description: "Catastrophe modeling, natural disaster risk" }]
+
+},
+{
+  roleId: "claims-spec", roleName: "Claims Specialist", category: "General Liability", chairCount: 4,
+  chairs: [
+  { id: "c10", name: "Lead Adjuster", description: "Primary claims handler, settlement authority" },
+  { id: "c11", name: "Investigation Lead", description: "Claims investigation, evidence gathering" },
+  { id: "c12", name: "Subrogation Specialist", description: "Recovery actions, third-party pursuit" },
+  { id: "c13", name: "Documentation Analyst", description: "Claims file management, compliance" }]
+
+}];
+
 
 // ─── Row type ────────────────────────────────────────────────────────
 interface TableRow {
@@ -95,7 +95,7 @@ type RowStatus = "ready" | "incomplete" | "conflict";
 const ROLE_ABBR: Record<string, string> = {
   "sr-acct-mgr": "SAM",
   "risk-eng": "RE",
-  "claims-spec": "CS",
+  "claims-spec": "CS"
 };
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ interface CommandCentreConceptProps {
 export const CommandCentreConcept = ({
   existingAssignments = [],
   onComplete,
-  isReadOnly = false,
+  isReadOnly = false
 }: CommandCentreConceptProps) => {
   const { toast } = useToast();
   const roles = PLACEHOLDER_ROLES;
@@ -131,7 +131,7 @@ export const CommandCentreConcept = ({
 
   // ── Helpers ──
   const getChairsForRole = (roleId: string) =>
-    roles.find((r) => r.roleId === roleId)?.chairs || [];
+  roles.find((r) => r.roleId === roleId)?.chairs || [];
 
   const getRowStatus = useCallback(
     (row: TableRow): RowStatus => {
@@ -139,9 +139,9 @@ export const CommandCentreConcept = ({
       // conflict: member total workload > 100
       const member = members.find((m) => m.id === row.memberId);
       if (member) {
-        const total = rows
-          .filter((r) => r.memberId === row.memberId)
-          .reduce((s, r) => s + r.workload, 0);
+        const total = rows.
+        filter((r) => r.memberId === row.memberId).
+        reduce((s, r) => s + r.workload, 0);
         const projected = 100 - member.available + total;
         if (projected > 100) return "conflict";
       }
@@ -188,9 +188,9 @@ export const CommandCentreConcept = ({
       const q = debouncedSearch.toLowerCase();
       list = list.filter(
         (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.title.toLowerCase().includes(q) ||
-          m.location.toLowerCase().includes(q)
+        m.name.toLowerCase().includes(q) ||
+        m.title.toLowerCase().includes(q) ||
+        m.location.toLowerCase().includes(q)
       );
     }
     if (activeRoleFilter) {
@@ -222,26 +222,26 @@ export const CommandCentreConcept = ({
   const addRow = (memberId: string, roleId = "", chairId = "", workload = 20, suggested = false) => {
     const member = members.find((m) => m.id === memberId)!;
     setRows((prev) => [
-      ...prev,
-      {
-        id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        memberId,
-        memberName: member.name,
-        roleId,
-        chairId,
-        workload,
-        isSuggested: suggested,
-      },
-    ]);
+    ...prev,
+    {
+      id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      memberId,
+      memberName: member.name,
+      roleId,
+      chairId,
+      workload,
+      isSuggested: suggested
+    }]
+    );
   };
 
   const removeRow = (id: string) => setRows((prev) => prev.filter((r) => r.id !== id));
 
   const updateRow = (id: string, updates: Partial<TableRow>) => {
     setRows((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, ...updates, isSuggested: false } : r
-      )
+    prev.map((r) =>
+    r.id === id ? { ...r, ...updates, isSuggested: false } : r
+    )
     );
   };
 
@@ -260,9 +260,9 @@ export const CommandCentreConcept = ({
         if (existing) continue;
         // find best match member not already used
         const usedIds = new Set([...rows.map((r) => r.memberId), ...newRows.map((r) => r.memberId)]);
-        const best = [...members]
-          .filter((m) => !usedIds.has(m.id))
-          .sort((a, b) => (b.matchScores[role.roleId] || 0) - (a.matchScores[role.roleId] || 0))[0];
+        const best = [...members].
+        filter((m) => !usedIds.has(m.id)).
+        sort((a, b) => (b.matchScores[role.roleId] || 0) - (a.matchScores[role.roleId] || 0))[0];
         if (best) {
           newRows.push({
             id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -271,7 +271,7 @@ export const CommandCentreConcept = ({
             roleId: role.roleId,
             chairId: chair.id,
             workload: 20,
-            isSuggested: true,
+            isSuggested: true
           });
         }
       }
@@ -302,16 +302,16 @@ export const CommandCentreConcept = ({
 
   // ── Complete ──
   const handleComplete = () => {
-    const output: AssignmentData[] = rows
-      .filter((r) => r.roleId && r.chairId)
-      .map((r) => ({
-        roleId: r.roleId,
-        roleName: roles.find((rl) => rl.roleId === r.roleId)?.roleName || "",
-        selectedPerson: { id: r.memberId, name: r.memberName },
-        chairType: "Primary" as const,
-        workloadPercentage: r.workload,
-        notes: getChairsForRole(r.roleId).find((c) => c.id === r.chairId)?.name || "",
-      }));
+    const output: AssignmentData[] = rows.
+    filter((r) => r.roleId && r.chairId).
+    map((r) => ({
+      roleId: r.roleId,
+      roleName: roles.find((rl) => rl.roleId === r.roleId)?.roleName || "",
+      selectedPerson: { id: r.memberId, name: r.memberName },
+      chairType: "Primary" as const,
+      workloadPercentage: r.workload,
+      notes: getChairsForRole(r.roleId).find((c) => c.id === r.chairId)?.name || ""
+    }));
     onComplete(output);
     setShowConfirmBanner(false);
     toast({ title: "Assignments Complete", description: `${output.length} assignments saved.` });
@@ -345,11 +345,11 @@ export const CommandCentreConcept = ({
           onClick={() => setActiveRoleFilter(null)}
           className={cn(
             "px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
-            !activeRoleFilter
-              ? "border-[hsl(220,50%,20%)] bg-[hsl(220,50%,20%)] text-white"
-              : "border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))] hover:border-[hsl(220,50%,20%)]"
-          )}
-        >
+            !activeRoleFilter ?
+            "border-[hsl(220,50%,20%)] bg-[hsl(220,50%,20%)] text-white" :
+            "border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))] hover:border-[hsl(220,50%,20%)]"
+          )}>
+
           All Roles
         </button>
         {roles.map((role) => {
@@ -364,28 +364,28 @@ export const CommandCentreConcept = ({
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap flex items-center gap-1.5",
                 isActive && "border-[hsl(220,50%,20%)] ring-2 ring-[hsl(220,50%,20%)]/20",
-                state === "complete"
-                  ? "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]"
-                  : state === "in-progress"
-                  ? "bg-[hsl(var(--wq-status-warning-bg))] border-[hsl(var(--wq-status-warning-border))] text-[hsl(var(--wq-status-warning-text))]"
-                  : "border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))]"
-              )}
-            >
+                state === "complete" ?
+                "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]" :
+                state === "in-progress" ?
+                "bg-[hsl(var(--wq-status-warning-bg))] border-[hsl(var(--wq-status-warning-border))] text-[hsl(var(--wq-status-warning-text))]" :
+                "border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))]"
+              )}>
+
               {state === "complete" && <Check className="w-3 h-3" />}
               {role.roleName} {assigned}/{role.chairCount}
-            </button>
-          );
+            </button>);
+
         })}
       </div>
 
 
       {/* ── Quick Assign banner ── */}
-      {showQuickAssignBanner && (
-        <div className="p-3 mb-4 bg-[hsl(var(--wq-status-warning-bg))] border border-[hsl(var(--wq-status-warning-border))] rounded-lg text-sm text-[hsl(var(--wq-status-warning-text))] flex items-center gap-2">
+      {showQuickAssignBanner &&
+      <div className="p-3 mb-4 bg-[hsl(var(--wq-status-warning-bg))] border border-[hsl(var(--wq-status-warning-border))] rounded-lg text-sm text-[hsl(var(--wq-status-warning-text))] flex items-center gap-2">
           <Zap className="w-4 h-4 flex-shrink-0" />
           Quick Assign has suggested {rows.filter((r) => r.isSuggested).length} assignments based on match scores. Review and edit before saving.
         </div>
-      )}
+      }
 
       {/* ── Zone 2: Main Workspace ── */}
       <div className="grid grid-cols-[2fr_3fr] gap-4">
@@ -406,8 +406,8 @@ export const CommandCentreConcept = ({
                   placeholder="Search by name, role, location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 text-sm"
-                />
+                  className="pl-9 h-9 text-sm" />
+
               </div>
               <Select value={activeRoleFilter || "all"} onValueChange={(v) => setActiveRoleFilter(v === "all" ? null : v)}>
                 <SelectTrigger className="w-[180px] h-9 text-xs">
@@ -415,9 +415,9 @@ export const CommandCentreConcept = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Members</SelectItem>
-                  {roles.map((r) => (
-                    <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>
-                  ))}
+                  {roles.map((r) =>
+                  <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -433,16 +433,16 @@ export const CommandCentreConcept = ({
                   key={member.id}
                   className={cn(
                     "px-3 py-2 rounded-lg border transition-all flex items-center gap-3",
-                    isSelected
-                      ? "border-primary ring-2 ring-primary/20 bg-white"
-                      : "border-[hsl(var(--wq-border))] hover:border-primary/40 bg-white"
-                  )}
-                >
+                    isSelected ?
+                    "border-primary ring-2 ring-primary/20 bg-white" :
+                    "border-[hsl(var(--wq-border))] hover:border-primary/40 bg-white"
+                  )}>
+
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => toggleMember(member.id)}
-                    disabled={isReadOnly}
-                  />
+                    disabled={isReadOnly} />
+
                   <div className="flex-1 min-w-0 flex items-center justify-between">
                     <div className="truncate">
                       <span className="font-medium text-sm text-[hsl(220,50%,20%)]">{member.name}</span>
@@ -452,19 +452,19 @@ export const CommandCentreConcept = ({
                       {member.available}% Capacity
                     </span>
                 </div>
-                </div>
-              );
+                </div>);
+
             })}
           </div>
 
           {/* Batch assign bar */}
-          {selectedMemberIds.size > 0 && (
-            <div className="border-t border-[hsl(var(--wq-border))] p-3 bg-[hsl(var(--wq-bg-header))] rounded-b-xl">
+          {selectedMemberIds.size > 0 &&
+          <div className="border-t border-[hsl(var(--wq-border))] p-3 bg-[hsl(var(--wq-bg-header))] rounded-b-xl">
               <p className="text-xs font-semibold text-[hsl(220,50%,20%)] mb-2">
                 {selectedMemberIds.size} member{selectedMemberIds.size > 1 ? "s" : ""} selected — Assign to:
               </p>
               <div className="flex gap-2 items-end">
-                <Select value={batchRoleId} onValueChange={(v) => { setBatchRoleId(v); setBatchChairId(""); }}>
+                <Select value={batchRoleId} onValueChange={(v) => {setBatchRoleId(v);setBatchChairId("");}}>
                   <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Role" /></SelectTrigger>
                   <SelectContent>
                     {roles.map((r) => <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>)}
@@ -477,20 +477,20 @@ export const CommandCentreConcept = ({
                   </SelectContent>
                 </Select>
                 <Input
-                  type="number" min={1} max={100} value={batchWorkload}
-                  onChange={(e) => setBatchWorkload(parseInt(e.target.value) || 20)}
-                  className="h-8 w-16 text-xs"
-                />
+                type="number" min={1} max={100} value={batchWorkload}
+                onChange={(e) => setBatchWorkload(parseInt(e.target.value) || 20)}
+                className="h-8 w-16 text-xs" />
+
                 <Button
-                  size="sm" className="h-8 text-xs bg-[hsl(220,50%,20%)] hover:bg-[hsl(220,50%,15%)] text-white"
-                  onClick={handleBatchAssign}
-                  disabled={!batchRoleId || !batchChairId}
-                >
+                size="sm" className="h-8 text-xs bg-[hsl(220,50%,20%)] hover:bg-[hsl(220,50%,15%)] text-white"
+                onClick={handleBatchAssign}
+                disabled={!batchRoleId || !batchChairId}>
+
                   Assign
                 </Button>
               </div>
             </div>
-          )}
+          }
         </div>
 
         {/* ─ Right: Assignment Table ─ */}
@@ -506,26 +506,26 @@ export const CommandCentreConcept = ({
                 variant="outline" size="sm"
                 className="h-8 text-xs border-[hsl(220,50%,20%)] text-[hsl(220,50%,20%)]"
                 onClick={handleQuickAssign}
-                disabled={isReadOnly}
-              >
+                disabled={isReadOnly}>
+
                 <Zap className="w-3 h-3 mr-1" /> Quick Assign
               </Button>
-              {rows.length > 0 && (
-                <Button
-                  variant="outline" size="sm"
-                  className="h-8 text-xs border-destructive text-destructive"
-                  onClick={clearAll}
-                  disabled={isReadOnly}
-                >
+              {rows.length > 0 &&
+              <Button
+                variant="outline" size="sm"
+                className="h-8 text-xs border-destructive text-destructive"
+                onClick={clearAll}
+                disabled={isReadOnly}>
+
                   <Trash2 className="w-3 h-3 mr-1" /> Clear All
                 </Button>
-              )}
+              }
             </div>
           </div>
 
           {/* Confirm banner */}
-          {showConfirmBanner && (
-            <div className="p-3 bg-[hsl(var(--wq-status-completed-bg))] border-b border-[hsl(var(--wq-status-completed-text))] text-sm flex items-center justify-between">
+          {showConfirmBanner &&
+          <div className="p-3 bg-[hsl(var(--wq-status-completed-bg))] border-b border-[hsl(var(--wq-status-completed-text))] text-sm flex items-center justify-between">
               <span className="text-[hsl(var(--wq-status-completed-text))]">
                 You're about to save {rows.filter((r) => r.roleId && r.chairId).length} assignments across {new Set(rows.filter((r) => r.roleId).map((r) => r.roleId)).size} roles. This cannot be undone.
               </span>
@@ -536,17 +536,17 @@ export const CommandCentreConcept = ({
                 </Button>
               </div>
             </div>
-          )}
+          }
 
           <div className="flex-1 overflow-y-auto max-h-[520px]">
-            {rows.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+            {rows.length === 0 ?
+            <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
                 <Table2 className="w-10 h-10 mb-2 opacity-20" />
                 <p className="text-sm">No assignments yet.</p>
                 <p className="text-xs mt-1">Select members from the pool or use Quick Assign to get started.</p>
-              </div>
-            ) : (
-              <table className="w-full text-sm">
+              </div> :
+
+            <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Member</th>
@@ -561,16 +561,16 @@ export const CommandCentreConcept = ({
                 </thead>
                 <tbody>
                   {sortedRows.map((row) => {
-                    const status = getRowStatus(row);
-                    const highlighted = activeRoleFilter && row.roleId === activeRoleFilter;
-                    return (
-                      <tr
-                        key={row.id}
-                        className={cn(
-                          "border-b border-[hsl(var(--wq-border))] transition-colors",
-                          highlighted ? "bg-[hsl(var(--wq-bg-header))]" : "hover:bg-[hsl(var(--wq-bg-hover))]"
-                        )}
-                      >
+                  const status = getRowStatus(row);
+                  const highlighted = activeRoleFilter && row.roleId === activeRoleFilter;
+                  return (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        "border-b border-[hsl(var(--wq-border))] transition-colors",
+                        highlighted ? "bg-[hsl(var(--wq-bg-header))]" : "hover:bg-[hsl(var(--wq-bg-hover))]"
+                      )}>
+
                         {/* Member */}
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
@@ -601,13 +601,13 @@ export const CommandCentreConcept = ({
                         {/* Workload */}
                         <td className="px-3 py-2">
                           <Input
-                            type="number" min={1} max={100}
-                            value={row.workload}
-                            onChange={(e) => updateRow(row.id, { workload: parseInt(e.target.value) || 0 })}
-                            onFocus={(e) => e.target.select()}
-                            disabled={isReadOnly}
-                            className="h-7 w-16 text-xs"
-                          />
+                          type="number" min={1} max={100}
+                          value={row.workload}
+                          onChange={(e) => updateRow(row.id, { workload: parseInt(e.target.value) || 0 })}
+                          onFocus={(e) => e.target.select()}
+                          disabled={isReadOnly}
+                          className="h-7 w-16 text-xs" />
+
                         </td>
                         {/* Status */}
                         <td className="px-3 py-2">
@@ -615,53 +615,53 @@ export const CommandCentreConcept = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="flex items-center gap-1">
-                                  {row.isSuggested ? (
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                  {row.isSuggested ?
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                       Suggested
-                                    </Badge>
-                                  ) : status === "ready" ? (
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
+                                    </Badge> :
+                                status === "ready" ?
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
                                       <Check className="w-3 h-3 mr-0.5" /> Ready
-                                    </Badge>
-                                  ) : status === "conflict" ? (
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
+                                    </Badge> :
+                                status === "conflict" ?
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
                                       <AlertTriangle className="w-3 h-3 mr-0.5" /> Conflict
-                                    </Badge>
-                                  ) : (
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                    </Badge> :
+
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                       Incomplete
                                     </Badge>
-                                  )}
+                                }
                                 </div>
                               </TooltipTrigger>
-                              {status === "conflict" && (
-                                <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
-                              )}
+                              {status === "conflict" &&
+                            <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
+                            }
                             </Tooltip>
                           </TooltipProvider>
                         </td>
                         {/* Remove */}
                         <td className="px-2 py-2">
                           <button
-                            onClick={() => removeRow(row.id)}
-                            disabled={isReadOnly}
-                            className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-destructive transition-colors"
-                          >
+                          onClick={() => removeRow(row.id)}
+                          disabled={isReadOnly}
+                          className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-destructive transition-colors">
+
                             <X className="w-3.5 h-3.5" />
                           </button>
                         </td>
-                      </tr>
-                    );
-                  })}
+                      </tr>);
+
+                })}
                 </tbody>
               </table>
-            )}
+            }
           </div>
         </div>
       </div>
 
       {/* ── Zone 3: Sticky Bottom Bar ── */}
-      <div className="mt-4 p-4 bg-white border border-[hsl(var(--wq-border))] rounded-xl flex items-center justify-between">
+      <div className="mt-4 p-4 bg-white border border-[hsl(var(--wq-border))] rounded-xl flex items-center justify-between my-[24px]">
         <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
           <span className="font-semibold text-[hsl(220,50%,20%)]">{filledChairs} of {totalChairs}</span> total chairs filled across {roles.length} roles
         </span>
@@ -672,8 +672,8 @@ export const CommandCentreConcept = ({
             onClick={() => {
               toast({ title: "Progress Saved", description: `${filledChairs} assignments saved.` });
             }}
-            disabled={isReadOnly || rows.length === 0}
-          >
+            disabled={isReadOnly || rows.length === 0}>
+
             Save Progress
           </Button>
           <TooltipProvider>
@@ -686,21 +686,21 @@ export const CommandCentreConcept = ({
                       hasIssues && "opacity-50 cursor-not-allowed"
                     )}
                     onClick={() => !hasIssues && setShowConfirmBanner(true)}
-                    disabled={isReadOnly || rows.length === 0 || hasIssues}
-                  >
+                    disabled={isReadOnly || rows.length === 0 || hasIssues}>
+
                     Complete All Assignments
                   </Button>
                 </span>
               </TooltipTrigger>
-              {hasIssues && (
-                <TooltipContent>
+              {hasIssues &&
+              <TooltipContent>
                   <p className="text-xs">Resolve all incomplete or conflicting rows to continue.</p>
                 </TooltipContent>
-              )}
+              }
             </Tooltip>
           </TooltipProvider>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
