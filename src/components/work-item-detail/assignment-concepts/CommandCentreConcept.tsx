@@ -729,13 +729,6 @@ export const CommandCentreConcept = ({
                     )}
                     onClick={() => {
                       if (hasIssues) return;
-                      // Check for unfilled roles and highlight them
-                      const unfilled = roles.
-                      filter((r) => (assignedCountByRole[r.roleId] || 0) === 0).
-                      map((r) => r.roleId);
-                      if (unfilled.length > 0 && unfilled.length < roles.length) {
-                        setIncompleteRoleIds(new Set(unfilled));
-                      }
                       handleComplete();
                     }}
                     disabled={isReadOnly || rows.length === 0 || hasIssues}>
