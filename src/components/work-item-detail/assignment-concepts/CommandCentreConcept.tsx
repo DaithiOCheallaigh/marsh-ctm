@@ -399,27 +399,13 @@ export const CommandCentreConcept = ({
                 <Badge variant="secondary" className="text-[10px]">{filteredMembers.length} members</Badge>
               </div>
             </div>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, role, location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 text-sm" />
-
-              </div>
-              <Select value={activeRoleFilter || "all"} onValueChange={(v) => setActiveRoleFilter(v === "all" ? null : v)}>
-                <SelectTrigger className="w-[180px] h-9 text-xs">
-                  <SelectValue placeholder="Best match for:" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Members</SelectItem>
-                  {roles.map((r) =>
-                  <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, role, location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9 text-sm" />
             </div>
           </div>
 
