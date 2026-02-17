@@ -582,32 +582,15 @@ export const CommandCentreConcept = ({
                         </td>
                         {/* Role */}
                         <td className="px-3 py-2">
-                          <Select value={row.roleId} onValueChange={(v) => updateRow(row.id, { roleId: v, chairId: "" })} disabled={isReadOnly}>
-                            <SelectTrigger className="h-7 text-xs border-dashed"><SelectValue placeholder="Select role" /></SelectTrigger>
-                            <SelectContent>
-                              {roles.map((r) => <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                          <span className="text-xs text-[hsl(220,50%,20%)]">{roles.find(r => r.roleId === row.roleId)?.roleName || '—'}</span>
                         </td>
                         {/* Chair */}
                         <td className="px-3 py-2">
-                          <Select value={row.chairId} onValueChange={(v) => updateRow(row.id, { chairId: v })} disabled={isReadOnly || !row.roleId}>
-                            <SelectTrigger className="h-7 text-xs border-dashed"><SelectValue placeholder="Select chair" /></SelectTrigger>
-                            <SelectContent>
-                              {getChairsForRole(row.roleId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                          <span className="text-xs text-[hsl(220,50%,20%)]">{getChairsForRole(row.roleId).find(c => c.id === row.chairId)?.name || '—'}</span>
                         </td>
                         {/* Workload */}
                         <td className="px-3 py-2">
-                          <Input
-                          type="number" min={1} max={100}
-                          value={row.workload}
-                          onChange={(e) => updateRow(row.id, { workload: parseInt(e.target.value) || 0 })}
-                          onFocus={(e) => e.target.select()}
-                          disabled={isReadOnly}
-                          className="h-7 w-16 text-xs" />
-
+                          <span className="text-xs text-[hsl(220,50%,20%)]">{row.workload}%</span>
                         </td>
                         {/* Status */}
                         <td className="px-3 py-2">
