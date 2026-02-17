@@ -527,13 +527,13 @@ export const CommandCentreConcept = ({
               </div> :
 
             <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Member</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Chair</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Notes</th>
-                    <th className="w-10"></th>
+                <thead className="sr-only">
+                  <tr>
+                    <th>Member</th>
+                    <th>Chair</th>
+                    <th>Workload</th>
+                    <th>Notes</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -671,7 +671,18 @@ export const CommandCentreConcept = ({
                                   </div>
                                 </td>
                               </tr>
-                              {!collapsedRoleIds.has(role.roleId) && roleRows.map((row) => renderRow(row, !!(activeRoleFilter && row.roleId === activeRoleFilter)))}
+                              {!collapsedRoleIds.has(role.roleId) && (
+                                <>
+                                  <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-hover))]">
+                                    <td className="text-left px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--wq-text-secondary))] uppercase tracking-wider">Member</td>
+                                    <td className="text-left px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--wq-text-secondary))] uppercase tracking-wider">Chair</td>
+                                    <td className="text-left px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--wq-text-secondary))] uppercase tracking-wider w-20">Workload</td>
+                                    <td className="text-left px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--wq-text-secondary))] uppercase tracking-wider">Notes</td>
+                                    <td className="w-10"></td>
+                                  </tr>
+                                  {roleRows.map((row) => renderRow(row, !!(activeRoleFilter && row.roleId === activeRoleFilter)))}
+                                </>
+                              )}
                             </React.Fragment>);
 
                       })}
