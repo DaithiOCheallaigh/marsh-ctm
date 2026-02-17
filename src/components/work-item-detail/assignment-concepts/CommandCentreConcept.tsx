@@ -132,6 +132,7 @@ export const CommandCentreConcept = ({
   const [showQuickAssignBanner, setShowQuickAssignBanner] = useState(false);
   const [showConfirmBanner, setShowConfirmBanner] = useState(false);
   const [expandedNoteRows, setExpandedNoteRows] = useState<Set<string>>(new Set());
+  const [incompleteRoleIds, setIncompleteRoleIds] = useState<Set<string>>(new Set());
 
   // ── Helpers ──
   const getChairsForRole = (roleId: string) =>
@@ -370,10 +371,12 @@ export const CommandCentreConcept = ({
             <button
               key={role.roleId}
               type="button"
-              onClick={() => setActiveRoleFilter(role.roleId)}
+              onClick={() => { setActiveRoleFilter(role.roleId); setIncompleteRoleIds(prev => { const next = new Set(prev); next.delete(role.roleId); return next; }); }}
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap flex items-center gap-1.5",
                 isActive && "border-[hsl(220,50%,20%)] ring-2 ring-[hsl(220,50%,20%)]/20",
+                incompleteRoleIds.has(role.roleId) ?
+                "bg-[hsl(var(--wq-priority-high-bg))] border-[hsl(var(--wq-priority-high-text))] text-[hsl(var(--wq-priority-high-text))] animate-pulse" :
                 state === "complete" ?
                 "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]" :
                 state === "in-progress" ?
@@ -382,6 +385,7 @@ export const CommandCentreConcept = ({
               )}>
 
               {state === "complete" && <Check className="w-3 h-3" />}
+              {incompleteRoleIds.has(role.roleId) && <AlertTriangle className="w-3 h-3" />}
               {role.roleName} {assigned}/{role.chairCount}
             </button>);
 
@@ -648,7 +652,17 @@ export const CommandCentreConcept = ({
                       "bg-[hsl(var(--wq-status-completed-text))] hover:bg-[hsl(120,100%,22%)] text-white",
                       hasIssues && "opacity-50 cursor-not-allowed"
                     )}
-                    onClick={() => !hasIssues && setShowConfirmBanner(true)}
+                    onClick={() => {
+                      if (hasIssues) return;
+                      // Check for unfilled roles and highlight them
+                      const unfilled = roles
+                        .filter((r) => (assignedCountByRole[r.roleId] || 0) === 0)
+                        .map((r) => r.roleId);
+                      if (unfilled.length > 0 && unfilled.length < roles.length) {
+                        setIncompleteRoleIds(new Set(unfilled));
+                      }
+                      handleComplete();
+                    }}
                     disabled={isReadOnly || rows.length === 0 || hasIssues}>
 
                     Complete Assignment
