@@ -327,11 +327,7 @@ export const CommandCentreConcept = ({
     }));
     onComplete(output);
     setShowConfirmBanner(false);
-    toast({ title: "Assignments Complete", description: `${output.length} assignments saved.` });
-    // Trigger the parent's work item completion flow (partial/full check with modals)
-    if (onCompleteWorkItem) {
-      setTimeout(() => onCompleteWorkItem(), 100);
-    }
+    toast({ title: "Progress Saved", description: `${output.length} assignment(s) saved. You can return to assign more.` });
   };
 
   // ── Conflict tooltip text ──
