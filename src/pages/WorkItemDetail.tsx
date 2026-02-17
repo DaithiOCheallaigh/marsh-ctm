@@ -760,6 +760,7 @@ const WorkItemDetail = () => {
                     setLastSavedAt(new Date());
                     toast({ title: "Command Centre Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved.` });
                   }}
+                  onCompleteWorkItem={handleCompleteWorkItem}
                   isReadOnly={isReadOnly}
                 />
               )}
