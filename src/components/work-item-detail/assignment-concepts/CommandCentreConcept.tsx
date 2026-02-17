@@ -497,25 +497,9 @@ export const CommandCentreConcept = ({
               <h4 className="font-semibold text-[hsl(220,50%,20%)]">Assignments</h4>
               <Badge variant="secondary" className="text-[10px]">{rows.length} assignment{rows.length !== 1 ? "s" : ""}</Badge>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline" size="sm"
-                className="h-8 text-xs border-[hsl(220,50%,20%)] text-[hsl(220,50%,20%)]"
-                onClick={handleQuickAssign}
-                disabled={isReadOnly}>
-
-                <Zap className="w-3 h-3 mr-1" /> Quick Assign
-              </Button>
-              {rows.length > 0 &&
-              <Button
-                variant="outline" size="sm"
-                className="h-8 text-xs border-destructive text-destructive"
-                onClick={clearAll}
-                disabled={isReadOnly}>
-
-                  <Trash2 className="w-3 h-3 mr-1" /> Clear All
-                </Button>
-              }
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Click <MessageSquare className="w-3 h-3 inline" /> on a row to add notes</span>
             </div>
           </div>
 
