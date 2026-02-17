@@ -432,7 +432,7 @@ export const CommandCentreConcept = ({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[520px]">
+          <div className="flex-1 p-3 space-y-2">
             {filteredMembers.map((member) => {
               const isSelected = selectedMemberIds.has(member.id);
               const status = getMemberStatus(member.id);
@@ -517,7 +517,7 @@ export const CommandCentreConcept = ({
             </div>
           }
 
-          <div className="flex-1 overflow-y-auto max-h-[520px]">
+          <div className="flex-1">
             {rows.length === 0 ?
             <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
                 <Table2 className="w-10 h-10 mb-2 opacity-20" />
