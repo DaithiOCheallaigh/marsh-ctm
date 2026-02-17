@@ -540,7 +540,7 @@ export const CommandCentreConcept = ({
                       <span className="flex items-center gap-1">Role <ArrowUpDown className="w-3 h-3" /></span>
                     </th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Chair</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload %</th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload</th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Status</th>
                     <th className="w-10"></th>
                   </tr>
