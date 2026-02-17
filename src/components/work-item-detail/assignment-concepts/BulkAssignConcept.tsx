@@ -388,7 +388,7 @@ export const BulkAssignConcept = ({
                           <SelectTrigger className="bg-white">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="z-[100]">
                             {roles.map((r) => (
                               <SelectItem key={r.roleId} value={r.roleId}>
                                 {r.roleName}
