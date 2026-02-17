@@ -366,12 +366,11 @@ export const CommandCentreConcept = ({
               key={role.roleId}
               type="button"
               onClick={() => {setActiveRoleFilter(role.roleId);setIncompleteRoleIds((prev) => {const next = new Set(prev);next.delete(role.roleId);return next;});}}
-              className={cn(
+               className={cn(
                 "w-full p-3 rounded-lg text-left transition-all border",
                 isActive ?
                 "border-l-4 border-l-[hsl(220,50%,20%)] border-t border-r border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]" :
-                "border-[hsl(var(--wq-border))] hover:bg-[hsl(var(--wq-bg-hover))]",
-                isFullyAssigned && !isActive && "bg-[hsl(var(--wq-status-completed-bg))]",
+                "border-[hsl(var(--wq-border))] hover:bg-[hsl(var(--wq-bg-hover))] bg-white",
                 incompleteRoleIds.has(role.roleId) && "bg-[hsl(var(--wq-priority-high-bg))] border-[hsl(var(--wq-priority-high-text))] animate-pulse"
               )}>
               <div className="flex items-center gap-2 mb-1">
@@ -392,7 +391,7 @@ export const CommandCentreConcept = ({
               </div>
               <Badge variant="secondary" className="text-[10px] mb-2">{role.category}</Badge>
               <div className="flex items-center gap-2">
-                <Progress value={pct} className="h-1.5 flex-1" />
+                <Progress value={pct} className="h-1.5 flex-1 [&>div]:bg-[hsl(var(--wq-status-completed-text))]" />
                 <span className="text-[10px] text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
                   Roles: {assigned} of {role.chairCount}
                 </span>
@@ -659,10 +658,7 @@ export const CommandCentreConcept = ({
                           const isComplete = assigned >= role.chairCount;
                           return (
                             <React.Fragment key={role.roleId}>
-                              <tr className={cn(
-                                "border-b border-[hsl(var(--wq-border))]",
-                                isComplete ? "bg-[hsl(var(--wq-status-completed-bg))]" : "bg-[hsl(var(--wq-bg-header))]"
-                              )}>
+                              <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                                 <td colSpan={5} className="px-3 py-2">
                                   <div className="flex items-center gap-2">
                                     {isComplete ?
