@@ -230,7 +230,7 @@ export const CommandCentreConcept = ({
     const member = members.find((m) => m.id === memberId)!;
     setRows((prev) => {
       // Auto-fill role from the last row if no role specified
-      const effectiveRoleId = roleId || (prev.length > 0 ? prev[prev.length - 1].roleId : "");
+      const effectiveRoleId = roleId || activeRoleFilter || (prev.length > 0 ? prev[prev.length - 1].roleId : "");
       return [
       ...prev,
       {
