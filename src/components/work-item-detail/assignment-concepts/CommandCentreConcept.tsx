@@ -559,8 +559,8 @@ export const CommandCentreConcept = ({
                         <React.Fragment key={row.id}>
                         <tr
                             className={cn(
-                              "border-b border-[hsl(var(--wq-border))] transition-colors",
-                              highlighted ? "bg-[hsl(var(--wq-bg-header))]" : "hover:bg-[hsl(var(--wq-bg-hover))]"
+                              "border-b border-[hsl(var(--wq-border))] transition-colors bg-white",
+                              "hover:bg-[hsl(var(--wq-bg-hover))]"
                             )}>
 
                             <td className="px-3 py-2 pl-6">
