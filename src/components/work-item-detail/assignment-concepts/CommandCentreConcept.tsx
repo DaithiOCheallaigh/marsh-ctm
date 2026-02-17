@@ -636,16 +636,6 @@ export const CommandCentreConcept = ({
           <span className="font-semibold text-[hsl(220,50%,20%)]">{filledChairs} of {totalChairs}</span> total chairs filled across {roles.length} roles
         </span>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="border-primary text-primary hover:bg-primary/5"
-            onClick={() => {
-              toast({ title: "Progress Saved", description: `${filledChairs} assignments saved.` });
-            }}
-            disabled={isReadOnly || rows.length === 0}>
-
-            Save Progress
-          </Button>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
