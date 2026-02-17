@@ -531,7 +531,7 @@ export const CommandCentreConcept = ({
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Member</th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Chair</th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Status</th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Notes</th>
                     <th className="w-10"></th>
                   </tr>
                 </thead>
@@ -573,37 +573,7 @@ export const CommandCentreConcept = ({
                               <span className="text-xs font-medium text-[hsl(220,50%,20%)]">+{row.workload}%</span>
                             </td>
                             <td className="px-3 py-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1">
-                                      {row.isSuggested ?
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
-                                          Suggested
-                                        </Badge> :
-                                    status === "ready" ?
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
-                                          <Check className="w-3 h-3 mr-0.5" /> Ready
-                                        </Badge> :
-                                    status === "conflict" ?
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
-                                          <AlertTriangle className="w-3 h-3 mr-0.5" /> Conflict
-                                        </Badge> :
-                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
-                                          Incomplete
-                                        </Badge>
-                                    }
-                                    </div>
-                                  </TooltipTrigger>
-                                  {status === "conflict" &&
-                                <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
-                                }
-                                </Tooltip>
-                              </TooltipProvider>
-                            </td>
-                            <td className="px-2 py-2">
-                              <div className="flex items-center gap-0.5">
-                                <button
+                              <button
                                 onClick={() => {
                                   setExpandedNoteRows((prev) => {
                                     const next = new Set(prev);
@@ -613,21 +583,28 @@ export const CommandCentreConcept = ({
                                 }}
                                 disabled={isReadOnly}
                                 className={cn(
-                                  "p-1 rounded transition-colors",
-                                  row.notes ?
-                                  "text-primary hover:bg-primary/10" :
-                                  "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  "flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors",
+                                  row.notes
+                                    ? "text-primary bg-primary/5 hover:bg-primary/10"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                 )}
-                                title="Assignment Notes">
-                                  <MessageSquare className="w-3.5 h-3.5" />
-                                </button>
-                                <button
+                                title={row.notes ? "View/edit notes" : "Add notes"}
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                {row.notes ? (
+                                  <span className="truncate max-w-[120px]">{row.notes}</span>
+                                ) : (
+                                  <span className="italic opacity-60">None</span>
+                                )}
+                              </button>
+                            </td>
+                            <td className="px-2 py-2">
+                              <button
                                 onClick={() => removeRow(row.id)}
                                 disabled={isReadOnly}
                                 className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                                <X className="w-3.5 h-3.5" />
+                              </button>
                             </td>
                           </tr>
                           {expandedNoteRows.has(row.id) &&
