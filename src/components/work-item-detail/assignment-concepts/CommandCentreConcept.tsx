@@ -231,18 +231,18 @@ export const CommandCentreConcept = ({
       // Auto-fill role from the last row if no role specified
       const effectiveRoleId = roleId || (prev.length > 0 ? prev[prev.length - 1].roleId : "");
       return [
-        ...prev,
-        {
-          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          memberId,
-          memberName: member.name,
-          roleId: effectiveRoleId,
-          chairId,
-          workload,
-          isSuggested: suggested,
-          notes: ""
-        }
-      ];
+      ...prev,
+      {
+        id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        memberId,
+        memberName: member.name,
+        roleId: effectiveRoleId,
+        chairId,
+        workload,
+        isSuggested: suggested,
+        notes: ""
+      }];
+
     });
   };
 
@@ -366,7 +366,7 @@ export const CommandCentreConcept = ({
               key={role.roleId}
               type="button"
               onClick={() => {setActiveRoleFilter(role.roleId);setIncompleteRoleIds((prev) => {const next = new Set(prev);next.delete(role.roleId);return next;});}}
-               className={cn(
+              className={cn(
                 "w-full p-3 rounded-lg text-left transition-all border",
                 isActive ?
                 "border-l-4 border-l-[hsl(220,50%,20%)] border-t border-r border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]" :
@@ -537,31 +537,31 @@ export const CommandCentreConcept = ({
                 </thead>
                 <tbody>
                   {(() => {
-                    // Group rows by role, then show unassigned roles at end
-                    const groupedByRole: Record<string, TableRow[]> = {};
-                    const unassignedRows: TableRow[] = [];
-                    for (const row of sortedRows) {
-                      if (row.roleId) {
-                        if (!groupedByRole[row.roleId]) groupedByRole[row.roleId] = [];
-                        groupedByRole[row.roleId].push(row);
-                      } else {
-                        unassignedRows.push(row);
-                      }
+                  // Group rows by role, then show unassigned roles at end
+                  const groupedByRole: Record<string, TableRow[]> = {};
+                  const unassignedRows: TableRow[] = [];
+                  for (const row of sortedRows) {
+                    if (row.roleId) {
+                      if (!groupedByRole[row.roleId]) groupedByRole[row.roleId] = [];
+                      groupedByRole[row.roleId].push(row);
+                    } else {
+                      unassignedRows.push(row);
                     }
+                  }
 
-                    // Determine which roles have rows vs which are completely missing
-                    const assignedRoleIds = new Set(Object.keys(groupedByRole));
-                    const unassignedRoles = roles.filter((r) => !assignedRoleIds.has(r.roleId));
+                  // Determine which roles have rows vs which are completely missing
+                  const assignedRoleIds = new Set(Object.keys(groupedByRole));
+                  const unassignedRoles = roles.filter((r) => !assignedRoleIds.has(r.roleId));
 
-                    const renderRow = (row: TableRow, highlighted: boolean) => {
-                      const status = getRowStatus(row);
-                      return (
-                        <React.Fragment key={row.id}>
+                  const renderRow = (row: TableRow, highlighted: boolean) => {
+                    const status = getRowStatus(row);
+                    return (
+                      <React.Fragment key={row.id}>
                         <tr
-                            className={cn(
-                              "border-b border-[hsl(var(--wq-border))] transition-colors bg-white",
-                              "hover:bg-[hsl(var(--wq-bg-hover))]"
-                            )}>
+                          className={cn(
+                            "border-b border-[hsl(var(--wq-border))] transition-colors bg-white",
+                            "hover:bg-[hsl(var(--wq-bg-hover))]"
+                          )}>
 
                             <td className="px-3 py-2 pl-6">
                               <span className="font-medium text-[hsl(220,50%,20%)] text-xs">{row.memberName}</span>
@@ -578,111 +578,111 @@ export const CommandCentreConcept = ({
                                   <TooltipTrigger asChild>
                                     <div className="flex items-center gap-1">
                                       {row.isSuggested ?
-                                      <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                           Suggested
                                         </Badge> :
-                                      status === "ready" ?
-                                      <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
+                                    status === "ready" ?
+                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
                                           <Check className="w-3 h-3 mr-0.5" /> Ready
                                         </Badge> :
-                                      status === "conflict" ?
-                                      <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
+                                    status === "conflict" ?
+                                    <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
                                           <AlertTriangle className="w-3 h-3 mr-0.5" /> Conflict
                                         </Badge> :
-                                      <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                    <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                           Incomplete
                                         </Badge>
-                                      }
+                                    }
                                     </div>
                                   </TooltipTrigger>
                                   {status === "conflict" &&
-                                  <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
-                                  }
+                                <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
+                                }
                                 </Tooltip>
                               </TooltipProvider>
                             </td>
                             <td className="px-2 py-2">
                               <div className="flex items-center gap-0.5">
                                 <button
-                                  onClick={() => {
-                                    setExpandedNoteRows((prev) => {
-                                      const next = new Set(prev);
-                                      next.has(row.id) ? next.delete(row.id) : next.add(row.id);
-                                      return next;
-                                    });
-                                  }}
-                                  disabled={isReadOnly}
-                                  className={cn(
-                                    "p-1 rounded transition-colors",
-                                    row.notes ?
-                                    "text-primary hover:bg-primary/10" :
-                                    "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  )}
-                                  title="Assignment Notes">
+                                onClick={() => {
+                                  setExpandedNoteRows((prev) => {
+                                    const next = new Set(prev);
+                                    next.has(row.id) ? next.delete(row.id) : next.add(row.id);
+                                    return next;
+                                  });
+                                }}
+                                disabled={isReadOnly}
+                                className={cn(
+                                  "p-1 rounded transition-colors",
+                                  row.notes ?
+                                  "text-primary hover:bg-primary/10" :
+                                  "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                                title="Assignment Notes">
                                   <MessageSquare className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => removeRow(row.id)}
-                                  disabled={isReadOnly}
-                                  className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                                onClick={() => removeRow(row.id)}
+                                disabled={isReadOnly}
+                                className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </td>
                           </tr>
                           {expandedNoteRows.has(row.id) &&
-                          <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
+                        <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                               <td colSpan={5} className="px-3 py-2">
                                 <div className="flex items-start gap-2">
                                   <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-1.5 flex-shrink-0" />
                                   <Input
-                                  placeholder="Add assignment notes..."
-                                  value={row.notes}
-                                  onChange={(e) => updateRow(row.id, { notes: e.target.value })}
-                                  disabled={isReadOnly}
-                                  className="h-8 text-xs flex-1" />
+                                placeholder="Add assignment notes..."
+                                value={row.notes}
+                                onChange={(e) => updateRow(row.id, { notes: e.target.value })}
+                                disabled={isReadOnly}
+                                className="h-8 text-xs flex-1" />
                                 </div>
                               </td>
                             </tr>
-                          }
-                        </React.Fragment>
-                      );
-                    };
+                        }
+                        </React.Fragment>);
 
-                    return (
-                      <>
+                  };
+
+                  return (
+                    <>
                         {/* Assigned role groups */}
                         {roles.filter((r) => assignedRoleIds.has(r.roleId)).map((role) => {
-                          const roleRows = groupedByRole[role.roleId] || [];
-                          const assigned = assignedCountByRole[role.roleId] || 0;
-                          const isComplete = assigned >= role.chairCount;
-                          return (
-                            <React.Fragment key={role.roleId}>
+                        const roleRows = groupedByRole[role.roleId] || [];
+                        const assigned = assignedCountByRole[role.roleId] || 0;
+                        const isComplete = assigned >= role.chairCount;
+                        return (
+                          <React.Fragment key={role.roleId}>
                               <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                                 <td colSpan={5} className="px-3 py-2">
                                   <div className="flex items-center gap-2">
                                     {isComplete ?
-                                      <Check className="w-3.5 h-3.5 text-[hsl(var(--wq-status-completed-text))]" /> :
-                                      <Briefcase className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
-                                    }
+                                  <Check className="w-3.5 h-3.5 text-[hsl(var(--wq-status-completed-text))]" /> :
+                                  <Briefcase className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
+                                  }
                                     <span className="text-xs font-semibold text-[hsl(220,50%,20%)]">{role.roleName}</span>
                                     <Badge variant="secondary" className={cn(
-                                      "text-[10px]",
-                                      isComplete && "bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]"
-                                    )}>
+                                    "text-[10px]",
+                                    isComplete && "bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]"
+                                  )}>
                                       {assigned} / {role.chairCount}
                                     </Badge>
                                   </div>
                                 </td>
                               </tr>
                               {roleRows.map((row) => renderRow(row, !!(activeRoleFilter && row.roleId === activeRoleFilter)))}
-                            </React.Fragment>
-                          );
-                        })}
+                            </React.Fragment>);
+
+                      })}
 
                         {/* Unassigned rows (no role set) */}
-                        {unassignedRows.length > 0 && (
-                          <>
+                        {unassignedRows.length > 0 &&
+                      <>
                             <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                               <td colSpan={5} className="px-3 py-2">
                                 <div className="flex items-center gap-2">
@@ -693,11 +693,11 @@ export const CommandCentreConcept = ({
                             </tr>
                             {unassignedRows.map((row) => renderRow(row, false))}
                           </>
-                        )}
+                      }
 
                         {/* Roles with no assignments at all */}
-                        {unassignedRoles.map((role) => (
-                          <tr key={`empty-${role.roleId}`} className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-priority-high-bg))]/30">
+                        {unassignedRoles.map((role) =>
+                      <tr key={`empty-${role.roleId}`} className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-priority-high-bg))]/30">
                             <td colSpan={5} className="px-3 py-2.5">
                               <div className="flex items-center gap-2">
                                 <AlertTriangle className="w-3.5 h-3.5 text-[hsl(var(--wq-priority-high-text))]" />
@@ -708,10 +708,10 @@ export const CommandCentreConcept = ({
                               </div>
                             </td>
                           </tr>
-                        ))}
-                      </>
-                    );
-                  })()}
+                      )}
+                      </>);
+
+                })()}
                 </tbody>
               </table>
             }
@@ -720,7 +720,7 @@ export const CommandCentreConcept = ({
       </div>
 
       {/* ── Zone 3: Sticky Bottom Bar ── */}
-      <div className="mt-10 p-4 bg-white border border-[hsl(var(--wq-border))] rounded-xl flex items-center justify-between mb-6">
+      <div className="mt-10 p-4 bg-white border border-[hsl(var(--wq-border))] rounded-xl flex items-center justify-between mb-6 my-[24px]">
         <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
           <span className="font-semibold text-[hsl(220,50%,20%)]">{filledChairs} of {totalChairs}</span> total chairs filled across {roles.length} roles
         </span>
