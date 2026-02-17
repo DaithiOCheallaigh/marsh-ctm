@@ -288,7 +288,7 @@ const InlineConfigurationPanel = ({
             <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Select chair type..." />
             </SelectTrigger>
-            <SelectContent className="bg-background">
+            <SelectContent className="bg-background z-[100]">
               {CHAIR_TYPE_CONFIGS.map((config) => (
                 <SelectItem key={config.id} value={config.id}>
                   {config.name}
