@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback } from "react";
 import {
   Search, X, Check, AlertTriangle, Zap, Trash2, ArrowUpDown,
-  Users, Table2, Info, MessageSquare } from
+  Users, Table2, Info, MessageSquare, Briefcase } from
 "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -349,46 +350,51 @@ export const CommandCentreConcept = ({
   return (
     <div className="space-y-0">
       {/* ── Zone 1: Role Progress Rail ── */}
-      <div className="flex items-center gap-2 p-3 bg-white border border-[hsl(var(--wq-border))] rounded-xl mb-4 flex-wrap">
-        {/* All Roles pill */}
-        
-
-
-
-
-
-
-
-
-
-
-
+      <div className="grid grid-cols-4 gap-3 mb-4">
         {roles.map((role) => {
           const assigned = assignedCountByRole[role.roleId] || 0;
           const state = getRolePillState(role.roleId);
           const isActive = activeRoleFilter === role.roleId;
+          const isFullyAssigned = assigned >= role.chairCount;
+          const pct = (assigned / role.chairCount) * 100;
           return (
             <button
               key={role.roleId}
               type="button"
               onClick={() => { setActiveRoleFilter(role.roleId); setIncompleteRoleIds(prev => { const next = new Set(prev); next.delete(role.roleId); return next; }); }}
               className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap flex items-center gap-1.5",
-                isActive && "border-[hsl(220,50%,20%)] ring-2 ring-[hsl(220,50%,20%)]/20",
-                incompleteRoleIds.has(role.roleId) ?
-                "bg-[hsl(var(--wq-priority-high-bg))] border-[hsl(var(--wq-priority-high-text))] text-[hsl(var(--wq-priority-high-text))] animate-pulse" :
-                state === "complete" ?
-                "bg-[hsl(var(--wq-status-completed-bg))] border-[hsl(var(--wq-status-completed-text))] text-[hsl(var(--wq-status-completed-text))]" :
-                state === "in-progress" ?
-                "bg-[hsl(var(--wq-status-warning-bg))] border-[hsl(var(--wq-status-warning-border))] text-[hsl(var(--wq-status-warning-text))]" :
-                "border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))]"
+                "w-full p-3 rounded-lg text-left transition-all border",
+                isActive
+                  ? "border-l-4 border-l-[hsl(220,50%,20%)] border-t border-r border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]"
+                  : "border-[hsl(var(--wq-border))] hover:bg-[hsl(var(--wq-bg-hover))]",
+                isFullyAssigned && !isActive && "bg-[hsl(var(--wq-status-completed-bg))]",
+                incompleteRoleIds.has(role.roleId) && "bg-[hsl(var(--wq-priority-high-bg))] border-[hsl(var(--wq-priority-high-text))] animate-pulse"
               )}>
-
-              {state === "complete" && <Check className="w-3 h-3" />}
-              {incompleteRoleIds.has(role.roleId) && <AlertTriangle className="w-3 h-3" />}
-              {role.roleName} {assigned}/{role.chairCount}
-            </button>);
-
+              <div className="flex items-center gap-2 mb-1">
+                {incompleteRoleIds.has(role.roleId) ? (
+                  <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-priority-high-text))] flex items-center justify-center">
+                    <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                  </div>
+                ) : isFullyAssigned ? (
+                  <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-status-completed-text))] flex items-center justify-center">
+                    <Check className="w-3.5 h-3.5 text-white" />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Briefcase className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                )}
+                <span className="font-medium text-sm text-[hsl(220,50%,20%)] truncate">{role.roleName}</span>
+              </div>
+              <Badge variant="secondary" className="text-[10px] mb-2">{role.category}</Badge>
+              <div className="flex items-center gap-2">
+                <Progress value={pct} className="h-1.5 flex-1" />
+                <span className="text-[10px] text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
+                  {assigned} of {role.chairCount}
+                </span>
+              </div>
+            </button>
+          );
         })}
       </div>
 
