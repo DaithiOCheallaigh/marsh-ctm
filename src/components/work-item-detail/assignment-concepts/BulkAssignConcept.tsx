@@ -182,7 +182,16 @@ export const BulkAssignConcept = ({
   };
 
   const getChairsForRole = (roleId: string) => {
-    return ROLE_CHAIRS[roleId] || [];
+    // Direct match first
+    if (ROLE_CHAIRS[roleId]) return ROLE_CHAIRS[roleId];
+    // Fallback: map dynamic roleId to placeholder chairs by index in the roles array
+    const roleIndex = roles.findIndex((r) => r.roleId === roleId);
+    const placeholderKeys = Object.keys(ROLE_CHAIRS);
+    if (roleIndex >= 0 && roleIndex < placeholderKeys.length) {
+      return ROLE_CHAIRS[placeholderKeys[roleIndex]];
+    }
+    // Last resort: return first set of chairs
+    return placeholderKeys.length > 0 ? ROLE_CHAIRS[placeholderKeys[0]] : [];
   };
 
   const assignedCount = configRows.filter(
