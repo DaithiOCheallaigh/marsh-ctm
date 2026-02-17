@@ -573,12 +573,7 @@ export const CommandCentreConcept = ({
 
                         {/* Member */}
                         <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-[hsl(220,50%,20%)] text-white flex items-center justify-center text-[10px] font-semibold flex-shrink-0">
-                              {row.memberName.charAt(0)}
-                            </div>
-                            <span className="font-medium text-[hsl(220,50%,20%)] text-xs">{row.memberName}</span>
-                          </div>
+                          <span className="font-medium text-[hsl(220,50%,20%)] text-xs">{row.memberName}</span>
                         </td>
                         {/* Role */}
                         <td className="px-3 py-2">
