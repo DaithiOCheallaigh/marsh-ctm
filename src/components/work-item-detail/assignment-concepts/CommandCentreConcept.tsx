@@ -457,40 +457,8 @@ export const CommandCentreConcept = ({
             })}
           </div>
 
-          {/* Batch assign bar */}
-          {selectedMemberIds.size > 0 &&
-          <div className="border-t border-[hsl(var(--wq-border))] p-3 bg-[hsl(var(--wq-bg-header))] rounded-b-xl">
-              <p className="text-xs font-semibold text-[hsl(220,50%,20%)] mb-2">
-                {selectedMemberIds.size} member{selectedMemberIds.size > 1 ? "s" : ""} selected — Assign to:
-              </p>
-              <div className="flex gap-2 items-end">
-                <Select value={batchRoleId} onValueChange={(v) => {setBatchRoleId(v);setBatchChairId("");}}>
-                  <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Role" /></SelectTrigger>
-                  <SelectContent className="z-[100]">
-                    {roles.map((r) => <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={batchChairId} onValueChange={setBatchChairId} disabled={!batchRoleId}>
-                  <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Chair" /></SelectTrigger>
-                  <SelectContent className="z-[100]">
-                    {getChairsForRole(batchRoleId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input
-                type="number" min={1} max={100} value={batchWorkload}
-                onChange={(e) => setBatchWorkload(parseInt(e.target.value) || 20)}
-                className="h-8 w-16 text-xs" />
 
-                <Button
-                size="sm" className="h-8 text-xs bg-[hsl(220,50%,20%)] hover:bg-[hsl(220,50%,15%)] text-white"
-                onClick={handleBatchAssign}
-                disabled={!batchRoleId || !batchChairId}>
 
-                  Assign
-                </Button>
-              </div>
-            </div>
-          }
         </div>
 
         {/* ─ Right: Assignment Table ─ */}
@@ -507,7 +475,38 @@ export const CommandCentreConcept = ({
             </div>
           </div>
 
-
+          {/* Batch assign bar */}
+          {selectedMemberIds.size > 0 && (
+            <div className="border-b border-[hsl(var(--wq-border))] p-3 bg-[hsl(var(--wq-bg-header))]">
+              <p className="text-xs font-semibold text-[hsl(220,50%,20%)] mb-2">
+                {selectedMemberIds.size} member{selectedMemberIds.size > 1 ? "s" : ""} selected — Assign to:
+              </p>
+              <div className="flex gap-2 items-end">
+                <Select value={batchRoleId || undefined} onValueChange={(v) => {setBatchRoleId(v);setBatchChairId("");}}>
+                  <SelectTrigger className="h-8 text-xs flex-1 bg-white"><SelectValue placeholder="Role" /></SelectTrigger>
+                  <SelectContent className="z-[100]">
+                    {roles.map((r) => <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={batchChairId || undefined} onValueChange={setBatchChairId} disabled={!batchRoleId}>
+                  <SelectTrigger className="h-8 text-xs flex-1 bg-white"><SelectValue placeholder="Chair" /></SelectTrigger>
+                  <SelectContent className="z-[100]">
+                    {getChairsForRole(batchRoleId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number" min={1} max={100} value={batchWorkload}
+                  onChange={(e) => setBatchWorkload(parseInt(e.target.value) || 20)}
+                  className="h-8 w-16 text-xs bg-white" />
+                <Button
+                  size="sm" className="h-8 text-xs bg-[hsl(220,50%,20%)] hover:bg-[hsl(220,50%,15%)] text-white"
+                  onClick={handleBatchAssign}
+                  disabled={!batchRoleId || !batchChairId}>
+                  Assign
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto max-h-[520px]">
             {rows.length === 0 ?
