@@ -458,13 +458,13 @@ export const CommandCentreConcept = ({
               <div className="flex gap-2 items-end">
                 <Select value={batchRoleId} onValueChange={(v) => {setBatchRoleId(v);setBatchChairId("");}}>
                   <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Role" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[100]">
                     {roles.map((r) => <SelectItem key={r.roleId} value={r.roleId}>{r.roleName}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={batchChairId} onValueChange={setBatchChairId} disabled={!batchRoleId}>
                   <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Chair" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[100]">
                     {getChairsForRole(batchRoleId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>

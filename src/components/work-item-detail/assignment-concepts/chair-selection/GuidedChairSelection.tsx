@@ -107,7 +107,7 @@ export const GuidedChairSelection = ({
             <SelectTrigger id="chair-type" className="w-full max-w-xs bg-background">
               <SelectValue placeholder="Select chair type..." />
             </SelectTrigger>
-          <SelectContent className="bg-background z-50">
+          <SelectContent className="bg-background z-[100]">
               {CHAIR_TYPE_CONFIGS.map((typeConfig) => (
                 <SelectItem key={typeConfig.id} value={typeConfig.id}>
                   {typeConfig.name}
