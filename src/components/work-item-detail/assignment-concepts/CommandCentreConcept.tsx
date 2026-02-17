@@ -479,10 +479,10 @@ export const CommandCentreConcept = ({
               <h4 className="font-semibold text-[hsl(220,50%,20%)]">Assignments</h4>
               <Badge variant="secondary" className="text-[10px]">{rows.length} assignment{rows.length !== 1 ? "s" : ""}</Badge>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>Click the notes icon on a row to add notes</span>
-            </div>
+            
+
+
+
           </div>
 
           {/* Batch assign bar */}
@@ -575,35 +575,35 @@ export const CommandCentreConcept = ({
                             </td>
                             <td className="px-3 py-2">
                               <button
-                                onClick={() => {
-                                  setExpandedNoteRows((prev) => {
-                                    const next = new Set(prev);
-                                    next.has(row.id) ? next.delete(row.id) : next.add(row.id);
-                                    return next;
-                                  });
-                                }}
-                                disabled={isReadOnly}
-                                className={cn(
-                                  "flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors",
-                                  row.notes
-                                    ? "text-primary bg-primary/5 hover:bg-primary/10"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )}
-                                title={row.notes ? "View/edit notes" : "Add notes"}
-                              >
+                              onClick={() => {
+                                setExpandedNoteRows((prev) => {
+                                  const next = new Set(prev);
+                                  next.has(row.id) ? next.delete(row.id) : next.add(row.id);
+                                  return next;
+                                });
+                              }}
+                              disabled={isReadOnly}
+                              className={cn(
+                                "flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors",
+                                row.notes ?
+                                "text-primary bg-primary/5 hover:bg-primary/10" :
+                                "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              )}
+                              title={row.notes ? "View/edit notes" : "Add notes"}>
+
                                 <MessageSquare className="w-3.5 h-3.5" />
-                                {row.notes ? (
-                                  <span className="truncate max-w-[120px]">{row.notes}</span>
-                                ) : (
-                                  <span className="italic opacity-60">None</span>
-                                )}
+                                {row.notes ?
+                              <span className="truncate max-w-[120px]">{row.notes}</span> :
+
+                              <span className="italic opacity-60">None</span>
+                              }
                               </button>
                             </td>
                             <td className="px-2 py-2">
                               <button
-                                onClick={() => removeRow(row.id)}
-                                disabled={isReadOnly}
-                                className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                              onClick={() => removeRow(row.id)}
+                              disabled={isReadOnly}
+                              className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             </td>
@@ -648,19 +648,19 @@ export const CommandCentreConcept = ({
                         return (
                           <React.Fragment key={role.roleId}>
                               <tr
-                                className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))] cursor-pointer hover:bg-muted/50 transition-colors"
-                                onClick={() => setCollapsedRoleIds((prev) => {
-                                  const next = new Set(prev);
-                                  next.has(role.roleId) ? next.delete(role.roleId) : next.add(role.roleId);
-                                  return next;
-                                })}
-                              >
+                              className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))] cursor-pointer hover:bg-muted/50 transition-colors"
+                              onClick={() => setCollapsedRoleIds((prev) => {
+                                const next = new Set(prev);
+                                next.has(role.roleId) ? next.delete(role.roleId) : next.add(role.roleId);
+                                return next;
+                              })}>
+
                                 <td colSpan={5} className="px-3 py-2">
                                   <div className="flex items-center gap-2">
-                                    {collapsedRoleIds.has(role.roleId)
-                                      ? <ChevronRight className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
-                                      : <ChevronDown className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
-                                    }
+                                    {collapsedRoleIds.has(role.roleId) ?
+                                  <ChevronRight className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" /> :
+                                  <ChevronDown className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
+                                  }
                                     <span className="text-xs font-semibold text-[hsl(220,50%,20%)]">{role.roleName}</span>
                                     <Badge variant="secondary" className={cn(
                                     "text-[10px]",
@@ -671,8 +671,8 @@ export const CommandCentreConcept = ({
                                   </div>
                                 </td>
                               </tr>
-                              {!collapsedRoleIds.has(role.roleId) && (
-                                <>
+                              {!collapsedRoleIds.has(role.roleId) &&
+                            <>
                                   <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-hover))]">
                                     <td className="text-left px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--wq-text-secondary))] uppercase tracking-wider">Member</td>
                                     <td className="text-left px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--wq-text-secondary))] uppercase tracking-wider">Chair</td>
@@ -682,7 +682,7 @@ export const CommandCentreConcept = ({
                                   </tr>
                                   {roleRows.map((row) => renderRow(row, !!(activeRoleFilter && row.roleId === activeRoleFilter)))}
                                 </>
-                              )}
+                            }
                             </React.Fragment>);
 
                       })}
