@@ -23,6 +23,7 @@ import {
   ConceptToggle,
   BulkAssignConcept,
   RoleFirstConcept,
+  CommandCentreConcept,
 } from "@/components/work-item-detail/assignment-concepts";
 import type { ConceptView } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -709,7 +710,7 @@ const WorkItemDetail = () => {
                   }}
                   isReadOnly={isReadOnly}
                 />
-              ) : (
+              ) : conceptView === "role-first" ? (
                 // Concept 2 — Role-First Three-Column
                 <RoleFirstConcept
                   availableRoles={teams.flatMap(team =>
@@ -732,6 +733,32 @@ const WorkItemDetail = () => {
                     if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
                     setLastSavedAt(new Date());
                     toast({ title: "Role Assignments Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved.` });
+                  }}
+                  isReadOnly={isReadOnly}
+                />
+              ) : (
+                // Command Centre
+                <CommandCentreConcept
+                  availableRoles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignments) => {
+                    const updatedAssignments = [...conceptAssignments, ...assignments];
+                    setConceptAssignments(updatedAssignments);
+                    assignments.forEach((assignment, index) => {
+                      if (assignment.selectedPerson) {
+                        handleAssign(assignment.roleId, index, assignment.selectedPerson, assignment.notes || '', assignment.workloadPercentage);
+                      }
+                    });
+                    if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
+                    setLastSavedAt(new Date());
+                    toast({ title: "Command Centre Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved.` });
                   }}
                   isReadOnly={isReadOnly}
                 />
