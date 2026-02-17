@@ -720,7 +720,7 @@ export const CommandCentreConcept = ({
       </div>
 
       {/* ── Zone 3: Sticky Bottom Bar ── */}
-      <div className="mt-6 p-4 bg-white border border-[hsl(var(--wq-border))] rounded-xl flex items-center justify-between mb-6">
+      <div className="mt-10 p-4 bg-white border border-[hsl(var(--wq-border))] rounded-xl flex items-center justify-between mb-6">
         <span className="text-sm text-[hsl(var(--wq-text-secondary))]">
           <span className="font-semibold text-[hsl(220,50%,20%)]">{filledChairs} of {totalChairs}</span> total chairs filled across {roles.length} roles
         </span>
