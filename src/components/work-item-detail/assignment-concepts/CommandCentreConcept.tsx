@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import {
   Search, X, Check, AlertTriangle, Zap, Trash2, ArrowUpDown,
-  Users, Table2, Info, MessageSquare, Briefcase } from
+  Users, Table2, Info, MessageSquare, Briefcase, ChevronDown, ChevronRight } from
 "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -134,6 +134,7 @@ export const CommandCentreConcept = ({
   const [showConfirmBanner, setShowConfirmBanner] = useState(false);
   const [expandedNoteRows, setExpandedNoteRows] = useState<Set<string>>(new Set());
   const [incompleteRoleIds, setIncompleteRoleIds] = useState<Set<string>>(new Set());
+  const [collapsedRoleIds, setCollapsedRoleIds] = useState<Set<string>>(new Set());
 
   // ── Helpers ──
   const getChairsForRole = (roleId: string) =>
@@ -646,13 +647,20 @@ export const CommandCentreConcept = ({
                         const isComplete = assigned >= role.chairCount;
                         return (
                           <React.Fragment key={role.roleId}>
-                              <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
+                              <tr
+                                className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))] cursor-pointer hover:bg-muted/50 transition-colors"
+                                onClick={() => setCollapsedRoleIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.has(role.roleId) ? next.delete(role.roleId) : next.add(role.roleId);
+                                  return next;
+                                })}
+                              >
                                 <td colSpan={5} className="px-3 py-2">
                                   <div className="flex items-center gap-2">
-                                    {isComplete ?
-                                  <Check className="w-3.5 h-3.5 text-[hsl(var(--wq-status-completed-text))]" /> :
-                                  <Briefcase className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
-                                  }
+                                    {collapsedRoleIds.has(role.roleId)
+                                      ? <ChevronRight className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
+                                      : <ChevronDown className="w-3.5 h-3.5 text-[hsl(var(--wq-text-secondary))]" />
+                                    }
                                     <span className="text-xs font-semibold text-[hsl(220,50%,20%)]">{role.roleName}</span>
                                     <Badge variant="secondary" className={cn(
                                     "text-[10px]",
@@ -663,7 +671,7 @@ export const CommandCentreConcept = ({
                                   </div>
                                 </td>
                               </tr>
-                              {roleRows.map((row) => renderRow(row, !!(activeRoleFilter && row.roleId === activeRoleFilter)))}
+                              {!collapsedRoleIds.has(role.roleId) && roleRows.map((row) => renderRow(row, !!(activeRoleFilter && row.roleId === activeRoleFilter)))}
                             </React.Fragment>);
 
                       })}
