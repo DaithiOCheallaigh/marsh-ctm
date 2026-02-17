@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Search, X, Check, AlertTriangle, Zap, Trash2, ArrowUpDown,
-  Users, Table2, Info } from
+  Users, Table2, Info, MessageSquare } from
 "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +87,7 @@ interface TableRow {
   chairId: string;
   workload: number;
   isSuggested: boolean;
+  notes: string;
 }
 
 type RowStatus = "ready" | "incomplete" | "conflict";
@@ -130,6 +131,7 @@ export const CommandCentreConcept = ({
   const [sortAsc, setSortAsc] = useState(true);
   const [showQuickAssignBanner, setShowQuickAssignBanner] = useState(false);
   const [showConfirmBanner, setShowConfirmBanner] = useState(false);
+  const [expandedNoteRows, setExpandedNoteRows] = useState<Set<string>>(new Set());
 
   // ── Helpers ──
   const getChairsForRole = (roleId: string) =>
@@ -232,7 +234,8 @@ export const CommandCentreConcept = ({
       roleId,
       chairId,
       workload,
-      isSuggested: suggested
+      isSuggested: suggested,
+      notes: ""
     }]
     );
   };
@@ -273,7 +276,8 @@ export const CommandCentreConcept = ({
             roleId: role.roleId,
             chairId: chair.id,
             workload: 20,
-            isSuggested: true
+            isSuggested: true,
+            notes: ""
           });
         }
       }
@@ -312,7 +316,7 @@ export const CommandCentreConcept = ({
       selectedPerson: { id: r.memberId, name: r.memberName },
       chairType: "Primary" as const,
       workloadPercentage: r.workload,
-      notes: getChairsForRole(r.roleId).find((c) => c.id === r.chairId)?.name || ""
+      notes: r.notes || getChairsForRole(r.roleId).find((c) => c.id === r.chairId)?.name || ""
     }));
     onComplete(output);
     setShowConfirmBanner(false);
@@ -556,30 +560,25 @@ export const CommandCentreConcept = ({
                   const status = getRowStatus(row);
                   const highlighted = activeRoleFilter && row.roleId === activeRoleFilter;
                   return (
+                    <React.Fragment key={row.id}>
                     <tr
-                      key={row.id}
                       className={cn(
                         "border-b border-[hsl(var(--wq-border))] transition-colors",
                         highlighted ? "bg-[hsl(var(--wq-bg-header))]" : "hover:bg-[hsl(var(--wq-bg-hover))]"
                       )}>
 
-                        {/* Member */}
                         <td className="px-3 py-2">
                           <span className="font-medium text-[hsl(220,50%,20%)] text-xs">{row.memberName}</span>
                         </td>
-                        {/* Role */}
                         <td className="px-3 py-2">
                           <span className="text-xs text-[hsl(220,50%,20%)]">{roles.find(r => r.roleId === row.roleId)?.roleName || '—'}</span>
                         </td>
-                        {/* Chair */}
                         <td className="px-3 py-2">
                           <span className="text-xs text-[hsl(220,50%,20%)]">{getChairsForRole(row.roleId).find(c => c.id === row.chairId)?.name || '—'}</span>
                         </td>
-                        {/* Workload */}
                         <td className="px-3 py-2">
                           <span className="text-xs font-medium text-[hsl(220,50%,20%)]">+{row.workload}%</span>
                         </td>
-                        {/* Status */}
                         <td className="px-3 py-2">
                           <TooltipProvider>
                             <Tooltip>
@@ -597,7 +596,6 @@ export const CommandCentreConcept = ({
                                 <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
                                       <AlertTriangle className="w-3 h-3 mr-0.5" /> Conflict
                                     </Badge> :
-
                                 <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                       Incomplete
                                     </Badge>
@@ -610,18 +608,52 @@ export const CommandCentreConcept = ({
                             </Tooltip>
                           </TooltipProvider>
                         </td>
-                        {/* Remove */}
                         <td className="px-2 py-2">
-                          <button
-                          onClick={() => removeRow(row.id)}
-                          disabled={isReadOnly}
-                          className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-destructive transition-colors">
-
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => {
+                                setExpandedNoteRows(prev => {
+                                  const next = new Set(prev);
+                                  next.has(row.id) ? next.delete(row.id) : next.add(row.id);
+                                  return next;
+                                });
+                              }}
+                              disabled={isReadOnly}
+                              className={cn(
+                                "p-1 rounded transition-colors",
+                                row.notes
+                                  ? "text-primary hover:bg-primary/10"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              )}
+                              title="Assignment Notes">
+                              <MessageSquare className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => removeRow(row.id)}
+                              disabled={isReadOnly}
+                              className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
-                      </tr>);
-
+                      </tr>
+                      {expandedNoteRows.has(row.id) && (
+                        <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
+                          <td colSpan={6} className="px-3 py-2">
+                            <div className="flex items-start gap-2">
+                              <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-1.5 flex-shrink-0" />
+                              <Input
+                                placeholder="Add assignment notes..."
+                                value={row.notes}
+                                onChange={(e) => updateRow(row.id, { notes: e.target.value })}
+                                disabled={isReadOnly}
+                                className="h-8 text-xs flex-1"
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>);
                 })}
                 </tbody>
               </table>
