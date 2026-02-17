@@ -378,13 +378,6 @@ export const CommandCentreConcept = ({
         })}
       </div>
 
-      {/* ── Resume banner ── */}
-      {rows.length > 0 && openChairs > 0 && (
-        <div className="p-3 mb-4 bg-[hsl(var(--wq-status-warning-bg))] border border-[hsl(var(--wq-status-warning-border))] rounded-lg text-sm text-[hsl(var(--wq-status-warning-text))] flex items-center gap-2">
-          <Info className="w-4 h-4 flex-shrink-0" />
-          Resuming — {filledChairs} assignment{filledChairs !== 1 ? "s" : ""} saved. {openChairs} chair{openChairs !== 1 ? "s" : ""} still open.
-        </div>
-      )}
 
       {/* ── Quick Assign banner ── */}
       {showQuickAssignBanner && (
