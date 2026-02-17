@@ -390,7 +390,7 @@ export const CommandCentreConcept = ({
               <div className="flex items-center gap-2">
                 <Progress value={pct} className="h-1.5 flex-1" />
                 <span className="text-[10px] text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
-                  {assigned} of {role.chairCount}
+                  Roles: {assigned} of {role.chairCount}
                 </span>
               </div>
             </button>
