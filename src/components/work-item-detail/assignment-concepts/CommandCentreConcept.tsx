@@ -499,7 +499,7 @@ export const CommandCentreConcept = ({
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <MessageSquare className="w-3.5 h-3.5" />
-              <span>Click <MessageSquare className="w-3 h-3 inline" /> on a row to add notes</span>
+              <span>Click the notes icon on a row to add notes</span>
             </div>
           </div>
 
