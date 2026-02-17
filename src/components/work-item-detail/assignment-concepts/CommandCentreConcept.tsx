@@ -379,16 +379,19 @@ export const CommandCentreConcept = ({
                 <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-status-completed-text))] flex items-center justify-center">
                     <Check className="w-3.5 h-3.5 text-white" />
                   </div> :
-
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Briefcase className="w-3.5 h-3.5 text-primary" />
+                assigned > 0 ?
+                <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                  </div> :
+                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                    <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
                 }
                 <span className="font-medium text-sm text-[hsl(220,50%,20%)] truncate">{role.roleName}</span>
               </div>
               <Badge variant="secondary" className="text-[10px] mb-2">{role.category}</Badge>
               <div className="flex items-center gap-2">
-                <Progress value={pct} className="h-1.5 flex-1 [&>div]:bg-[hsl(var(--wq-status-completed-text))]" />
+                <Progress value={pct} className={cn("h-1.5 flex-1", assigned > 0 ? "[&>div]:bg-[hsl(var(--wq-status-completed-text))]" : "[&>div]:bg-muted")} />
                 <span className="text-[10px] text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
                   Roles: {assigned} of {role.chairCount}
                 </span>
