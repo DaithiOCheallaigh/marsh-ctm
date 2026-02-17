@@ -754,7 +754,7 @@ export const CommandCentreConcept = ({
                     }}
                     disabled={isReadOnly || rows.length === 0 || hasIssues}>
 
-                    Complete Assignment
+                    Save Assignments
                   </Button>
                 </span>
               </TooltipTrigger>
