@@ -83,7 +83,6 @@ interface TableRow {
   id: string;
   memberId: string;
   memberName: string;
-  memberTitle: string;
   roleId: string;
   chairId: string;
   workload: number;
@@ -228,7 +227,6 @@ export const CommandCentreConcept = ({
       id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       memberId,
       memberName: member.name,
-      memberTitle: member.title,
       roleId,
       chairId,
       workload,
@@ -270,7 +268,6 @@ export const CommandCentreConcept = ({
             id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             memberId: best.id,
             memberName: best.name,
-            memberTitle: best.title,
             roleId: role.roleId,
             chairId: chair.id,
             workload: 20,
@@ -553,12 +550,12 @@ export const CommandCentreConcept = ({
                 <thead>
                   <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Member</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Job Title</th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] cursor-pointer select-none" onClick={() => setSortAsc(!sortAsc)}>
                       <span className="flex items-center gap-1">Role <ArrowUpDown className="w-3 h-3" /></span>
                     </th>
                     <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Chair</th>
-                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload</th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))] w-20">Workload </th>
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-[hsl(var(--wq-text-secondary))]">Status</th>
                     <th className="w-10"></th>
                   </tr>
                 </thead>
@@ -578,10 +575,6 @@ export const CommandCentreConcept = ({
                         <td className="px-3 py-2">
                           <span className="font-medium text-[hsl(220,50%,20%)] text-xs">{row.memberName}</span>
                         </td>
-                        {/* Job Title */}
-                        <td className="px-3 py-2">
-                          <span className="text-xs text-[hsl(var(--wq-text-secondary))]">{row.memberTitle}</span>
-                        </td>
                         {/* Role */}
                         <td className="px-3 py-2">
                           <span className="text-xs text-[hsl(220,50%,20%)]">
@@ -597,6 +590,37 @@ export const CommandCentreConcept = ({
                         {/* Workload */}
                         <td className="px-3 py-2">
                           <span className="text-xs font-medium text-[hsl(220,50%,20%)]">+{row.workload}%</span>
+                        </td>
+                        {/* Status */}
+                        <td className="px-3 py-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1">
+                                  {row.isSuggested ?
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                      Suggested
+                                    </Badge> :
+                                status === "ready" ?
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
+                                      <Check className="w-3 h-3 mr-0.5" /> Ready
+                                    </Badge> :
+                                status === "conflict" ?
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
+                                      <AlertTriangle className="w-3 h-3 mr-0.5" /> Conflict
+                                    </Badge> :
+
+                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                      Incomplete
+                                    </Badge>
+                                }
+                                </div>
+                              </TooltipTrigger>
+                              {status === "conflict" &&
+                            <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
+                            }
+                            </Tooltip>
+                          </TooltipProvider>
                         </td>
                         {/* Remove */}
                         <td className="px-2 py-2">
