@@ -227,19 +227,23 @@ export const CommandCentreConcept = ({
   // ── Actions ──
   const addRow = (memberId: string, roleId = "", chairId = "", workload = 20, suggested = false) => {
     const member = members.find((m) => m.id === memberId)!;
-    setRows((prev) => [
-    ...prev,
-    {
-      id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      memberId,
-      memberName: member.name,
-      roleId,
-      chairId,
-      workload,
-      isSuggested: suggested,
-      notes: ""
-    }]
-    );
+    setRows((prev) => {
+      // Auto-fill role from the last row if no role specified
+      const effectiveRoleId = roleId || (prev.length > 0 ? prev[prev.length - 1].roleId : "");
+      return [
+        ...prev,
+        {
+          id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          memberId,
+          memberName: member.name,
+          roleId: effectiveRoleId,
+          chairId,
+          workload,
+          isSuggested: suggested,
+          notes: ""
+        }
+      ];
+    });
   };
 
   const removeRow = (id: string) => setRows((prev) => prev.filter((r) => r.id !== id));
