@@ -103,12 +103,14 @@ interface CommandCentreConceptProps {
   availableRoles: RoleDefinition[];
   existingAssignments?: AssignmentData[];
   onComplete: (assignments: AssignmentData[]) => void;
+  onCompleteWorkItem?: () => void;
   isReadOnly?: boolean;
 }
 
 export const CommandCentreConcept = ({
   existingAssignments = [],
   onComplete,
+  onCompleteWorkItem,
   isReadOnly = false
 }: CommandCentreConceptProps) => {
   const { toast } = useToast();
@@ -315,6 +317,10 @@ export const CommandCentreConcept = ({
     onComplete(output);
     setShowConfirmBanner(false);
     toast({ title: "Assignments Complete", description: `${output.length} assignments saved.` });
+    // Trigger the parent's work item completion flow (partial/full check with modals)
+    if (onCompleteWorkItem) {
+      setTimeout(() => onCompleteWorkItem(), 100);
+    }
   };
 
   // ── Conflict tooltip text ──
@@ -652,7 +658,7 @@ export const CommandCentreConcept = ({
                     onClick={() => !hasIssues && setShowConfirmBanner(true)}
                     disabled={isReadOnly || rows.length === 0 || hasIssues}>
 
-                    Complete All Assignments
+                    Complete Assignment
                   </Button>
                 </span>
               </TooltipTrigger>
