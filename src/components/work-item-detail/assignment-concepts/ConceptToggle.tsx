@@ -11,7 +11,7 @@ const views: { id: ConceptView; label: string }[] = [
   { id: "classic", label: "Classic" },
   { id: "bulk-assign", label: "Concept 1: Bulk Assign" },
   { id: "role-first", label: "Concept 2: Role-First" },
-  { id: "command-centre", label: "Command Centre" },
+  { id: "command-centre", label: "Concept 3" },
 ];
 
 export const ConceptToggle = ({ activeView, onViewChange }: ConceptToggleProps) => {
