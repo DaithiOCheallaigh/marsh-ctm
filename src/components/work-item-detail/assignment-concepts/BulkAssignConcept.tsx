@@ -470,6 +470,43 @@ export const BulkAssignConcept = ({
           )}
         </div>
       </div>
+
+      {/* Assigned Roles Table */}
+      {configRows.filter((r) => r.roleId && r.chairId && r.workload > 0).length > 0 && (
+        <div className="border border-[hsl(var(--wq-border))] rounded-xl bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-page))]">
+            <h4 className="font-semibold text-[hsl(220,50%,20%)] text-sm">
+              Assigned Roles ({configRows.filter((r) => r.roleId && r.chairId && r.workload > 0).length})
+            </h4>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-page))]">
+                <th className="text-left px-4 py-2.5 font-medium text-[hsl(var(--wq-text-secondary))]">Team Member</th>
+                <th className="text-left px-4 py-2.5 font-medium text-[hsl(var(--wq-text-secondary))]">Role</th>
+                <th className="text-left px-4 py-2.5 font-medium text-[hsl(var(--wq-text-secondary))]">Chair</th>
+                <th className="text-left px-4 py-2.5 font-medium text-[hsl(var(--wq-text-secondary))]">Workload %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {configRows
+                .filter((r) => r.roleId && r.chairId && r.workload > 0)
+                .map((row) => {
+                  const roleName = roles.find((r) => r.roleId === row.roleId)?.roleName || row.roleId;
+                  const chairName = getChairsForRole(row.roleId).find((c) => c.id === row.chairId)?.name || row.chairId;
+                  return (
+                    <tr key={row.memberId} className="border-b last:border-b-0 border-[hsl(var(--wq-border))] hover:bg-[hsl(var(--wq-bg-hover))]">
+                      <td className="px-4 py-2.5 font-medium text-[hsl(220,50%,20%)]">{row.memberName}</td>
+                      <td className="px-4 py-2.5 text-[hsl(var(--wq-text-secondary))]">{roleName}</td>
+                      <td className="px-4 py-2.5 text-[hsl(var(--wq-text-secondary))]">{chairName}</td>
+                      <td className="px-4 py-2.5 text-[hsl(var(--wq-text-secondary))]">{row.workload}%</td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
