@@ -702,20 +702,7 @@ export const CommandCentreConcept = ({
                           </>
                       }
 
-                        {/* Roles with no assignments at all */}
-                        {unassignedRoles.map((role) =>
-                      <tr key={`empty-${role.roleId}`} className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-priority-high-bg))]/30">
-                            <td colSpan={5} className="px-3 py-2.5">
-                              <div className="flex items-center gap-2">
-                                <AlertTriangle className="w-3.5 h-3.5 text-[hsl(var(--wq-priority-high-text))]" />
-                                <span className="text-xs font-semibold text-[hsl(var(--wq-priority-high-text))]">{role.roleName}</span>
-                                <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
-                                  0 / {role.chairCount} — Needs assignment
-                                </Badge>
-                              </div>
-                            </td>
-                          </tr>
-                      )}
+                        {/* Roles with no assignments - hidden */}
                       </>);
 
                 })()}
