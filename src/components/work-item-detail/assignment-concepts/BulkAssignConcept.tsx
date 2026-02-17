@@ -379,7 +379,7 @@ export const BulkAssignConcept = ({
                       <div>
                         <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] mb-1 block">Role</label>
                         <Select
-                          value={row.roleId}
+                          value={row.roleId || undefined}
                           onValueChange={(val) =>
                             updateConfigRow(row.memberId, { roleId: val, chairId: "" })
                           }
@@ -400,7 +400,7 @@ export const BulkAssignConcept = ({
                       <div>
                         <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] mb-1 block">Chair</label>
                         <Select
-                          value={row.chairId}
+                          value={row.chairId || undefined}
                           onValueChange={(val) =>
                             updateConfigRow(row.memberId, { chairId: val })
                           }
