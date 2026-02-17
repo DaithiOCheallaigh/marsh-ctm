@@ -356,34 +356,34 @@ export const CommandCentreConcept = ({
           const state = getRolePillState(role.roleId);
           const isActive = activeRoleFilter === role.roleId;
           const isFullyAssigned = assigned >= role.chairCount;
-          const pct = (assigned / role.chairCount) * 100;
+          const pct = assigned / role.chairCount * 100;
           return (
             <button
               key={role.roleId}
               type="button"
-              onClick={() => { setActiveRoleFilter(role.roleId); setIncompleteRoleIds(prev => { const next = new Set(prev); next.delete(role.roleId); return next; }); }}
+              onClick={() => {setActiveRoleFilter(role.roleId);setIncompleteRoleIds((prev) => {const next = new Set(prev);next.delete(role.roleId);return next;});}}
               className={cn(
                 "w-full p-3 rounded-lg text-left transition-all border",
-                isActive
-                  ? "border-l-4 border-l-[hsl(220,50%,20%)] border-t border-r border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]"
-                  : "border-[hsl(var(--wq-border))] hover:bg-[hsl(var(--wq-bg-hover))]",
+                isActive ?
+                "border-l-4 border-l-[hsl(220,50%,20%)] border-t border-r border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]" :
+                "border-[hsl(var(--wq-border))] hover:bg-[hsl(var(--wq-bg-hover))]",
                 isFullyAssigned && !isActive && "bg-[hsl(var(--wq-status-completed-bg))]",
                 incompleteRoleIds.has(role.roleId) && "bg-[hsl(var(--wq-priority-high-bg))] border-[hsl(var(--wq-priority-high-text))] animate-pulse"
               )}>
               <div className="flex items-center gap-2 mb-1">
-                {incompleteRoleIds.has(role.roleId) ? (
-                  <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-priority-high-text))] flex items-center justify-center">
+                {incompleteRoleIds.has(role.roleId) ?
+                <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-priority-high-text))] flex items-center justify-center">
                     <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                  </div>
-                ) : isFullyAssigned ? (
-                  <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-status-completed-text))] flex items-center justify-center">
+                  </div> :
+                isFullyAssigned ?
+                <div className="w-6 h-6 rounded-full bg-[hsl(var(--wq-status-completed-text))] flex items-center justify-center">
                     <Check className="w-3.5 h-3.5 text-white" />
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  </div> :
+
+                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                     <Briefcase className="w-3.5 h-3.5 text-primary" />
                   </div>
-                )}
+                }
                 <span className="font-medium text-sm text-[hsl(220,50%,20%)] truncate">{role.roleName}</span>
               </div>
               <Badge variant="secondary" className="text-[10px] mb-2">{role.category}</Badge>
@@ -393,8 +393,8 @@ export const CommandCentreConcept = ({
                   Roles: {assigned} of {role.chairCount}
                 </span>
               </div>
-            </button>
-          );
+            </button>);
+
         })}
       </div>
 
@@ -415,7 +415,7 @@ export const CommandCentreConcept = ({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-[hsl(var(--wq-text-secondary))]" />
-                <h4 className="font-semibold text-[hsl(220,50%,20%)]">Member Pool</h4>
+                <h4 className="font-semibold text-[hsl(220,50%,20%)]">Members</h4>
                 <Badge variant="secondary" className="text-[10px]">{filteredMembers.length} members</Badge>
               </div>
             </div>
@@ -482,8 +482,8 @@ export const CommandCentreConcept = ({
           </div>
 
           {/* Batch assign bar */}
-          {selectedMemberIds.size > 0 && (
-            <div className="border-b border-[hsl(var(--wq-border))] p-3 bg-[hsl(var(--wq-bg-header))]">
+          {selectedMemberIds.size > 0 &&
+          <div className="border-b border-[hsl(var(--wq-border))] p-3 bg-[hsl(var(--wq-bg-header))]">
               <p className="text-xs font-semibold text-[hsl(220,50%,20%)] mb-2">
                 {selectedMemberIds.size} member{selectedMemberIds.size > 1 ? "s" : ""} selected — Assign to:
               </p>
@@ -501,18 +501,18 @@ export const CommandCentreConcept = ({
                   </SelectContent>
                 </Select>
                 <Input
-                  type="number" min={1} max={100} value={batchWorkload}
-                  onChange={(e) => setBatchWorkload(parseInt(e.target.value) || 20)}
-                  className="h-8 w-16 text-xs bg-white" />
+                type="number" min={1} max={100} value={batchWorkload}
+                onChange={(e) => setBatchWorkload(parseInt(e.target.value) || 20)}
+                className="h-8 w-16 text-xs bg-white" />
                 <Button
-                  size="sm" className="h-8 text-xs bg-[hsl(220,50%,20%)] hover:bg-[hsl(220,50%,15%)] text-white"
-                  onClick={handleBatchAssign}
-                  disabled={!batchRoleId || !batchChairId}>
+                size="sm" className="h-8 text-xs bg-[hsl(220,50%,20%)] hover:bg-[hsl(220,50%,15%)] text-white"
+                onClick={handleBatchAssign}
+                disabled={!batchRoleId || !batchChairId}>
                   Assign
                 </Button>
               </div>
             </div>
-          )}
+          }
 
           <div className="flex-1 overflow-y-auto max-h-[520px]">
             {rows.length === 0 ?
@@ -542,19 +542,19 @@ export const CommandCentreConcept = ({
                   return (
                     <React.Fragment key={row.id}>
                     <tr
-                      className={cn(
-                        "border-b border-[hsl(var(--wq-border))] transition-colors",
-                        highlighted ? "bg-[hsl(var(--wq-bg-header))]" : "hover:bg-[hsl(var(--wq-bg-hover))]"
-                      )}>
+                        className={cn(
+                          "border-b border-[hsl(var(--wq-border))] transition-colors",
+                          highlighted ? "bg-[hsl(var(--wq-bg-header))]" : "hover:bg-[hsl(var(--wq-bg-hover))]"
+                        )}>
 
                         <td className="px-3 py-2">
                           <span className="font-medium text-[hsl(220,50%,20%)] text-xs">{row.memberName}</span>
                         </td>
                         <td className="px-3 py-2">
-                          <span className="text-xs text-[hsl(220,50%,20%)]">{roles.find(r => r.roleId === row.roleId)?.roleName || '—'}</span>
+                          <span className="text-xs text-[hsl(220,50%,20%)]">{roles.find((r) => r.roleId === row.roleId)?.roleName || '—'}</span>
                         </td>
                         <td className="px-3 py-2">
-                          <span className="text-xs text-[hsl(220,50%,20%)]">{getChairsForRole(row.roleId).find(c => c.id === row.chairId)?.name || '—'}</span>
+                          <span className="text-xs text-[hsl(220,50%,20%)]">{getChairsForRole(row.roleId).find((c) => c.id === row.chairId)?.name || '—'}</span>
                         </td>
                         <td className="px-3 py-2">
                           <span className="text-xs font-medium text-[hsl(220,50%,20%)]">+{row.workload}%</span>
@@ -565,26 +565,26 @@ export const CommandCentreConcept = ({
                               <TooltipTrigger asChild>
                                 <div className="flex items-center gap-1">
                                   {row.isSuggested ?
-                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                  <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                       Suggested
                                     </Badge> :
-                                status === "ready" ?
-                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
+                                  status === "ready" ?
+                                  <Badge className="text-[10px] bg-[hsl(var(--wq-status-completed-bg))] text-[hsl(var(--wq-status-completed-text))] border-[hsl(var(--wq-status-completed-text))]">
                                       <Check className="w-3 h-3 mr-0.5" /> Ready
                                     </Badge> :
-                                status === "conflict" ?
-                                <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
+                                  status === "conflict" ?
+                                  <Badge className="text-[10px] bg-[hsl(var(--wq-priority-high-bg))] text-[hsl(var(--wq-priority-high-text))] border-[hsl(var(--wq-priority-high-text))]">
                                       <AlertTriangle className="w-3 h-3 mr-0.5" /> Conflict
                                     </Badge> :
-                                <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
+                                  <Badge className="text-[10px] bg-[hsl(var(--wq-status-warning-bg))] text-[hsl(var(--wq-status-warning-text))] border-[hsl(var(--wq-status-warning-border))]">
                                       Incomplete
                                     </Badge>
-                                }
+                                  }
                                 </div>
                               </TooltipTrigger>
                               {status === "conflict" &&
-                            <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
-                            }
+                              <TooltipContent><p className="text-xs max-w-[200px]">{getConflictTooltip(row)}</p></TooltipContent>
+                              }
                             </Tooltip>
                           </TooltipProvider>
                         </td>
@@ -592,7 +592,7 @@ export const CommandCentreConcept = ({
                           <div className="flex items-center gap-0.5">
                             <button
                               onClick={() => {
-                                setExpandedNoteRows(prev => {
+                                setExpandedNoteRows((prev) => {
                                   const next = new Set(prev);
                                   next.has(row.id) ? next.delete(row.id) : next.add(row.id);
                                   return next;
@@ -601,9 +601,9 @@ export const CommandCentreConcept = ({
                               disabled={isReadOnly}
                               className={cn(
                                 "p-1 rounded transition-colors",
-                                row.notes
-                                  ? "text-primary hover:bg-primary/10"
-                                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                row.notes ?
+                                "text-primary hover:bg-primary/10" :
+                                "text-muted-foreground hover:bg-muted hover:text-foreground"
                               )}
                               title="Assignment Notes">
                               <MessageSquare className="w-3.5 h-3.5" />
@@ -617,22 +617,22 @@ export const CommandCentreConcept = ({
                           </div>
                         </td>
                       </tr>
-                      {expandedNoteRows.has(row.id) && (
-                        <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
+                      {expandedNoteRows.has(row.id) &&
+                      <tr className="border-b border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-header))]">
                           <td colSpan={6} className="px-3 py-2">
                             <div className="flex items-start gap-2">
                               <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-1.5 flex-shrink-0" />
                               <Input
-                                placeholder="Add assignment notes..."
-                                value={row.notes}
-                                onChange={(e) => updateRow(row.id, { notes: e.target.value })}
-                                disabled={isReadOnly}
-                                className="h-8 text-xs flex-1"
-                              />
+                              placeholder="Add assignment notes..."
+                              value={row.notes}
+                              onChange={(e) => updateRow(row.id, { notes: e.target.value })}
+                              disabled={isReadOnly}
+                              className="h-8 text-xs flex-1" />
+
                             </div>
                           </td>
                         </tr>
-                      )}
+                      }
                     </React.Fragment>);
                 })}
                 </tbody>
@@ -660,9 +660,9 @@ export const CommandCentreConcept = ({
                     onClick={() => {
                       if (hasIssues) return;
                       // Check for unfilled roles and highlight them
-                      const unfilled = roles
-                        .filter((r) => (assignedCountByRole[r.roleId] || 0) === 0)
-                        .map((r) => r.roleId);
+                      const unfilled = roles.
+                      filter((r) => (assignedCountByRole[r.roleId] || 0) === 0).
+                      map((r) => r.roleId);
                       if (unfilled.length > 0 && unfilled.length < roles.length) {
                         setIncompleteRoleIds(new Set(unfilled));
                       }
