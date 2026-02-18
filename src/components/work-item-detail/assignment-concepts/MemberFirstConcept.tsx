@@ -788,47 +788,50 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   return (
     <div className="flex gap-6 min-w-0">
       {/* ── LEFT: Team Members (40%) ── */}
-      <div className="w-[40%] flex-shrink-0 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Team Members</h3>
-          <span className="text-xs text-muted-foreground">{members.length} members · sorted by capacity</span>
-        </div>
-        <div className="h-px bg-border" />
+      <div className="w-[40%] flex-shrink-0 flex flex-col">
+        <div className="rounded-lg border border-border overflow-hidden">
+          <div className="px-4 py-3 bg-muted/40 border-b border-border">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Team Members</h3>
+            <p className="text-sm text-muted-foreground">{members.length} members · sorted by capacity</p>
+          </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search members..."
-            value={memberSearch}
-            onChange={(e) => setMemberSearch(e.target.value)}
-            className="w-full h-9 pl-8 pr-8 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          {memberSearch && (
-            <button
-              onClick={() => setMemberSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+          <div className="p-3 border-b border-border">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search members..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                className="w-full h-9 pl-8 pr-8 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              {memberSearch && (
+                <button
+                  onClick={() => setMemberSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
 
-        {/* Member list */}
-        <div className="space-y-2 overflow-y-auto max-h-[560px] pr-0.5">
-          {filteredMembers.map((member) => (
-            <MemberCard
-              key={member.id}
-              member={member}
-              isSelected={selectedMember?.id === member.id}
-              onSelect={isReadOnly ? () => {} : handleSelectMember}
-              assignmentCount={memberAssignmentCount(member.id)}
-            />
-          ))}
-          {filteredMembers.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">No members found</p>
-          )}
+          {/* Member list */}
+          <div className="p-3 space-y-2 overflow-y-auto max-h-[560px]">
+            {filteredMembers.map((member) => (
+              <MemberCard
+                key={member.id}
+                member={member}
+                isSelected={selectedMember?.id === member.id}
+                onSelect={isReadOnly ? () => {} : handleSelectMember}
+                assignmentCount={memberAssignmentCount(member.id)}
+              />
+            ))}
+            {filteredMembers.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">No members found</p>
+            )}
+          </div>
         </div>
       </div>
 
