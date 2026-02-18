@@ -187,7 +187,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
   return (
     <div
       className={cn(
-        "border rounded-lg overflow-hidden transition-all duration-200",
+        "border rounded-lg transition-all duration-200 relative",
         allFilled
           ? "border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-muted))] opacity-60"
           : "border-[hsl(var(--wq-border))] bg-card"
