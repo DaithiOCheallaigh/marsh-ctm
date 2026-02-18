@@ -13,3 +13,4 @@ export type { ConceptView } from './ConceptToggle';
 export { BulkAssignConcept } from './BulkAssignConcept';
 export { RoleFirstConcept } from './RoleFirstConcept';
 export { CommandCentreConcept } from './CommandCentreConcept';
+export { MemberFirstConcept } from './MemberFirstConcept';
