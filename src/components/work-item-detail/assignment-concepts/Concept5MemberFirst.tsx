@@ -360,15 +360,16 @@ const RoleCard: React.FC<RoleCardProps> = ({
           {/* Notes toggle button */}
           <button
             type="button"
-            disabled={isLocked}
+            disabled={isLocked || !pending}
             onClick={() => setNoteExpanded((v) => !v)}
             className={cn(
               "flex items-center gap-1.5 px-2 py-1 h-9 rounded-md border text-xs transition-colors flex-shrink-0",
               pending?.notes
                 ? "text-primary bg-primary/5 border-primary/20 hover:bg-primary/10"
-                : "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground"
+                : "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground",
+              (!pending || isLocked) && "opacity-40 cursor-not-allowed"
             )}
-            title={pending?.notes ? "View/edit notes" : "Add notes"}
+            title={!pending ? "Select a chair first" : pending.notes ? "View/edit notes" : "Add notes"}
           >
             <MessageSquare className="w-3.5 h-3.5" />
             {pending?.notes ? (
