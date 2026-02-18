@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -147,6 +147,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
   pending,
   onPendingChange,
 }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
   const allFilled = assignedInRole.length >= role.chairs.length;
 
@@ -156,17 +158,20 @@ const RoleCard: React.FC<RoleCardProps> = ({
 
   const availableChairs = role.chairs.filter((c) => !assignmentMap[assignmentKey(role.roleId, c.id)]);
 
-  // Chair dropdown — no default (placeholder)
   const selectedChairId = pending?.chairId ?? "";
+  const selectedChairName = availableChairs.find((c) => c.id === selectedChairId)?.name ?? "";
   const workloadStr = pending ? String(pending.workload) : "20";
 
-  const handleChairChange = (chairId: string) => {
+  const handleChairSelect = (chairId: string) => {
     const chair = availableChairs.find((c) => c.id === chairId);
-    if (!chair) {
-      onPendingChange(null);
-      return;
-    }
+    if (!chair) return;
     onPendingChange({ chairId: chair.id, chairName: chair.name, workload: pending?.workload ?? 20 });
+    setDropdownOpen(false);
+  };
+
+  const handleClearChair = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPendingChange(null);
   };
 
   const handleWorkloadChange = (val: string) => {
@@ -211,7 +216,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
             const isCurrentMember = existing?.memberId === selectedMember?.id;
             return (
               <div key={chair.id} className="flex items-center gap-3 px-4 py-2 bg-[hsl(var(--wq-bg-muted))]">
-                <div className="w-4 h-4 rounded-full bg-[hsl(var(--wq-success,142,71%,45%))] flex items-center justify-center flex-shrink-0 [background-color:hsl(142,71%,45%)]">
+                <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 [background-color:hsl(142,71%,45%)]">
                   <Check className="w-2.5 h-2.5 text-primary-foreground" />
                 </div>
                 <span className="text-sm text-[hsl(var(--wq-text-secondary))] flex-1">
@@ -241,24 +246,67 @@ const RoleCard: React.FC<RoleCardProps> = ({
       {/* Chair dropdown + workload — no Assign button here */}
       {!allFilled && !selectedMemberAlreadyInRole && (
         <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
-          {/* Chair dropdown — with placeholder */}
+          {/* Custom clearable chair dropdown */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
               Chair
             </label>
-            <select
-              value={selectedChairId}
-              onChange={(e) => handleChairChange(e.target.value)}
-              disabled={isLocked}
-              className="flex-1 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm bg-card text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="" disabled>Select Chair</option>
-              {availableChairs.map((chair) => (
-                <option key={chair.id} value={chair.id}>
-                  {chair.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative flex-1">
+              {/* Trigger */}
+              <button
+                type="button"
+                onClick={() => !isLocked && setDropdownOpen((o) => !o)}
+                disabled={isLocked}
+                className={cn(
+                  "w-full h-9 px-3 pr-8 border border-[hsl(var(--wq-border))] rounded-md text-sm text-left bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center",
+                  selectedChairId ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                <span className="flex-1 truncate">{selectedChairId ? selectedChairName : "Select Chair"}</span>
+              </button>
+
+              {/* Right icon: X to clear if selected, chevron otherwise */}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+                {selectedChairId ? (
+                  <button
+                    type="button"
+                    onClick={handleClearChair}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Clear chair selection"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                )}
+              </div>
+
+              {/* Dropdown list */}
+              {dropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+                  <div className="absolute left-0 top-full mt-1 z-50 min-w-full bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
+                    {availableChairs.length === 0 ? (
+                      <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p>
+                    ) : (
+                      availableChairs.map((chair) => (
+                        <button
+                          key={chair.id}
+                          type="button"
+                          onClick={() => handleChairSelect(chair.id)}
+                          className={cn(
+                            "w-full text-left px-3 py-2 text-sm hover:bg-accent/30 transition-colors",
+                            chair.id === selectedChairId ? "text-primary font-medium bg-primary/5" : "text-foreground"
+                          )}
+                        >
+                          {chair.name}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Workload input */}
