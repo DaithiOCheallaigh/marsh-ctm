@@ -137,6 +137,11 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
   const allFilled = assignedInRole.length >= role.chairs.length;
 
+  // Check if the currently selected member is already assigned to any chair in this role
+  const selectedMemberAlreadyInRole = selectedMember
+    ? role.chairs.some((c) => assignmentMap[assignmentKey(role.roleId, c.id)]?.memberId === selectedMember.id)
+    : false;
+
   // Only unassigned chairs, in original order
   const availableChairs = role.chairs.filter((c) => !assignmentMap[assignmentKey(role.roleId, c.id)]);
 
@@ -154,7 +159,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const workload = parseFloat(workloadStr) || 0;
   const remaining = selectedMember?.availableCapacity ?? 100;
   const exceedsCapacity = workload > remaining;
-  const canAssign = selectedChairId !== "" && workload >= 1 && workload <= 100 && saveState !== "saving";
+  // Also block assign if selected member is already in this role
+  const canAssign = selectedChairId !== "" && workload >= 1 && workload <= 100 && saveState !== "saving" && !selectedMemberAlreadyInRole;
 
   const handleAssignClick = () => {
     if (!canAssign) return;
@@ -165,9 +171,9 @@ const RoleCard: React.FC<RoleCardProps> = ({
   return (
     <div className={cn(
       "border rounded-lg overflow-hidden transition-all duration-200",
-      allFilled ?
-      "border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-muted))] opacity-60" :
-      "border-[hsl(var(--wq-border))] bg-card"
+      allFilled
+        ? "border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-muted))] opacity-60"
+        : "border-[hsl(var(--wq-border))] bg-card"
     )}>
       {/* Role header */}
       <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
@@ -175,7 +181,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
           <div className="min-w-0">
             <p className="text-sm font-semibold text-primary leading-tight">{role.roleName}</p>
             {role.teamName &&
-            <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">{role.teamName}</p>
+              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">{role.teamName}</p>
             }
           </div>
           <span className="text-xs text-[hsl(var(--wq-text-secondary))] whitespace-nowrap flex-shrink-0">
@@ -186,46 +192,56 @@ const RoleCard: React.FC<RoleCardProps> = ({
 
       {/* Assigned chairs summary */}
       {assignedInRole.length > 0 &&
-      <div className="divide-y divide-[hsl(var(--wq-border))]">
+        <div className="divide-y divide-[hsl(var(--wq-border))]">
           {assignedInRole.map((chair) => {
-          const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
-          return (
-            <div key={chair.id} className="flex items-center gap-3 px-4 py-2 bg-[hsl(var(--wq-bg-muted))]">
-                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                  <Check className="w-2.5 h-2.5 text-white" />
+            const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
+            const isCurrentMember = existing?.memberId === selectedMember?.id;
+            return (
+              <div key={chair.id} className="flex items-center gap-3 px-4 py-2 bg-[hsl(var(--wq-bg-muted))]">
+                <div className="w-4 h-4 rounded-full bg-[hsl(var(--wq-success,142,71%,45%))] flex items-center justify-center flex-shrink-0 [background-color:hsl(142,71%,45%)]">
+                  <Check className="w-2.5 h-2.5 text-primary-foreground" />
                 </div>
                 <span className="text-sm text-[hsl(var(--wq-text-secondary))] line-through flex-1">
                   {chair.name}
                 </span>
-                <span className="text-xs text-[hsl(var(--wq-text-secondary))]">
+                <span className={cn("text-xs", isCurrentMember ? "text-primary font-semibold" : "text-[hsl(var(--wq-text-secondary))]")}>
                   → {existing?.memberName}
                   <span className="ml-1 opacity-70">({existing?.workload}%)</span>
                 </span>
-              </div>);
-
-        })}
+              </div>
+            );
+          })}
         </div>
       }
 
-      {/* Chair dropdown + workload + assign — hidden when all filled */}
-      {!allFilled &&
-      <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
+      {/* "Member already in this role" notice */}
+      {!allFilled && selectedMemberAlreadyInRole &&
+        <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] bg-muted/40 border-t border-[hsl(var(--wq-border))]">
+          <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(142,71%,45%)] flex-shrink-0" />
+          <span>
+            <span className="font-medium text-foreground">{selectedMember?.name.split(" ")[0]}</span>
+            {" "}is already assigned to this role. Select another member to fill remaining chairs.
+          </span>
+        </div>
+      }
+
+      {/* Chair dropdown + workload + assign — hidden when all filled or member already in this role */}
+      {!allFilled && !selectedMemberAlreadyInRole &&
+        <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
           {/* Chair dropdown */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
               Chair
             </label>
             <select
-            value={selectedChairId}
-            onChange={(e) => setSelectedChairId(e.target.value)}
-            disabled={isLocked || saveState === "saving"}
-            className="flex-1 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm bg-card text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed">
-
+              value={selectedChairId}
+              onChange={(e) => setSelectedChairId(e.target.value)}
+              disabled={isLocked || saveState === "saving"}
+              className="flex-1 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm bg-card text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {availableChairs.map((chair) =>
-            <option key={chair.id} value={chair.id}>
-                  {chair.name}
-                </option>
-            )}
+                <option key={chair.id} value={chair.id}>{chair.name}</option>
+              )}
             </select>
           </div>
 
@@ -235,55 +251,56 @@ const RoleCard: React.FC<RoleCardProps> = ({
               Workload
             </label>
             <input
-            type="number"
-            min={1}
-            max={100}
-            step={0.5}
-            value={workloadStr}
-            onChange={(e) => onWorkloadChange(e.target.value)}
-            onFocus={(e) => e.target.select()}
-            disabled={isLocked || saveState === "saving"}
-            className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50" />
-
+              type="number"
+              min={1}
+              max={100}
+              step={0.5}
+              value={workloadStr}
+              onChange={(e) => onWorkloadChange(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              disabled={isLocked || saveState === "saving"}
+              className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
+            />
             <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
           </div>
 
           {/* Capacity warning */}
           {exceedsCapacity && !isLocked &&
-        <span className="text-xs text-amber-600 flex items-center gap-1 w-full">
+            <span className="text-xs text-[hsl(38,92%,50%)] flex items-center gap-1 w-full">
               <AlertTriangle className="w-3 h-3 flex-shrink-0" />
               Exceeds {selectedMember?.name.split(" ")[0]}'s remaining capacity ({remaining}%)
             </span>
-        }
+          }
 
           {/* Save feedback + Assign button */}
           <div className="flex items-center gap-2 ml-auto flex-shrink-0">
             {saveState === "saving" &&
-          <span className="text-xs text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
+              <span className="text-xs text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
                 <Loader2 className="w-3 h-3 animate-spin" /> Saving...
               </span>
-          }
+            }
             {saveState === "success" &&
-          <span className="text-xs text-green-600 flex items-center gap-1">
+              <span className="text-xs text-[hsl(142,71%,45%)] flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Saved
               </span>
-          }
+            }
             {saveState === "error" &&
-          <button onClick={onRetry} className="text-xs text-destructive flex items-center gap-1 hover:underline">
+              <button onClick={onRetry} className="text-xs text-destructive flex items-center gap-1 hover:underline">
                 <XCircle className="w-3 h-3" /> Failed — <RefreshCw className="w-3 h-3" /> Retry
               </button>
-          }
+            }
             {saveState !== "success" &&
-          <Button size="sm" disabled={!canAssign || isLocked} onClick={handleAssignClick} className="h-9 px-5">
+              <Button size="sm" disabled={!canAssign || isLocked} onClick={handleAssignClick} className="h-9 px-5">
                 {saveState === "saving" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Assign"}
               </Button>
-          }
+            }
           </div>
         </div>
       }
-    </div>);
-
+    </div>
+  );
 };
+
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
