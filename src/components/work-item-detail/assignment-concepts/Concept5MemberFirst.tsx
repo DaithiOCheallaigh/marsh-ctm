@@ -284,8 +284,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
               {/* Dropdown list */}
               {dropdownOpen && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
-                  <div className="absolute left-0 top-full mt-1 z-50 min-w-full bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
+                  <div className="fixed inset-0 z-[99]" onClick={() => setDropdownOpen(false)} />
+                  <div className="absolute left-0 top-full mt-1 z-[100] min-w-full bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
                     {availableChairs.length === 0 ? (
                       <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p>
                     ) : (
