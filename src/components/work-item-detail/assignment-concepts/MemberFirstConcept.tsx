@@ -123,17 +123,16 @@ interface RoleCardProps {
   assignmentMap: AssignmentMap;
   selectedMember: LocalMember | null;
   isLocked: boolean;
-  workloadStr: string;
-  onWorkloadChange: (val: string) => void;
   saveState: SaveState;
-  onAssign: (chairId: string, chairName: string) => void;
-  onRetry: () => void;
+  onAssign: (chairId: string, chairName: string, workload: number) => void;
+  onRetry: (workload: number) => void;
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({
   role, assignmentMap, selectedMember, isLocked,
-  workloadStr, onWorkloadChange, saveState, onAssign, onRetry
+  saveState, onAssign, onRetry
 }) => {
+  const [workloadStr, setWorkloadStr] = useState("20");
   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
   const allFilled = assignedInRole.length >= role.chairs.length;
 
@@ -165,7 +164,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const handleAssignClick = () => {
     if (!canAssign) return;
     const chair = role.chairs.find((c) => c.id === selectedChairId);
-    if (chair) onAssign(chair.id, chair.name);
+    if (chair) onAssign(chair.id, chair.name, workload);
   };
 
   return (
@@ -256,7 +255,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
               max={100}
               step={0.5}
               value={workloadStr}
-              onChange={(e) => onWorkloadChange(e.target.value)}
+              onChange={(e) => setWorkloadStr(e.target.value)}
               onFocus={(e) => e.target.select()}
               disabled={isLocked || saveState === "saving"}
               className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
@@ -285,7 +284,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
               </span>
             }
             {saveState === "error" &&
-              <button onClick={onRetry} className="text-xs text-destructive flex items-center gap-1 hover:underline">
+              <button onClick={() => onRetry(workload)} className="text-xs text-destructive flex items-center gap-1 hover:underline">
                 <XCircle className="w-3 h-3" /> Failed — <RefreshCw className="w-3 h-3" /> Retry
               </button>
             }
@@ -345,7 +344,6 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   const [members, setMembers] = useState<LocalMember[]>(initialMembers);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [assignmentMap, setAssignmentMap] = useState<AssignmentMap>({});
-  const [workloadStr, setWorkloadStr] = useState("20");
 
   // Keep refs up-to-date so the unmount effect always reads the latest values
   const assignmentMapRef = useRef(assignmentMap);
@@ -415,7 +413,6 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
       setSelectedMemberId(memberId);
       setSaveState(null);
       setPendingSave(null);
-      setWorkloadStr("20");
     }
   };
 
@@ -477,18 +474,17 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   );
 
   const handleAssign = useCallback(
-    (roleId: string, chairId: string, chairName: string) => {
-      const workload = parseFloat(workloadStr) || 0;
+    (roleId: string, chairId: string, chairName: string, workload: number) => {
       setPendingSave({ roleId, chairId, chairName, workload });
       executeSave(roleId, chairId, chairName, workload);
     },
-    [workloadStr, executeSave]
+    [executeSave]
   );
 
-  const handleRetry = () => {
+  const handleRetry = (workload: number) => {
     if (pendingSave) {
       setSaveState(null);
-      executeSave(pendingSave.roleId, pendingSave.chairId, pendingSave.chairName, pendingSave.workload);
+      executeSave(pendingSave.roleId, pendingSave.chairId, pendingSave.chairName, workload);
     }
   };
 
@@ -576,10 +572,8 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
               assignmentMap={assignmentMap}
               selectedMember={selectedMember}
               isLocked={!selectedMember}
-              workloadStr={workloadStr}
-              onWorkloadChange={setWorkloadStr}
               saveState={activeRoleId === role.roleId ? saveState : null}
-              onAssign={(chairId, chairName) => handleAssign(role.roleId, chairId, chairName)}
+              onAssign={(chairId, chairName, workload) => handleAssign(role.roleId, chairId, chairName, workload)}
               onRetry={handleRetry} />
 
             )}
