@@ -372,11 +372,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
             title={!pending ? "Select a chair first" : pending.notes ? "View/edit notes" : "Add notes"}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            {pending?.notes ? (
-              <span className="truncate max-w-[100px]">{pending.notes}</span>
-            ) : (
-              <span className="italic opacity-60">Notes</span>
-            )}
+            <span className={pending?.notes ? "" : "italic opacity-60"}>Notes</span>
           </button>
 
           {/* Capacity warning */}
