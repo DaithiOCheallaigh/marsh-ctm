@@ -416,14 +416,12 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
 
   const handleSelectMember = (memberId: string) => {
     if (isReadOnly) return;
-    // Clicking the same member keeps selection; switching member re-sorts the underlying list
-    if (memberId !== selectedMemberId) {
-      setSelectedMemberId(memberId);
-      setSaveState(null);
-      setPendingSave(null);
-      // Re-sort now that we're moving focus to a different member
-      setMembers((prev) => [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity));
-    }
+    // Re-sort whenever selection changes (including deselect)
+    setMembers((prev) => [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity));
+    setSaveState(null);
+    setPendingSave(null);
+    // Clicking the selected member again deselects (unpins) it
+    setSelectedMemberId(memberId === selectedMemberId ? null : memberId);
   };
 
   const executeSave = useCallback(
