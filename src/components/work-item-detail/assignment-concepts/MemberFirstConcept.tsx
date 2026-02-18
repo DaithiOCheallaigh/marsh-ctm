@@ -327,7 +327,6 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   // Build member list from teamMembers, sorted by available capacity desc
   const initialMembers: LocalMember[] = useMemo(() => {
     return teamMembers
-      .slice(0, 20)
       .map((m) => {
         const baseWorkload = (m.currentAssignments || []).reduce((s, a) => s + a.workload, 0);
         return {
