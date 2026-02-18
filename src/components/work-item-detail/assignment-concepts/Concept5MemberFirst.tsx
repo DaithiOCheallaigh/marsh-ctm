@@ -214,7 +214,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 <div className="w-4 h-4 rounded-full bg-[hsl(var(--wq-success,142,71%,45%))] flex items-center justify-center flex-shrink-0 [background-color:hsl(142,71%,45%)]">
                   <Check className="w-2.5 h-2.5 text-primary-foreground" />
                 </div>
-                <span className="text-sm text-[hsl(var(--wq-text-secondary))] line-through flex-1">
+                <span className="text-sm text-[hsl(var(--wq-text-secondary))] flex-1">
                   {chair.name}
                 </span>
                 <span className={cn("text-xs", isCurrentMember ? "text-primary font-semibold" : "text-[hsl(var(--wq-text-secondary))]")}>
