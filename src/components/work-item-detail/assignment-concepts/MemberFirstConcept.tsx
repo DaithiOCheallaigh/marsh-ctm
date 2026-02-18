@@ -905,18 +905,6 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
           </div>
         </div>
 
-        {/* Complete button */}
-        {!isReadOnly && (
-          <div className="flex justify-end pt-2">
-            <Button
-              onClick={onCompleteWorkItem}
-              disabled={!hasAnyAssignments}
-              className="px-8"
-            >
-              Complete Work Item
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
