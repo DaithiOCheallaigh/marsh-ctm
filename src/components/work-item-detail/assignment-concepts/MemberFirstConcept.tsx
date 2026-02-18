@@ -786,10 +786,10 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   const hasAnyAssignments = assignments.length > 0;
 
   return (
-    <div className="flex gap-6 min-w-0">
+    <div className="flex gap-6 min-w-0 items-stretch">
       {/* ── LEFT: Team Members (40%) ── */}
       <div className="w-[40%] flex-shrink-0 flex flex-col">
-        <div className="rounded-lg border border-border overflow-hidden">
+        <div className="rounded-lg border border-border overflow-hidden flex flex-col flex-1">
           <div className="px-4 py-3 bg-muted/40 border-b border-border">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Team Members</h3>
             <p className="text-sm text-muted-foreground">{members.length} members · sorted by capacity</p>
@@ -818,7 +818,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
           </div>
 
           {/* Member list */}
-          <div className="p-3 space-y-2 overflow-y-auto max-h-[560px]">
+          <div className="p-3 space-y-2 overflow-y-auto flex-1">
             {filteredMembers.map((member) => (
               <MemberCard
                 key={member.id}
