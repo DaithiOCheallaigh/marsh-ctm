@@ -72,67 +72,48 @@ interface MemberCardProps {
   onSelect: () => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, assignmentCount, onSelect }) => {
-  const ref = useRef<HTMLDivElement>(null);
+const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, assignmentCount, onSelect }) =>
+<div
+  role="radio"
+  aria-checked={isSelected}
+  tabIndex={0}
+  onClick={onSelect}
+  onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
+  className={cn(
+    "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-150 select-none border-l-2",
+    isSelected ? "border-l-primary bg-primary/5" : "border-l-transparent hover:bg-accent/20"
+  )}>
 
-  // Scroll into view when this card becomes selected (e.g. after list re-sort)
-  useEffect(() => {
-    if (isSelected && ref.current) {
-      ref.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }, [isSelected]);
-
-  return (
-    <div
-      ref={ref}
-      role="radio"
-      aria-checked={isSelected}
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-200 select-none border-l-[3px]",
-        isSelected
-          ? "border-l-primary bg-primary/10 shadow-sm"
-          : "border-l-transparent hover:bg-accent/20"
-      )}
-    >
-      {/* Radio dot */}
-      <div className={cn(
-        "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
-        isSelected ? "border-primary bg-primary" : "border-muted-foreground/40"
-      )}>
-        {isSelected && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
-      </div>
-
-      {/* Avatar */}
-      <div className={cn(
-        "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
-        isSelected ? "bg-primary text-primary-foreground ring-2 ring-primary/30" : "bg-muted text-muted-foreground"
-      )}>
-        {getInitials(member.name)}
-      </div>
-
-      {/* Name + title */}
-      <div className="flex-1 min-w-0">
-        <p className={cn("text-sm font-semibold truncate leading-tight", isSelected ? "text-primary" : "text-foreground")}>
-          {member.name}
-        </p>
-        <p className="text-xs text-muted-foreground truncate leading-tight">{member.title}</p>
-      </div>
-
-      {/* Capacity + assignment count */}
-      <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
-        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border", getCapacityBadgeCls(member.availableCapacity))}>
-          {member.availableCapacity}% Availability
-        </span>
-        {assignmentCount > 0 &&
-          <span className="text-[10px] text-muted-foreground">{assignmentCount} assigned</span>
-        }
-      </div>
+    <div className={cn(
+    "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center",
+    isSelected ? "border-primary" : "border-muted-foreground/40"
+  )}>
+      {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
     </div>
-  );
-};
+
+    <div className={cn(
+    "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
+    isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+  )}>
+      {getInitials(member.name)}
+    </div>
+
+    <div className="flex-1 min-w-0">
+      <p className={cn("text-sm font-medium truncate leading-tight", isSelected ? "text-primary" : "text-foreground")}>
+        {member.name}
+      </p>
+      <p className="text-xs text-muted-foreground truncate leading-tight">{member.title}</p>
+    </div>
+
+    <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
+      <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border", getCapacityBadgeCls(member.availableCapacity))}>
+        {member.availableCapacity}% Availability
+      </span>
+      {assignmentCount > 0 &&
+    <span className="text-[10px] text-muted-foreground">{assignmentCount} assigned</span>
+    }
+    </div>
+  </div>;
 
 
 // ─── RoleCard ─────────────────────────────────────────────────────────────────
