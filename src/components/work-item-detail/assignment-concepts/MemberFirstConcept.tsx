@@ -484,12 +484,12 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
         <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
-            <h3 className="text-primary font-bold text-sm">
-              Team Members
-              <span className="ml-2 text-[hsl(var(--wq-text-secondary))] font-normal text-xs">
-                · {members.length} members · sorted by capacity
-              </span>
-            </h3>
+            <div>
+              <h3 className="text-primary font-bold text-sm">Team Members</h3>
+              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
+                {members.length} members · sorted by capacity
+              </p>
+            </div>
           </div>
 
           {/* Search */}
