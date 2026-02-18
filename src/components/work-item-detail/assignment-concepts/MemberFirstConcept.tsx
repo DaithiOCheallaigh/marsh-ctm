@@ -410,10 +410,13 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
 
   const handleSelectMember = (memberId: string) => {
     if (isReadOnly) return;
-    setSelectedMemberId(memberId);
-    setSaveState(null);
-    setPendingSave(null);
-    setWorkloadStr("20");
+    // If clicking a different member, reset state; clicking the same member does nothing (keeps selection)
+    if (memberId !== selectedMemberId) {
+      setSelectedMemberId(memberId);
+      setSaveState(null);
+      setPendingSave(null);
+      setWorkloadStr("20");
+    }
   };
 
   const executeSave = useCallback(
@@ -467,7 +470,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
         setActiveRoleId(null);
         setSaveState(null);
         setPendingSave(null);
-        setWorkloadStr("20");
+        // Do NOT reset workload or clear selectedMemberId — keep member selected for multi-role assignment
       }, 1500);
     },
     [selectedMember, assignmentMap, localRoles, existingAssignments, onComplete]
