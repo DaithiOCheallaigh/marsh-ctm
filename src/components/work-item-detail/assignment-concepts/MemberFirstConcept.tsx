@@ -29,7 +29,7 @@ interface LocalRole {
 }
 
 /** roleId+chairId → assignment */
-type AssignmentMap = Record<string, { memberId: string; memberName: string; workload: number }>;
+type AssignmentMap = Record<string, {memberId: string;memberName: string;workload: number;}>;
 
 type SaveState = null | "saving" | "success" | "error";
 
@@ -48,7 +48,7 @@ const getCapacityTextCls = (cap: number) => {
 };
 
 const getInitials = (name: string) =>
-  name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
 const buildChairsForRole = (roleName: string): LocalChair[] => {
   const found = rolesData.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
@@ -56,9 +56,9 @@ const buildChairsForRole = (roleName: string): LocalChair[] => {
     return found.chairs.map((c) => ({ id: c.id, name: c.name }));
   }
   return [
-    { id: `${roleName}-c1`, name: "Primary Chair" },
-    { id: `${roleName}-c2`, name: "Secondary Chair" },
-  ];
+  { id: `${roleName}-c1`, name: "Primary Chair" },
+  { id: `${roleName}-c2`, name: "Secondary Chair" }];
+
 };
 
 const assignmentKey = (roleId: string, chairId: string) => `${roleId}::${chairId}`;
@@ -72,29 +72,29 @@ interface MemberCardProps {
   onSelect: () => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, assignmentCount, onSelect }) => (
-  <div
-    role="radio"
-    aria-checked={isSelected}
-    tabIndex={0}
-    onClick={onSelect}
-    onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
-    className={cn(
-      "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-150 select-none border-l-2",
-      isSelected ? "border-l-primary bg-primary/5" : "border-l-transparent hover:bg-accent/20"
-    )}
-  >
+const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, assignmentCount, onSelect }) =>
+<div
+  role="radio"
+  aria-checked={isSelected}
+  tabIndex={0}
+  onClick={onSelect}
+  onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
+  className={cn(
+    "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-150 select-none border-l-2",
+    isSelected ? "border-l-primary bg-primary/5" : "border-l-transparent hover:bg-accent/20"
+  )}>
+
     <div className={cn(
-      "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center",
-      isSelected ? "border-primary" : "border-muted-foreground/40"
-    )}>
+    "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center",
+    isSelected ? "border-primary" : "border-muted-foreground/40"
+  )}>
       {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
     </div>
 
     <div className={cn(
-      "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
-      isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-    )}>
+    "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
+    isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+  )}>
       {getInitials(member.name)}
     </div>
 
@@ -109,12 +109,12 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, assignmentC
       <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border", getCapacityBadgeCls(member.availableCapacity))}>
         {member.availableCapacity}% Availability
       </span>
-      {assignmentCount > 0 && (
-        <span className="text-[10px] text-muted-foreground">{assignmentCount} assigned</span>
-      )}
+      {assignmentCount > 0 &&
+    <span className="text-[10px] text-muted-foreground">{assignmentCount} assigned</span>
+    }
     </div>
-  </div>
-);
+  </div>;
+
 
 // ─── RoleCard ─────────────────────────────────────────────────────────────────
 
@@ -132,7 +132,7 @@ interface RoleCardProps {
 
 const RoleCard: React.FC<RoleCardProps> = ({
   role, assignmentMap, selectedMember, isLocked,
-  workloadStr, onWorkloadChange, saveState, onAssign, onRetry,
+  workloadStr, onWorkloadChange, saveState, onAssign, onRetry
 }) => {
   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
   const allFilled = assignedInRole.length >= role.chairs.length;
@@ -148,7 +148,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
     if (!availableChairs.find((c) => c.id === selectedChairId)) {
       setSelectedChairId(availableChairs[0]?.id ?? "");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableChairs.length]);
 
   const workload = parseFloat(workloadStr) || 0;
@@ -165,18 +165,18 @@ const RoleCard: React.FC<RoleCardProps> = ({
   return (
     <div className={cn(
       "border rounded-lg overflow-hidden transition-all duration-200",
-      allFilled
-        ? "border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-muted))] opacity-60"
-        : "border-[hsl(var(--wq-border))] bg-card"
+      allFilled ?
+      "border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-muted))] opacity-60" :
+      "border-[hsl(var(--wq-border))] bg-card"
     )}>
       {/* Role header */}
       <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-primary leading-tight">{role.roleName}</p>
-            {role.teamName && (
-              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">{role.teamName}</p>
-            )}
+            {role.teamName &&
+            <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">{role.teamName}</p>
+            }
           </div>
           <span className="text-xs text-[hsl(var(--wq-text-secondary))] whitespace-nowrap flex-shrink-0">
             {assignedInRole.length} of {role.chairs.length} chairs assigned
@@ -185,12 +185,12 @@ const RoleCard: React.FC<RoleCardProps> = ({
       </div>
 
       {/* Assigned chairs summary */}
-      {assignedInRole.length > 0 && (
-        <div className="divide-y divide-[hsl(var(--wq-border))]">
+      {assignedInRole.length > 0 &&
+      <div className="divide-y divide-[hsl(var(--wq-border))]">
           {assignedInRole.map((chair) => {
-            const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
-            return (
-              <div key={chair.id} className="flex items-center gap-3 px-4 py-2 bg-[hsl(var(--wq-bg-muted))]">
+          const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
+          return (
+            <div key={chair.id} className="flex items-center gap-3 px-4 py-2 bg-[hsl(var(--wq-bg-muted))]">
                 <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
                   <Check className="w-2.5 h-2.5 text-white" />
                 </div>
@@ -201,31 +201,31 @@ const RoleCard: React.FC<RoleCardProps> = ({
                   → {existing?.memberName}
                   <span className="ml-1 opacity-70">({existing?.workload}%)</span>
                 </span>
-              </div>
-            );
-          })}
+              </div>);
+
+        })}
         </div>
-      )}
+      }
 
       {/* Chair dropdown + workload + assign — hidden when all filled */}
-      {!allFilled && (
-        <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
+      {!allFilled &&
+      <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
           {/* Chair dropdown */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
               Chair
             </label>
             <select
-              value={selectedChairId}
-              onChange={(e) => setSelectedChairId(e.target.value)}
-              disabled={isLocked || saveState === "saving"}
-              className="flex-1 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm bg-card text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {availableChairs.map((chair) => (
-                <option key={chair.id} value={chair.id}>
+            value={selectedChairId}
+            onChange={(e) => setSelectedChairId(e.target.value)}
+            disabled={isLocked || saveState === "saving"}
+            className="flex-1 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm bg-card text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed">
+
+              {availableChairs.map((chair) =>
+            <option key={chair.id} value={chair.id}>
                   {chair.name}
                 </option>
-              ))}
+            )}
             </select>
           </div>
 
@@ -235,54 +235,54 @@ const RoleCard: React.FC<RoleCardProps> = ({
               Workload
             </label>
             <input
-              type="number"
-              min={1}
-              max={100}
-              step={0.5}
-              value={workloadStr}
-              onChange={(e) => onWorkloadChange(e.target.value)}
-              onFocus={(e) => e.target.select()}
-              disabled={isLocked || saveState === "saving"}
-              className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
-            />
+            type="number"
+            min={1}
+            max={100}
+            step={0.5}
+            value={workloadStr}
+            onChange={(e) => onWorkloadChange(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            disabled={isLocked || saveState === "saving"}
+            className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50" />
+
             <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
           </div>
 
           {/* Capacity warning */}
-          {exceedsCapacity && !isLocked && (
-            <span className="text-xs text-amber-600 flex items-center gap-1 w-full">
+          {exceedsCapacity && !isLocked &&
+        <span className="text-xs text-amber-600 flex items-center gap-1 w-full">
               <AlertTriangle className="w-3 h-3 flex-shrink-0" />
               Exceeds {selectedMember?.name.split(" ")[0]}'s remaining capacity ({remaining}%)
             </span>
-          )}
+        }
 
           {/* Save feedback + Assign button */}
           <div className="flex items-center gap-2 ml-auto flex-shrink-0">
-            {saveState === "saving" && (
-              <span className="text-xs text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
+            {saveState === "saving" &&
+          <span className="text-xs text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
                 <Loader2 className="w-3 h-3 animate-spin" /> Saving...
               </span>
-            )}
-            {saveState === "success" && (
-              <span className="text-xs text-green-600 flex items-center gap-1">
+          }
+            {saveState === "success" &&
+          <span className="text-xs text-green-600 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Saved
               </span>
-            )}
-            {saveState === "error" && (
-              <button onClick={onRetry} className="text-xs text-destructive flex items-center gap-1 hover:underline">
+          }
+            {saveState === "error" &&
+          <button onClick={onRetry} className="text-xs text-destructive flex items-center gap-1 hover:underline">
                 <XCircle className="w-3 h-3" /> Failed — <RefreshCw className="w-3 h-3" /> Retry
               </button>
-            )}
-            {saveState !== "success" && (
-              <Button size="sm" disabled={!canAssign || isLocked} onClick={handleAssignClick} className="h-9 px-5">
+          }
+            {saveState !== "success" &&
+          <Button size="sm" disabled={!canAssign || isLocked} onClick={handleAssignClick} className="h-9 px-5">
                 {saveState === "saving" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Assign"}
               </Button>
-            )}
+          }
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -299,30 +299,30 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   roles,
   existingAssignments = [],
   onComplete,
-  isReadOnly = false,
+  isReadOnly = false
 }) => {
   const localRoles: LocalRole[] = useMemo(
     () => roles.map((r) => ({
       roleId: r.roleId,
       roleName: r.roleName,
       teamName: r.teamName,
-      chairs: buildChairsForRole(r.roleName),
+      chairs: buildChairsForRole(r.roleName)
     })),
     [roles]
   );
 
   const initialMembers: LocalMember[] = useMemo(() => {
-    return teamMembers
-      .map((m) => {
-        const baseWorkload = (m.currentAssignments || []).reduce((s, a) => s + a.workload, 0);
-        return {
-          id: m.id,
-          name: m.name,
-          title: m.title,
-          availableCapacity: Math.max(0, 100 - baseWorkload),
-        };
-      })
-      .sort((a, b) => b.availableCapacity - a.availableCapacity);
+    return teamMembers.
+    map((m) => {
+      const baseWorkload = (m.currentAssignments || []).reduce((s, a) => s + a.workload, 0);
+      return {
+        id: m.id,
+        name: m.name,
+        title: m.title,
+        availableCapacity: Math.max(0, 100 - baseWorkload)
+      };
+    }).
+    sort((a, b) => b.availableCapacity - a.availableCapacity);
   }, []);
 
   const [members, setMembers] = useState<LocalMember[]>(initialMembers);
@@ -331,7 +331,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   const [workloadStr, setWorkloadStr] = useState("20");
   const [saveState, setSaveState] = useState<SaveState>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
-  const [pendingSave, setPendingSave] = useState<{ roleId: string; chairId: string; chairName: string; workload: number } | null>(null);
+  const [pendingSave, setPendingSave] = useState<{roleId: string;chairId: string;chairName: string;workload: number;} | null>(null);
   const [memberSearch, setMemberSearch] = useState("");
   const debouncedSearch = useDebounce(memberSearch, 300);
 
@@ -374,16 +374,16 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
 
       const newMap = {
         ...assignmentMap,
-        [key]: { memberId: selectedMember.id, memberName: selectedMember.name, workload },
+        [key]: { memberId: selectedMember.id, memberName: selectedMember.name, workload }
       };
       setAssignmentMap(newMap);
 
       setMembers((prev) =>
-        prev.map((m) =>
-          m.id === selectedMember.id
-            ? { ...m, availableCapacity: Math.max(0, m.availableCapacity - workload) }
-            : m
-        )
+      prev.map((m) =>
+      m.id === selectedMember.id ?
+      { ...m, availableCapacity: Math.max(0, m.availableCapacity - workload) } :
+      m
+      )
       );
 
       const role = localRoles.find((r) => r.roleId === roleId);
@@ -396,11 +396,11 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
             id: selectedMember.id,
             name: selectedMember.name,
             role: selectedMember.title,
-            capacity: selectedMember.availableCapacity,
+            capacity: selectedMember.availableCapacity
           },
           chairType: "Primary",
           workloadPercentage: workload,
-          notes: chairName,
+          notes: chairName
         };
         onComplete([...existingAssignments, assignmentData]);
       }
@@ -454,32 +454,32 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
                 placeholder="Search members..."
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-              {memberSearch && (
-                <button
-                  onClick={() => setMemberSearch("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary"
-                >
+                className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30" />
+
+              {memberSearch &&
+              <button
+                onClick={() => setMemberSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary">
+
                   <X className="w-3.5 h-3.5" />
                 </button>
-              )}
+              }
             </div>
           </div>
 
           <div className="overflow-y-auto max-h-[560px] divide-y divide-[hsl(var(--wq-border))]">
-            {filteredMembers.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                isSelected={selectedMemberId === member.id}
-                assignmentCount={memberAssignmentCount(member.id)}
-                onSelect={() => handleSelectMember(member.id)}
-              />
-            ))}
-            {filteredMembers.length === 0 && (
-              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
+            {filteredMembers.map((member) =>
+            <MemberCard
+              key={member.id}
+              member={member}
+              isSelected={selectedMemberId === member.id}
+              assignmentCount={memberAssignmentCount(member.id)}
+              onSelect={() => handleSelectMember(member.id)} />
+
             )}
+            {filteredMembers.length === 0 &&
+            <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
+            }
           </div>
         </div>
       </div>
@@ -489,48 +489,48 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
         <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
             <div className="min-w-0">
-              <h3 className="text-primary font-bold text-sm">Available Roles</h3>
-              {selectedMember ? (
-                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
+              <h3 className="text-primary font-bold text-sm">Role Assignments</h3>
+              {selectedMember ?
+              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
                   Assigning to:{" "}
                   <span className="font-semibold text-primary">{selectedMember.name}</span>
                   {" — "}
                   <span className={cn("font-medium", getCapacityTextCls(selectedMember.availableCapacity))}>
                     {selectedMember.availableCapacity}% available capacity
                   </span>
-                </p>
-              ) : (
-                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5 flex items-center gap-1.5">
+                </p> :
+
+              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5 flex items-center gap-1.5">
                   <User className="w-3 h-3" />
                   Select a team member on the left to begin assigning roles
                 </p>
-              )}
+              }
             </div>
           </div>
 
           <div className={cn("p-4 flex flex-col gap-3", !selectedMember && "opacity-50 pointer-events-none")}>
-            {localRoles.map((role) => (
-              <RoleCard
-                key={role.roleId}
-                role={role}
-                assignmentMap={assignmentMap}
-                selectedMember={selectedMember}
-                isLocked={!selectedMember}
-                workloadStr={workloadStr}
-                onWorkloadChange={setWorkloadStr}
-                saveState={activeRoleId === role.roleId ? saveState : null}
-                onAssign={(chairId, chairName) => handleAssign(role.roleId, chairId, chairName)}
-                onRetry={handleRetry}
-              />
-            ))}
-            {localRoles.length === 0 && (
-              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
+            {localRoles.map((role) =>
+            <RoleCard
+              key={role.roleId}
+              role={role}
+              assignmentMap={assignmentMap}
+              selectedMember={selectedMember}
+              isLocked={!selectedMember}
+              workloadStr={workloadStr}
+              onWorkloadChange={setWorkloadStr}
+              saveState={activeRoleId === role.roleId ? saveState : null}
+              onAssign={(chairId, chairName) => handleAssign(role.roleId, chairId, chairName)}
+              onRetry={handleRetry} />
+
+            )}
+            {localRoles.length === 0 &&
+            <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
                 No roles configured for this work item.
               </p>
-            )}
+            }
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
