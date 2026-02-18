@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -148,6 +149,23 @@ const RoleCard: React.FC<RoleCardProps> = ({
   onPendingChange,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
+  const openDropdown = () => {
+    if (isLocked) return;
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+    setDropdownOpen(true);
+  };
 
   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
   const allFilled = assignedInRole.length >= role.chairs.length;
@@ -254,8 +272,9 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <div className="relative flex-1">
               {/* Trigger */}
               <button
+                ref={triggerRef}
                 type="button"
-                onClick={() => !isLocked && setDropdownOpen((o) => !o)}
+                onClick={() => dropdownOpen ? setDropdownOpen(false) : openDropdown()}
                 disabled={isLocked}
                 className={cn(
                   "w-full h-9 px-3 pr-8 border border-[hsl(var(--wq-border))] rounded-md text-sm text-left bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center",
@@ -281,11 +300,11 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 )}
               </div>
 
-              {/* Dropdown list */}
-              {dropdownOpen && (
+              {/* Dropdown list — portalled to body to escape overflow constraints */}
+              {dropdownOpen && ReactDOM.createPortal(
                 <>
-                  <div className="fixed inset-0 z-[99]" onClick={() => setDropdownOpen(false)} />
-                  <div className="absolute left-0 top-full mt-1 z-[100] min-w-full bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
+                  <div className="fixed inset-0 z-[9998]" onClick={() => setDropdownOpen(false)} />
+                  <div style={dropdownStyle} className="bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
                     {availableChairs.length === 0 ? (
                       <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p>
                     ) : (
@@ -304,7 +323,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
                       ))
                     )}
                   </div>
-                </>
+                </>,
+                document.body
               )}
             </div>
           </div>
