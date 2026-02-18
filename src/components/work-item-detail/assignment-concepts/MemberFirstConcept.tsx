@@ -397,31 +397,39 @@ const RoleCard: React.FC<RoleCardProps> = ({
         {role.teamName && (
           <p className="text-[10px] text-muted-foreground mb-1">{role.teamName}</p>
         )}
-        <p className="text-xs text-muted-foreground mb-2">
+          <p className="text-xs text-muted-foreground mb-2.5">
           {assignedCount} of {totalChairs} chairs assigned
         </p>
-        <ul className="space-y-0.5">
+        <div className="flex flex-wrap gap-1.5">
           {role.chairs.map((chair) => {
             const isAssigned = assignedChairIds.has(chair.id);
-            const assignee = allAssignments.find((a) => a.chairId === chair.id);
+            const assignee = allAssignments.find((a) => a.chairId === chair.id && a.roleId === role.roleId);
             return (
-              <li key={chair.id} className={cn(
-                "flex items-center gap-1.5 text-xs",
-                isAssigned ? "text-muted-foreground" : "text-foreground"
-              )}>
+              <span
+                key={chair.id}
+                title={isAssigned && assignee ? `Assigned to ${assignee.memberName}` : chair.name}
+                className={cn(
+                  "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border font-medium transition-all",
+                  isAssigned
+                    ? "bg-green-50 text-green-700 border-green-200 line-through opacity-70"
+                    : chair.type === "primary"
+                    ? "bg-primary/8 text-primary border-primary/20"
+                    : "bg-muted text-muted-foreground border-border"
+                )}
+              >
                 {isAssigned ? (
-                  <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
+                  <Check className="w-2.5 h-2.5 flex-shrink-0" />
                 ) : (
-                  <div className="w-3 h-3 rounded-full border border-muted-foreground/30 flex-shrink-0" />
+                  <div className={cn(
+                    "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                    chair.type === "primary" ? "bg-primary" : "bg-muted-foreground/40"
+                  )} />
                 )}
-                <span className={cn(isAssigned && "line-through")}>{chair.name}</span>
-                {isAssigned && assignee && (
-                  <span className="no-underline text-[10px] text-green-600 not-italic">({assignee.memberName})</span>
-                )}
-              </li>
+                {chair.name}
+              </span>
             );
           })}
-        </ul>
+        </div>
       </div>
 
       {/* Inline config panel */}
@@ -850,7 +858,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
             )}
           </div>
 
-          <div className="p-4 grid grid-cols-2 gap-3">
+          <div className="p-4 flex flex-col gap-3">
             {localRoles.map((role) => (
               <RoleCard
                 key={role.roleId}
