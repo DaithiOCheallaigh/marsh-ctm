@@ -25,6 +25,7 @@ import {
   RoleFirstConcept,
   CommandCentreConcept,
   MemberFirstConcept,
+  Concept5MemberFirst,
 } from "@/components/work-item-detail/assignment-concepts";
 import type { ConceptView } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -764,9 +765,29 @@ const WorkItemDetail = () => {
                   onCompleteWorkItem={handleCompleteWorkItem}
                   isReadOnly={isReadOnly}
                 />
-              ) : (
+              ) : conceptView === "member-first" ? (
                 // Concept 4 — Member-First Auto-Save
                 <MemberFirstConcept
+                  roles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignments) => {
+                    setConceptAssignments(assignments);
+                    if (workItem) updateWorkItem(workItem.id, { savedAssignments: assignments });
+                    setLastSavedAt(new Date());
+                  }}
+                  onCompleteWorkItem={handleCompleteWorkItem}
+                  isReadOnly={isReadOnly}
+                />
+              ) : (
+                // Concept 5 — Member-First, no auto-populate, single Assign button
+                <Concept5MemberFirst
                   roles={teams.flatMap(team =>
                     team.roles.map(role => ({
                       roleId: role.roleId,
