@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
-import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw, ChevronDown } from "lucide-react";
+import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw, ChevronDown, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -40,6 +40,7 @@ interface RolePending {
   chairId: string;
   chairName: string;
   workload: number;
+  notes: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -180,22 +181,30 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const selectedChairName = availableChairs.find((c) => c.id === selectedChairId)?.name ?? "";
   const workloadStr = pending ? String(pending.workload) : "20";
 
+  const [noteExpanded, setNoteExpanded] = useState(false);
+
   const handleChairSelect = (chairId: string) => {
     const chair = availableChairs.find((c) => c.id === chairId);
     if (!chair) return;
-    onPendingChange({ chairId: chair.id, chairName: chair.name, workload: pending?.workload ?? 20 });
+    onPendingChange({ chairId: chair.id, chairName: chair.name, workload: pending?.workload ?? 20, notes: pending?.notes ?? "" });
     setDropdownOpen(false);
   };
 
   const handleClearChair = (e: React.MouseEvent) => {
     e.stopPropagation();
     onPendingChange(null);
+    setNoteExpanded(false);
   };
 
   const handleWorkloadChange = (val: string) => {
     if (!pending) return;
     const parsed = parseFloat(val) || 0;
     onPendingChange({ ...pending, workload: parsed });
+  };
+
+  const handleNotesChange = (val: string) => {
+    if (!pending) return;
+    onPendingChange({ ...pending, notes: val });
   };
 
   const workload = pending?.workload ?? 0;
@@ -345,8 +354,29 @@ const RoleCard: React.FC<RoleCardProps> = ({
               disabled={isLocked}
               className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
             />
-            <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
+          <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
           </div>
+
+          {/* Notes toggle button */}
+          <button
+            type="button"
+            disabled={isLocked}
+            onClick={() => setNoteExpanded((v) => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 h-9 rounded-md border text-xs transition-colors flex-shrink-0",
+              pending?.notes
+                ? "text-primary bg-primary/5 border-primary/20 hover:bg-primary/10"
+                : "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground"
+            )}
+            title={pending?.notes ? "View/edit notes" : "Add notes"}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            {pending?.notes ? (
+              <span className="truncate max-w-[100px]">{pending.notes}</span>
+            ) : (
+              <span className="italic opacity-60">Notes</span>
+            )}
+          </button>
 
           {/* Capacity warning */}
           {exceedsCapacity && !isLocked && (
@@ -354,6 +384,28 @@ const RoleCard: React.FC<RoleCardProps> = ({
               <AlertTriangle className="w-3 h-3 flex-shrink-0" />
               Exceeds {selectedMember?.name.split(" ")[0]}'s remaining capacity ({remaining}%)
             </span>
+          )}
+
+          {/* Inline notes input */}
+          {noteExpanded && (
+            <div className="flex items-start gap-2 w-full">
+              <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-2 flex-shrink-0" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Add assignment notes..."
+                value={pending?.notes ?? ""}
+                onChange={(e) => handleNotesChange(e.target.value)}
+                disabled={isLocked}
+                className="flex-1 h-8 px-2 border border-[hsl(var(--wq-border))] rounded-md text-xs bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    setNoteExpanded(false);
+                  }
+                }}
+              />
+            </div>
           )}
         </div>
       )}
@@ -527,7 +579,7 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
         },
         chairType: "Primary",
         workloadPercentage: p.workload,
-        notes: p.chairName,
+        notes: p.notes || p.chairName,
       });
     }
 
