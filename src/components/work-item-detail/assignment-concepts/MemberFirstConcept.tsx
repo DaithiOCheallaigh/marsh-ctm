@@ -134,7 +134,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect, a
     {/* Capacity badge */}
     <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
       <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border", getCapacityBadgeCls(member.availableCapacity))}>
-        {member.availableCapacity}% Avail
+        {member.availableCapacity}% Availability
       </span>
       {assignmentCount > 0 && (
         <span className="text-[10px] text-muted-foreground">{assignmentCount} assigned</span>
