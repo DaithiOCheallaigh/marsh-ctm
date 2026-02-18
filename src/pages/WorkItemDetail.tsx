@@ -24,6 +24,7 @@ import {
   BulkAssignConcept,
   RoleFirstConcept,
   CommandCentreConcept,
+  MemberFirstConcept,
 } from "@/components/work-item-detail/assignment-concepts";
 import type { ConceptView } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -736,7 +737,7 @@ const WorkItemDetail = () => {
                   }}
                   isReadOnly={isReadOnly}
                 />
-              ) : (
+              ) : conceptView === "command-centre" ? (
                 // Command Centre
                 <CommandCentreConcept
                   availableRoles={teams.flatMap(team =>
@@ -759,6 +760,26 @@ const WorkItemDetail = () => {
                     if (workItem) updateWorkItem(workItem.id, { savedAssignments: updatedAssignments });
                     setLastSavedAt(new Date());
                     toast({ title: "Command Centre Saved", description: `${assignments.length} assignment${assignments.length > 1 ? 's' : ''} saved.` });
+                  }}
+                  onCompleteWorkItem={handleCompleteWorkItem}
+                  isReadOnly={isReadOnly}
+                />
+              ) : (
+                // Concept 4 — Member-First Auto-Save
+                <MemberFirstConcept
+                  roles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignments) => {
+                    setConceptAssignments(assignments);
+                    if (workItem) updateWorkItem(workItem.id, { savedAssignments: assignments });
+                    setLastSavedAt(new Date());
                   }}
                   onCompleteWorkItem={handleCompleteWorkItem}
                   isReadOnly={isReadOnly}

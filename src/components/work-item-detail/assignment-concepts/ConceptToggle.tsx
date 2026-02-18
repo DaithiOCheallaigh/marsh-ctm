@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type ConceptView = "classic" | "bulk-assign" | "role-first" | "command-centre";
+export type ConceptView = "classic" | "bulk-assign" | "role-first" | "command-centre" | "member-first";
 
 interface ConceptToggleProps {
   activeView: ConceptView;
@@ -12,6 +12,7 @@ const views: { id: ConceptView; label: string }[] = [
   { id: "bulk-assign", label: "Concept 1: Bulk Assign" },
   { id: "role-first", label: "Concept 2: Role-First" },
   { id: "command-centre", label: "Concept 3" },
+  { id: "member-first", label: "Concept 4: Member-First" },
 ];
 
 export const ConceptToggle = ({ activeView, onViewChange }: ConceptToggleProps) => {
