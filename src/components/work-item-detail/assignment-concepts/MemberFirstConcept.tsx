@@ -481,29 +481,32 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
     <div className="flex gap-6 min-w-0">
       {/* ── LEFT: Team Members (40%) ── */}
       <div className="w-[40%] flex-shrink-0">
-        <div className="rounded-lg border border-border overflow-hidden">
+        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
           {/* Header */}
-          <div className="px-4 py-3 bg-muted/40 border-b border-border">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Team Members · {members.length} members · sorted by capacity
-            </p>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
+            <h3 className="text-primary font-bold text-sm">
+              Team Members
+              <span className="ml-2 text-[hsl(var(--wq-text-secondary))] font-normal text-xs">
+                · {members.length} members · sorted by capacity
+              </span>
+            </h3>
           </div>
 
           {/* Search */}
-          <div className="p-3 border-b border-border">
+          <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--wq-text-secondary))] pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search members..."
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full h-9 pl-8 pr-8 text-sm border border-border rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
               {memberSearch && (
                 <button
                   onClick={() => setMemberSearch("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -512,7 +515,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
           </div>
 
           {/* Member list */}
-          <div className="overflow-y-auto max-h-[560px] divide-y divide-border">
+          <div className="overflow-y-auto max-h-[560px] divide-y divide-[hsl(var(--wq-border))]">
             {filteredMembers.map((member) => (
               <MemberCard
                 key={member.id}
@@ -523,7 +526,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
               />
             ))}
             {filteredMembers.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">No members found</p>
+              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
             )}
           </div>
         </div>
@@ -531,27 +534,27 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
 
       {/* ── RIGHT: Available Roles (60%) ── */}
       <div className="flex-1 min-w-0">
-        <div className="rounded-lg border border-border overflow-hidden">
+        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
           {/* Header */}
-          <div className="px-4 py-3 bg-muted/40 border-b border-border">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
-              Available Roles
-            </h3>
-            {selectedMember ? (
-              <p className="text-sm text-foreground">
-                Assigning roles to:{" "}
-                <span className="font-semibold text-primary">{selectedMember.name}</span>
-                {" — "}
-                <span className={cn("text-xs font-medium", getCapacityTextCls(selectedMember.availableCapacity))}>
-                  {selectedMember.availableCapacity}% available capacity
-                </span>
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5" />
-                Select a team member on the left to begin assigning roles
-              </p>
-            )}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
+            <div className="min-w-0">
+              <h3 className="text-primary font-bold text-sm">Available Roles</h3>
+              {selectedMember ? (
+                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
+                  Assigning to:{" "}
+                  <span className="font-semibold text-primary">{selectedMember.name}</span>
+                  {" — "}
+                  <span className={cn("font-medium", getCapacityTextCls(selectedMember.availableCapacity))}>
+                    {selectedMember.availableCapacity}% available capacity
+                  </span>
+                </p>
+              ) : (
+                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5 flex items-center gap-1.5">
+                  <User className="w-3 h-3" />
+                  Select a team member on the left to begin assigning roles
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Role cards */}
@@ -575,7 +578,7 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
               />
             ))}
             {localRoles.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">
+              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
                 No roles configured for this work item.
               </p>
             )}
