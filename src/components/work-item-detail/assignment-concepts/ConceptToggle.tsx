@@ -9,10 +9,10 @@ interface ConceptToggleProps {
 
 const views: { id: ConceptView; label: string }[] = [
   { id: "classic", label: "Classic" },
-  { id: "bulk-assign", label: "Concept 1: Bulk Assign" },
-  { id: "role-first", label: "Concept 2: Role-First" },
+  { id: "bulk-assign", label: "Concept 1" },
+  { id: "role-first", label: "Concept 2" },
   { id: "command-centre", label: "Concept 3" },
-  { id: "member-first", label: "Concept 4: Member-First" },
+  { id: "member-first", label: "Concept 4" },
 ];
 
 export const ConceptToggle = ({ activeView, onViewChange }: ConceptToggleProps) => {
