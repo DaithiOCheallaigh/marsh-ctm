@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -329,6 +329,44 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [assignmentMap, setAssignmentMap] = useState<AssignmentMap>({});
   const [workloadStr, setWorkloadStr] = useState("20");
+
+  // Keep refs up-to-date so the unmount effect always reads the latest values
+  const assignmentMapRef = useRef(assignmentMap);
+  const localRolesRef = useRef(localRoles);
+  const existingAssignmentsRef = useRef(existingAssignments);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => { assignmentMapRef.current = assignmentMap; }, [assignmentMap]);
+  useEffect(() => { localRolesRef.current = localRoles; }, [localRoles]);
+  useEffect(() => { existingAssignmentsRef.current = existingAssignments; }, [existingAssignments]);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+
+  // Auto-save all assignments when the user navigates away
+  useEffect(() => {
+    return () => {
+      const map = assignmentMapRef.current;
+      const roles = localRolesRef.current;
+      const existing = existingAssignmentsRef.current;
+
+      const newAssignments: AssignmentData[] = Object.entries(map).map(([key, val]) => {
+        const [roleId, chairId] = key.split("::");
+        const role = roles.find((r) => r.roleId === roleId);
+        return {
+          roleId,
+          roleName: role?.roleName ?? roleId,
+          teamName: role?.teamName,
+          selectedPerson: { id: val.memberId, name: val.memberName },
+          chairType: "Primary" as const,
+          workloadPercentage: val.workload,
+          notes: chairId,
+        };
+      });
+
+      if (newAssignments.length > 0) {
+        onCompleteRef.current([...existing, ...newAssignments]);
+      }
+    };
+  }, []);
   const [saveState, setSaveState] = useState<SaveState>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [pendingSave, setPendingSave] = useState<{roleId: string;chairId: string;chairName: string;workload: number;} | null>(null);
