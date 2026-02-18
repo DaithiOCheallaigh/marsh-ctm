@@ -395,11 +395,19 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
 
   const filteredMembers = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
-    if (!q) return members;
-    return members.filter(
-      (m) => m.name.toLowerCase().includes(q) || m.title.toLowerCase().includes(q)
-    );
-  }, [members, debouncedSearch]);
+    const filtered = q
+      ? members.filter((m) => m.name.toLowerCase().includes(q) || m.title.toLowerCase().includes(q))
+      : [...members];
+    // Pin the selected member to the top; sort the rest by available capacity
+    if (selectedMemberId) {
+      const selectedIdx = filtered.findIndex((m) => m.id === selectedMemberId);
+      if (selectedIdx > 0) {
+        const [selected] = filtered.splice(selectedIdx, 1);
+        filtered.unshift(selected);
+      }
+    }
+    return filtered;
+  }, [members, debouncedSearch, selectedMemberId]);
 
   const memberAssignmentCount = useCallback(
     (memberId: string) => Object.values(assignmentMap).filter((a) => a.memberId === memberId).length,
@@ -408,11 +416,13 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
 
   const handleSelectMember = (memberId: string) => {
     if (isReadOnly) return;
-    // If clicking a different member, reset state; clicking the same member does nothing (keeps selection)
+    // Clicking the same member keeps selection; switching member re-sorts the underlying list
     if (memberId !== selectedMemberId) {
       setSelectedMemberId(memberId);
       setSaveState(null);
       setPendingSave(null);
+      // Re-sort now that we're moving focus to a different member
+      setMembers((prev) => [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity));
     }
   };
 
@@ -433,14 +443,13 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
       };
       setAssignmentMap(newMap);
 
+      // Update capacity without re-sorting — re-sort happens only when no member is selected
       setMembers((prev) =>
-        prev
-          .map((m) =>
-            m.id === selectedMember.id
-              ? { ...m, availableCapacity: Math.max(0, m.availableCapacity - workload) }
-              : m
-          )
-          .sort((a, b) => b.availableCapacity - a.availableCapacity)
+        prev.map((m) =>
+          m.id === selectedMember.id
+            ? { ...m, availableCapacity: Math.max(0, m.availableCapacity - workload) }
+            : m
+        )
       );
 
       const role = localRoles.find((r) => r.roleId === roleId);
