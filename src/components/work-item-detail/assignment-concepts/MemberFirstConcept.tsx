@@ -379,11 +379,13 @@ export const MemberFirstConcept: React.FC<MemberFirstConceptProps> = ({
       setAssignmentMap(newMap);
 
       setMembers((prev) =>
-      prev.map((m) =>
-      m.id === selectedMember.id ?
-      { ...m, availableCapacity: Math.max(0, m.availableCapacity - workload) } :
-      m
-      )
+        prev
+          .map((m) =>
+            m.id === selectedMember.id
+              ? { ...m, availableCapacity: Math.max(0, m.availableCapacity - workload) }
+              : m
+          )
+          .sort((a, b) => b.availableCapacity - a.availableCapacity)
       );
 
       const role = localRoles.find((r) => r.roleId === roleId);
