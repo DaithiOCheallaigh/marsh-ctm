@@ -309,10 +309,10 @@ const RoleCard: React.FC<RoleCardProps> = ({
       {!allFilled && selectedMemberAlreadyInRole &&
       <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] bg-muted/40 border-t border-[hsl(var(--wq-border))]">
           <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(142,71%,45%)] flex-shrink-0" />
-          <span>
-            <span className="font-medium text-foreground">{selectedMember?.name.split(" ")[0]}</span>
-            {" "}is already assigned to this role. Select another member to fill remaining chairs.
-          </span>
+          
+
+
+
         </div>
       }
 
