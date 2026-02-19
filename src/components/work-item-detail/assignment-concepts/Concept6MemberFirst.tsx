@@ -123,7 +123,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect })
 
     <div className="flex-shrink-0">
       <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border", getCapacityBadgeCls(member.availableCapacity))}>
-        {member.availableCapacity}%
+        Capacity {member.availableCapacity}%
       </span>
     </div>
   </div>;
