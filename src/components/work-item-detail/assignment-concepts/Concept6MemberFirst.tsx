@@ -723,10 +723,10 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
   return (
     <div className="flex flex-col gap-4">
       {/* ── Instruction callout ── */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-[hsl(var(--wq-border))] bg-card text-xs text-muted-foreground">
-        <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span>Assign at least one role and chair to complete this work item.</span>
-      </div>
+      
+
+
+
 
       <div className="flex gap-6 min-w-0">
         {/* ── LEFT: Team Members (40%) ── */}
