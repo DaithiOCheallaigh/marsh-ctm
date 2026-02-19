@@ -238,32 +238,55 @@ const RoleCard: React.FC<RoleCardProps> = ({
               key={chair.id}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5",
-                isCurrentMember ?
-                "bg-primary/5" :
-                "bg-[hsl(var(--wq-bg-muted))]"
+                isCurrentMember ? "bg-primary/5" : "bg-[hsl(var(--wq-bg-muted))]"
               )}>
 
+                {/* Status icon */}
                 <div className={cn(
-                "w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0",
-                isCurrentMember ? "bg-primary" : "[background-color:hsl(var(--wq-text-muted))]"
+                "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
+                isCurrentMember ? "bg-primary" : "bg-muted-foreground/30"
               )}>
-                  {isCurrentMember ?
-                <Check className="w-2.5 h-2.5 text-primary-foreground" /> :
-
-                <Lock className="w-2.5 h-2.5 text-white" />
-                }
+                  {isCurrentMember
+                    ? <Check className="w-3 h-3 text-primary-foreground" />
+                    : <Lock className="w-3 h-3 text-white" />
+                  }
                 </div>
-                <span className="text-sm flex-1 text-foreground">{chair.name}</span>
-                <span className={cn(
-                "text-xs font-medium",
-                isCurrentMember ? "text-primary" : "text-[hsl(var(--wq-text-secondary))]"
-              )}>
-                  {existing?.memberName}
-                  <span className="ml-1 opacity-70">({existing?.workload}%)</span>
+
+                {/* Chair name */}
+                <span className="text-xs text-muted-foreground w-28 flex-shrink-0">{chair.name}</span>
+
+                {/* Assigned member avatar + name — always prominent */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={cn(
+                    "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0",
+                    isCurrentMember ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}>
+                    {getInitials(existing?.memberName ?? "")}
+                  </div>
+                  <div className="min-w-0">
+                    <span className={cn(
+                      "text-sm font-semibold truncate block",
+                      isCurrentMember ? "text-primary" : "text-foreground"
+                    )}>
+                      {existing?.memberName}
+                    </span>
+                  </div>
                   {!isCurrentMember &&
-                <span className="ml-1.5 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Locked</span>
-                }
+                    <span className="ml-1 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full flex-shrink-0 flex items-center gap-0.5">
+                      <Lock className="w-2.5 h-2.5" /> Locked
+                    </span>
+                  }
+                </div>
+
+                {/* Workload */}
+                <span className={cn(
+                  "text-xs font-medium flex-shrink-0",
+                  isCurrentMember ? "text-primary" : "text-muted-foreground"
+                )}>
+                  {existing?.workload}%
                 </span>
+
+                {/* Trash icon */}
                 <button
                 type="button"
                 disabled={!isTrashActive}
@@ -272,7 +295,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
                   "flex-shrink-0 transition-colors p-1 rounded",
                   isTrashActive ?
                   "text-destructive hover:bg-destructive/10 cursor-pointer" :
-                  "text-muted-foreground/30 cursor-not-allowed"
+                  "text-muted-foreground/20 cursor-not-allowed"
                 )}
                 title={isTrashActive ? "Remove assignment" : "Select this member to manage their assignments"}>
 
