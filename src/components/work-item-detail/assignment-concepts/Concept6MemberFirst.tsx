@@ -237,7 +237,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
               key={chair.id}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 border-b border-[hsl(var(--wq-border))] last:border-b-0",
-                isCurrentMember ? "bg-primary/5" : "bg-[hsl(var(--wq-bg-muted))]"
+                "bg-primary/5"
               )}>
 
                 {/* Chair name */}
