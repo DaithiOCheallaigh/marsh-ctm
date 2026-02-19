@@ -308,7 +308,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
       {/* "Member already in this role" notice */}
       {!allFilled && selectedMemberAlreadyInRole &&
       <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] bg-muted/40 border-t border-[hsl(var(--wq-border))]">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(142,71%,45%)] flex-shrink-0" />
+          
           
 
 
