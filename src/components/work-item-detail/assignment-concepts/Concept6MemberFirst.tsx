@@ -802,21 +802,6 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
                   All roles across this work item
                 </p>
               </div>
-              {/* Selected member capacity inline badge */}
-              {selectedMember &&
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
-                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-bold text-primary-foreground">{getInitials(selectedMember.name)}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="font-semibold text-primary">{selectedMember.name.split(" ")[0]}</span>
-                    <span className="text-muted-foreground"> · </span>
-                    <span className={cn("font-medium", getCapacityTextCls(selectedMember.availableCapacity))}>
-                      {selectedMember.availableCapacity}% available
-                    </span>
-                  </div>
-                </div>
-              }
             </div>
 
             {/* Minimum requirement note */}
