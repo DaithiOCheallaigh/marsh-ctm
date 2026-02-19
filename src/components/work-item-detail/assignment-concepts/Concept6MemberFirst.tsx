@@ -93,7 +93,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect })
   onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
   className={cn(
     "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-150 select-none border-l-2",
-    isSelected ? "border-l-primary bg-primary/5" : "border-l-transparent hover:bg-accent/20"
+    isSelected ? "border-l-primary bg-primary/10" : "border-l-transparent hover:bg-accent/20"
   )}>
 
     <div
