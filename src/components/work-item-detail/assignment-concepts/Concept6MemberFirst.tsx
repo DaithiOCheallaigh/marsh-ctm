@@ -786,7 +786,7 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
               <div className="min-w-0">
                 <h3 className="text-primary font-bold text-sm">Role Assignments</h3>
                 <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
-                  All roles across this work item
+                  Please fill at least one chair for the selected roles to complete this work item    
                 </p>
               </div>
             </div>
@@ -801,31 +801,31 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
             <div className="p-4 flex flex-col gap-3">
               {/* When no member selected: show existing assignments (read-only) + prompt */}
-              {!selectedMember && (
-                <>
+              {!selectedMember &&
+              <>
                   {localRoles.map((role) => {
-                    const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
-                    if (assignedInRole.length === 0) return null;
-                    return (
-                      <RoleCard
-                        key={role.roleId}
-                        role={role}
-                        assignmentMap={assignmentMap}
-                        selectedMember={null}
-                        isLocked={false}
-                        pending={null}
-                        onPendingChange={() => {}}
-                        onDeleteAssignment={handleDeleteAssignment}
-                        selectedMemberId={null}
-                      />
-                    );
-                  })}
+                  const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
+                  if (assignedInRole.length === 0) return null;
+                  return (
+                    <RoleCard
+                      key={role.roleId}
+                      role={role}
+                      assignmentMap={assignmentMap}
+                      selectedMember={null}
+                      isLocked={false}
+                      pending={null}
+                      onPendingChange={() => {}}
+                      onDeleteAssignment={handleDeleteAssignment}
+                      selectedMemberId={null} />);
+
+
+                })}
                   <div className="flex items-center gap-2 py-4 justify-center text-sm text-muted-foreground">
                     <User className="w-4 h-4" />
                     Select a team member on the left to begin assigning roles
                   </div>
                 </>
-              )}
+              }
 
               {selectedMember &&
               <>
