@@ -246,15 +246,15 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 {/* Assigned member avatar + name */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0",
-                    isCurrentMember ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"
-                  )}>
+                  "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0",
+                  isCurrentMember ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"
+                )}>
                     {getInitials(existing?.memberName ?? "")}
                   </div>
                   <span className={cn(
-                    "text-sm font-medium truncate",
-                    isCurrentMember ? "text-primary" : "text-foreground"
-                  )}>
+                  "text-sm font-medium truncate",
+                  isCurrentMember ? "text-primary" : "text-foreground"
+                )}>
                     {existing?.memberName}
                   </span>
                 </div>
@@ -266,10 +266,10 @@ const RoleCard: React.FC<RoleCardProps> = ({
 
                 {/* Trash icon — always active */}
                 <button
-                  type="button"
-                  onClick={() => setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
-                  className="flex-shrink-0 transition-colors p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                  title="Remove assignment">
+                type="button"
+                onClick={() => setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
+                className="flex-shrink-0 transition-colors p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                title="Remove assignment">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>);
@@ -789,11 +789,11 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
             </div>
 
             {/* Minimum requirement note */}
-            {totalAssignedChairs === 0 &&
-            <div className="mx-4 mt-3 flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-[hsl(var(--wq-border))] rounded-md px-3 py-2">
-                <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                Assign at least one role and chair to complete this work item.
-              </div>
+            {totalAssignedChairs === 0
+
+
+
+
             }
 
             <div className={cn("p-4 flex flex-col gap-3", !selectedMember && "opacity-50 pointer-events-none")}>
