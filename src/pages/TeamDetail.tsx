@@ -1,25 +1,41 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, ChevronsUpDown } from 'lucide-react';
+import { Search, ChevronsUpDown, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { TeamSetupBreadcrumb } from '@/components/team-setup/TeamSetupBreadcrumb';
 import { CollapsibleSection } from '@/components/team-setup/CollapsibleSection';
 import { QualifierBadge } from '@/components/team-setup/QualifierBadge';
 import { TeamTimestamp } from '@/components/team-setup/TeamTimestamp';
 import { useTeams } from '@/context/TeamsContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getTeamById } = useTeams();
+  const { getTeamById, updateTeam } = useTeams();
   const [rolesSearchQuery, setRolesSearchQuery] = useState('');
   const [rolesCurrentPage, setRolesCurrentPage] = useState(1);
   const [rolesPerPage, setRolesPerPage] = useState(15);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [workdaySyncing, setWorkdaySyncing] = useState(false);
+  const [workdaySyncSuccess, setWorkdaySyncSuccess] = useState(false);
 
   const team = getTeamById(id || '');
+
+  const handleWorkdaySync = async () => {
+    setWorkdaySyncing(true);
+    await new Promise((res) => setTimeout(res, 1500));
+    setWorkdaySyncing(false);
+    setWorkdaySyncSuccess(true);
+    setTimeout(() => {
+      updateTeam(id || '', { workdaySynced: true });
+      setWorkdaySyncSuccess(false);
+    }, 2000);
+  };
 
   if (!team) {
     return (
@@ -114,6 +130,41 @@ export default function TeamDetail() {
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-[hsl(var(--wq-text-secondary))]">Team Base</span>
                     <span className="text-[hsl(var(--wq-primary))]">{team.teamBase}</span>
+                    {team.teamBase === 'Workday' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={team.workdaySynced || workdaySyncing}
+                                onClick={handleWorkdaySync}
+                                className={cn(
+                                  "flex items-center gap-2 border-[hsl(var(--wq-accent))] text-[hsl(var(--wq-accent))] hover:bg-[hsl(var(--wq-accent))]/10",
+                                  team.workdaySynced && "opacity-50 cursor-not-allowed border-[hsl(var(--wq-border))] text-[hsl(var(--wq-text-secondary))] hover:bg-transparent"
+                                )}
+                              >
+                                <RefreshCw className={cn("w-3.5 h-3.5", workdaySyncing && "animate-spin")} />
+                                {workdaySyncing ? "Syncing from Workday…" : "Sync from Workday"}
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          {team.workdaySynced && (
+                            <TooltipContent side="top">
+                              <p>Sync has already been completed</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {workdaySyncSuccess && (
+                      <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Sync successful
+                      </span>
+                    )}
                   </div>
                 </div>
               </CollapsibleSection>
