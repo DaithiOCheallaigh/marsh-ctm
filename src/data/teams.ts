@@ -21,6 +21,7 @@ export interface Team {
   oversiteManager: string;
   oversiteManagerId: string;
   memberCount: number;
+  workdaySynced?: boolean;
 }
 
 export const teamsData: Team[] = [
