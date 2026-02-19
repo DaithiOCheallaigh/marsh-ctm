@@ -2,8 +2,8 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import ReactDOM from "react-dom";
 import {
   Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle,
-  RefreshCw, ChevronDown, ChevronRight, MessageSquare, Trash2, Info, Lock,
-} from "lucide-react";
+  RefreshCw, ChevronDown, ChevronRight, MessageSquare, Trash2, Info, Lock } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -35,7 +35,7 @@ interface LocalRole {
 }
 
 /** roleId+chairId → assignment */
-type AssignmentMap = Record<string, { memberId: string; memberName: string; workload: number; notes?: string }>;
+type AssignmentMap = Record<string, {memberId: string;memberName: string;workload: number;notes?: string;}>;
 
 type SaveState = null | "saving" | "success" | "error";
 
@@ -61,7 +61,7 @@ const getCapacityTextCls = (cap: number) => {
 };
 
 const getInitials = (name: string) =>
-  name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
 const buildChairsForRole = (roleName: string): LocalChair[] => {
   const found = rolesData.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
@@ -69,9 +69,9 @@ const buildChairsForRole = (roleName: string): LocalChair[] => {
     return found.chairs.map((c) => ({ id: c.id, name: c.name }));
   }
   return [
-    { id: `${roleName}-c1`, name: "Primary Chair" },
-    { id: `${roleName}-c2`, name: "Secondary Chair" },
-  ];
+  { id: `${roleName}-c1`, name: "Primary Chair" },
+  { id: `${roleName}-c2`, name: "Secondary Chair" }];
+
 };
 
 const assignmentKey = (roleId: string, chairId: string) => `${roleId}::${chairId}`;
@@ -84,33 +84,33 @@ interface MemberCardProps {
   onSelect: () => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect }) => (
-  <div
-    role="radio"
-    aria-checked={isSelected}
-    tabIndex={0}
-    onClick={onSelect}
-    onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
-    className={cn(
-      "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-150 select-none border-l-2",
-      isSelected ? "border-l-primary bg-primary/5" : "border-l-transparent hover:bg-accent/20"
-    )}
-  >
+const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect }) =>
+<div
+  role="radio"
+  aria-checked={isSelected}
+  tabIndex={0}
+  onClick={onSelect}
+  onKeyDown={(e) => (e.key === " " || e.key === "Enter") && onSelect()}
+  className={cn(
+    "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all duration-150 select-none border-l-2",
+    isSelected ? "border-l-primary bg-primary/5" : "border-l-transparent hover:bg-accent/20"
+  )}>
+
     <div
-      className={cn(
-        "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center",
-        isSelected ? "border-primary" : "border-muted-foreground/40"
-      )}
-    >
+    className={cn(
+      "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center",
+      isSelected ? "border-primary" : "border-muted-foreground/40"
+    )}>
+
       {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
     </div>
 
     <div
-      className={cn(
-        "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
-        isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-      )}
-    >
+    className={cn(
+      "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
+      isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+    )}>
+
       {getInitials(member.name)}
     </div>
 
@@ -126,8 +126,8 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect })
         {member.availableCapacity}%
       </span>
     </div>
-  </div>
-);
+  </div>;
+
 
 // ─── RoleCard ─────────────────────────────────────────────────────────────────
 
@@ -150,12 +150,12 @@ const RoleCard: React.FC<RoleCardProps> = ({
   pending,
   onPendingChange,
   onDeleteAssignment,
-  selectedMemberId,
+  selectedMemberId
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
-  const [deleteConfirm, setDeleteConfirm] = useState<{ chairId: string; chairName: string; memberName: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{chairId: string;chairName: string;memberName: string;} | null>(null);
 
   const openDropdown = () => {
     if (isLocked) return;
@@ -166,7 +166,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
         top: rect.bottom + 4,
         left: rect.left,
         width: rect.width,
-        zIndex: 9999,
+        zIndex: 9999
       });
     }
     setDropdownOpen(true);
@@ -175,9 +175,9 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
   const allFilled = assignedInRole.length >= role.chairs.length;
 
-  const selectedMemberAlreadyInRole = selectedMember
-    ? role.chairs.some((c) => assignmentMap[assignmentKey(role.roleId, c.id)]?.memberId === selectedMember.id)
-    : false;
+  const selectedMemberAlreadyInRole = selectedMember ?
+  role.chairs.some((c) => assignmentMap[assignmentKey(role.roleId, c.id)]?.memberId === selectedMember.id) :
+  false;
 
   const availableChairs = role.chairs.filter((c) => !assignmentMap[assignmentKey(role.roleId, c.id)]);
 
@@ -226,63 +226,63 @@ const RoleCard: React.FC<RoleCardProps> = ({
       </div>
 
       {/* Assigned chairs summary */}
-      {assignedInRole.length > 0 && (
-        <div className="divide-y divide-[hsl(var(--wq-border))]">
+      {assignedInRole.length > 0 &&
+      <div className="divide-y divide-[hsl(var(--wq-border))]">
           {assignedInRole.map((chair) => {
-            const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
-            const isCurrentMember = existing?.memberId === selectedMemberId;
-            const isTrashActive = isCurrentMember;
+          const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
+          const isCurrentMember = existing?.memberId === selectedMemberId;
+          const isTrashActive = isCurrentMember;
 
-            return (
-              <div
-                key={chair.id}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-2.5",
-                  isCurrentMember
-                    ? "bg-primary/5"
-                    : "bg-[hsl(var(--wq-bg-muted))]"
-                )}
-              >
+          return (
+            <div
+              key={chair.id}
+              className={cn(
+                "flex items-center gap-3 px-4 py-2.5",
+                isCurrentMember ?
+                "bg-primary/5" :
+                "bg-[hsl(var(--wq-bg-muted))]"
+              )}>
+
                 <div className={cn(
-                  "w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0",
-                  isCurrentMember ? "bg-primary" : "[background-color:hsl(var(--wq-text-muted))]"
-                )}>
-                  {isCurrentMember ? (
-                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
-                  ) : (
-                    <Lock className="w-2.5 h-2.5 text-white" />
-                  )}
+                "w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0",
+                isCurrentMember ? "bg-primary" : "[background-color:hsl(var(--wq-text-muted))]"
+              )}>
+                  {isCurrentMember ?
+                <Check className="w-2.5 h-2.5 text-primary-foreground" /> :
+
+                <Lock className="w-2.5 h-2.5 text-white" />
+                }
                 </div>
                 <span className="text-sm flex-1 text-foreground">{chair.name}</span>
                 <span className={cn(
-                  "text-xs font-medium",
-                  isCurrentMember ? "text-primary" : "text-[hsl(var(--wq-text-secondary))]"
-                )}>
+                "text-xs font-medium",
+                isCurrentMember ? "text-primary" : "text-[hsl(var(--wq-text-secondary))]"
+              )}>
                   {existing?.memberName}
                   <span className="ml-1 opacity-70">({existing?.workload}%)</span>
-                  {!isCurrentMember && (
-                    <span className="ml-1.5 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Locked</span>
-                  )}
+                  {!isCurrentMember &&
+                <span className="ml-1.5 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Locked</span>
+                }
                 </span>
                 <button
-                  type="button"
-                  disabled={!isTrashActive}
-                  onClick={() => isTrashActive && setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
-                  className={cn(
-                    "flex-shrink-0 transition-colors p-1 rounded",
-                    isTrashActive
-                      ? "text-destructive hover:bg-destructive/10 cursor-pointer"
-                      : "text-muted-foreground/30 cursor-not-allowed"
-                  )}
-                  title={isTrashActive ? "Remove assignment" : "Select this member to manage their assignments"}
-                >
+                type="button"
+                disabled={!isTrashActive}
+                onClick={() => isTrashActive && setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
+                className={cn(
+                  "flex-shrink-0 transition-colors p-1 rounded",
+                  isTrashActive ?
+                  "text-destructive hover:bg-destructive/10 cursor-pointer" :
+                  "text-muted-foreground/30 cursor-not-allowed"
+                )}
+                title={isTrashActive ? "Remove assignment" : "Select this member to manage their assignments"}>
+
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
-              </div>
-            );
-          })}
+              </div>);
+
+        })}
         </div>
-      )}
+      }
 
       {/* Delete confirmation overlay */}
       {deleteConfirm && ReactDOM.createPortal(
@@ -301,8 +301,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 onClick={() => {
                   onDeleteAssignment(role.roleId, deleteConfirm.chairId);
                   setDeleteConfirm(null);
-                }}
-              >
+                }}>
+
                 Remove
               </Button>
             </div>
@@ -312,25 +312,25 @@ const RoleCard: React.FC<RoleCardProps> = ({
       )}
 
       {/* "Member already in this role" notice */}
-      {!allFilled && selectedMemberAlreadyInRole && (
-        <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] bg-muted/40 border-t border-[hsl(var(--wq-border))]">
+      {!allFilled && selectedMemberAlreadyInRole &&
+      <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] bg-muted/40 border-t border-[hsl(var(--wq-border))]">
           <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(142,71%,45%)] flex-shrink-0" />
           <span>
             <span className="font-medium text-foreground">{selectedMember?.name.split(" ")[0]}</span>
             {" "}is already assigned to this role. Select another member to fill remaining chairs.
           </span>
         </div>
-      )}
+      }
 
       {/* Chair selection row — shown when there are available chairs and selected member not already in role */}
-      {!allFilled && !selectedMemberAlreadyInRole && (
-        <div className="px-4 py-3">
+      {!allFilled && !selectedMemberAlreadyInRole &&
+      <div className="px-4 py-3">
           {/* Label clarifying this is additional chair selection */}
-          {assignedInRole.length > 0 && (
-            <p className="text-[10px] text-muted-foreground mb-2 italic">
+          {assignedInRole.length > 0 &&
+        <p className="text-[10px] text-muted-foreground mb-2 italic">
               Additional chair selection available
             </p>
-          )}
+        }
           <div className="flex items-center gap-3 flex-wrap">
             {/* Chair dropdown */}
             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -339,58 +339,58 @@ const RoleCard: React.FC<RoleCardProps> = ({
               </label>
               <div className="relative flex-1">
                 <button
-                  ref={triggerRef}
-                  type="button"
-                  onClick={() => dropdownOpen ? setDropdownOpen(false) : openDropdown()}
-                  disabled={isLocked}
-                  className={cn(
-                    "w-full h-9 px-3 pr-8 border border-[hsl(var(--wq-border))] rounded-md text-sm text-left bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center",
-                    selectedChairId ? "text-foreground" : "text-muted-foreground"
-                  )}
-                >
+                ref={triggerRef}
+                type="button"
+                onClick={() => dropdownOpen ? setDropdownOpen(false) : openDropdown()}
+                disabled={isLocked}
+                className={cn(
+                  "w-full h-9 px-3 pr-8 border border-[hsl(var(--wq-border))] rounded-md text-sm text-left bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center",
+                  selectedChairId ? "text-foreground" : "text-muted-foreground"
+                )}>
+
                   <span className="flex-1 truncate">{selectedChairId ? selectedChairName : "Select Chair"}</span>
                 </button>
 
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-                  {selectedChairId ? (
-                    <button
-                      type="button"
-                      onClick={handleClearChair}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Clear chair selection"
-                    >
+                  {selectedChairId ?
+                <button
+                  type="button"
+                  onClick={handleClearChair}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear chair selection">
+
                       <X className="w-3.5 h-3.5" />
-                    </button>
-                  ) : (
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-                  )}
+                    </button> :
+
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                }
                 </div>
 
                 {dropdownOpen && ReactDOM.createPortal(
-                  <>
+                <>
                     <div className="fixed inset-0 z-[9998]" onClick={() => setDropdownOpen(false)} />
                     <div style={dropdownStyle} className="bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
-                      {availableChairs.length === 0 ? (
-                        <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p>
-                      ) : (
-                        availableChairs.map((chair) => (
-                          <button
-                            key={chair.id}
-                            type="button"
-                            onClick={() => handleChairSelect(chair.id)}
-                            className={cn(
-                              "w-full text-left px-3 py-2 text-sm hover:bg-accent/30 transition-colors",
-                              chair.id === selectedChairId ? "text-primary font-medium bg-primary/5" : "text-foreground"
-                            )}
-                          >
+                      {availableChairs.length === 0 ?
+                    <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p> :
+
+                    availableChairs.map((chair) =>
+                    <button
+                      key={chair.id}
+                      type="button"
+                      onClick={() => handleChairSelect(chair.id)}
+                      className={cn(
+                        "w-full text-left px-3 py-2 text-sm hover:bg-accent/30 transition-colors",
+                        chair.id === selectedChairId ? "text-primary font-medium bg-primary/5" : "text-foreground"
+                      )}>
+
                             {chair.name}
                           </button>
-                        ))
-                      )}
+                    )
+                    }
                     </div>
                   </>,
-                  document.body
-                )}
+                document.body
+              )}
               </div>
             </div>
 
@@ -400,71 +400,71 @@ const RoleCard: React.FC<RoleCardProps> = ({
                 Workload
               </label>
               <input
-                type="number"
-                min={1}
-                max={100}
-                step={0.5}
-                value={workloadStr}
-                onChange={(e) => handleWorkloadChange(e.target.value)}
-                onFocus={(e) => e.target.select()}
-                disabled={isLocked}
-                className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
-              />
+              type="number"
+              min={1}
+              max={100}
+              step={0.5}
+              value={workloadStr}
+              onChange={(e) => handleWorkloadChange(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              disabled={isLocked}
+              className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50" />
+
               <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
             </div>
 
             {/* Notes toggle button */}
             <button
-              type="button"
-              disabled={isLocked || !pending}
-              onClick={() => setNoteExpanded((v) => !v)}
-              className={cn(
-                "flex items-center gap-1.5 px-2 py-1 h-9 rounded-md border text-xs transition-colors flex-shrink-0",
-                pending?.notes
-                  ? "text-primary bg-primary/5 border-primary/20 hover:bg-primary/10"
-                  : "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground",
-                (!pending || isLocked) && "opacity-40 cursor-not-allowed"
-              )}
-              title={!pending ? "Select a chair first" : pending.notes ? "View/edit notes" : "Add notes"}
-            >
+            type="button"
+            disabled={isLocked || !pending}
+            onClick={() => setNoteExpanded((v) => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 h-9 rounded-md border text-xs transition-colors flex-shrink-0",
+              pending?.notes ?
+              "text-primary bg-primary/5 border-primary/20 hover:bg-primary/10" :
+              "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground",
+              (!pending || isLocked) && "opacity-40 cursor-not-allowed"
+            )}
+            title={!pending ? "Select a chair first" : pending.notes ? "View/edit notes" : "Add notes"}>
+
               <MessageSquare className="w-3.5 h-3.5" />
               <span className={pending?.notes ? "" : "italic opacity-60"}>Notes</span>
             </button>
 
             {/* Capacity warning */}
-            {exceedsCapacity && !isLocked && (
-              <span className="text-xs text-[hsl(38,92%,50%)] flex items-center gap-1 w-full">
+            {exceedsCapacity && !isLocked &&
+          <span className="text-xs text-[hsl(38,92%,50%)] flex items-center gap-1 w-full">
                 <AlertTriangle className="w-3 h-3 flex-shrink-0" />
                 Exceeds {selectedMember?.name.split(" ")[0]}'s remaining capacity ({remaining}%)
               </span>
-            )}
+          }
 
             {/* Inline notes input */}
-            {noteExpanded && (
-              <div className="flex items-start gap-2 w-full">
+            {noteExpanded &&
+          <div className="flex items-start gap-2 w-full">
                 <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-2 flex-shrink-0" />
                 <input
-                  autoFocus
-                  type="text"
-                  placeholder="Add assignment notes..."
-                  value={pending?.notes ?? ""}
-                  onChange={(e) => handleNotesChange(e.target.value)}
-                  disabled={isLocked}
-                  className="flex-1 h-8 px-2 border border-[hsl(var(--wq-border))] rounded-md text-xs bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      setNoteExpanded(false);
-                    }
-                  }}
-                />
+              autoFocus
+              type="text"
+              placeholder="Add assignment notes..."
+              value={pending?.notes ?? ""}
+              onChange={(e) => handleNotesChange(e.target.value)}
+              disabled={isLocked}
+              className="flex-1 h-8 px-2 border border-[hsl(var(--wq-border))] rounded-md text-xs bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  setNoteExpanded(false);
+                }
+              }} />
+
               </div>
-            )}
+          }
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -482,37 +482,37 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
   existingAssignments = [],
   onComplete,
   onCompleteWorkItem,
-  isReadOnly = false,
+  isReadOnly = false
 }) => {
   const localRoles: LocalRole[] = useMemo(
     () =>
-      roles.map((r) => {
-        // Try to find matching teamId from rolesData by teamName
-        const roleData = rolesData.find((rd) => rd.name.toLowerCase() === r.roleName.toLowerCase());
-        return {
-          roleId: r.roleId,
-          roleName: r.roleName,
-          teamName: r.teamName,
-          teamId: roleData?.teamId ?? "",
-          chairs: buildChairsForRole(r.roleName),
-        };
-      }),
+    roles.map((r) => {
+      // Try to find matching teamId from rolesData by teamName
+      const roleData = rolesData.find((rd) => rd.name.toLowerCase() === r.roleName.toLowerCase());
+      return {
+        roleId: r.roleId,
+        roleName: r.roleName,
+        teamName: r.teamName,
+        teamId: roleData?.teamId ?? "",
+        chairs: buildChairsForRole(r.roleName)
+      };
+    }),
     [roles]
   );
 
   const initialMembers: LocalMember[] = useMemo(() => {
-    return teamMembers
-      .map((m) => {
-        const baseWorkload = (m.currentAssignments || []).reduce((s, a) => s + a.workload, 0);
-        return {
-          id: m.id,
-          name: m.name,
-          title: m.title,
-          availableCapacity: Math.max(0, 100 - baseWorkload),
-          teamId: m.teamId,
-        };
-      })
-      .sort((a, b) => b.availableCapacity - a.availableCapacity);
+    return teamMembers.
+    map((m) => {
+      const baseWorkload = (m.currentAssignments || []).reduce((s, a) => s + a.workload, 0);
+      return {
+        id: m.id,
+        name: m.name,
+        title: m.title,
+        availableCapacity: Math.max(0, 100 - baseWorkload),
+        teamId: m.teamId
+      };
+    }).
+    sort((a, b) => b.availableCapacity - a.availableCapacity);
   }, []);
 
   const [members, setMembers] = useState<LocalMember[]>(initialMembers);
@@ -534,10 +534,10 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
   const existingAssignmentsRef = useRef(existingAssignments);
   const onCompleteRef = useRef(onComplete);
 
-  useEffect(() => { assignmentMapRef.current = assignmentMap; }, [assignmentMap]);
-  useEffect(() => { localRolesRef.current = localRoles; }, [localRoles]);
-  useEffect(() => { existingAssignmentsRef.current = existingAssignments; }, [existingAssignments]);
-  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  useEffect(() => {assignmentMapRef.current = assignmentMap;}, [assignmentMap]);
+  useEffect(() => {localRolesRef.current = localRoles;}, [localRoles]);
+  useEffect(() => {existingAssignmentsRef.current = existingAssignments;}, [existingAssignments]);
+  useEffect(() => {onCompleteRef.current = onComplete;}, [onComplete]);
 
   // Auto-save on unmount
   useEffect(() => {
@@ -556,7 +556,7 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
           selectedPerson: { id: val.memberId, name: val.memberName },
           chairType: "Primary" as const,
           workloadPercentage: val.workload,
-          notes: chairId,
+          notes: chairId
         };
       });
 
@@ -586,9 +586,9 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
   const filteredMembers = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
-    const filtered = q
-      ? members.filter((m) => m.name.toLowerCase().includes(q) || m.title.toLowerCase().includes(q))
-      : [...members];
+    const filtered = q ?
+    members.filter((m) => m.name.toLowerCase().includes(q) || m.title.toLowerCase().includes(q)) :
+    [...members];
     // Pin selected member to top
     if (selectedMemberId) {
       const selectedIdx = filtered.findIndex((m) => m.id === selectedMemberId);
@@ -650,11 +650,11 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
           id: selectedMember.id,
           name: selectedMember.name,
           role: selectedMember.title,
-          capacity: selectedMember.availableCapacity,
+          capacity: selectedMember.availableCapacity
         },
         chairType: "Primary",
         workloadPercentage: p.workload,
-        notes: p.notes || p.chairName,
+        notes: p.notes || p.chairName
       });
     }
 
@@ -664,9 +664,9 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
     const totalDeducted = pendingRoles.reduce((sum, r) => sum + (rolePendings[r.roleId]?.workload ?? 0), 0);
     setMembers((prev) => {
       const updated = prev.map((m) =>
-        m.id === selectedMember.id
-          ? { ...m, availableCapacity: Math.max(0, m.availableCapacity - totalDeducted) }
-          : m
+      m.id === selectedMember.id ?
+      { ...m, availableCapacity: Math.max(0, m.availableCapacity - totalDeducted) } :
+      m
       );
       // Re-sort by capacity: most available first; member who just got assigned naturally moves down
       return [...updated].sort((a, b) => {
@@ -683,7 +683,7 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
     setRolePendings((prev) => {
       const updated = { ...prev };
-      pendingRoles.forEach((r) => { updated[r.roleId] = null; });
+      pendingRoles.forEach((r) => {updated[r.roleId] = null;});
       return updated;
     });
 
@@ -693,7 +693,7 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
       setSaveState(null);
       setSelectedMemberId(null);
       setMembers((prev) =>
-        [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity)
+      [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity)
       );
     }, 1500);
   }, [selectedMember, pendingRoles, rolePendings, assignmentMap, existingAssignments, onComplete]);
@@ -704,11 +704,11 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
     if (!existing) return;
     // Restore capacity to the member
     setMembers((prev) =>
-      prev.map((m) =>
-        m.id === existing.memberId
-          ? { ...m, availableCapacity: Math.min(100, m.availableCapacity + existing.workload) }
-          : m
-      )
+    prev.map((m) =>
+    m.id === existing.memberId ?
+    { ...m, availableCapacity: Math.min(100, m.availableCapacity + existing.workload) } :
+    m
+    )
     );
     setAssignmentMap((prev) => {
       const updated = { ...prev };
@@ -740,11 +740,11 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
             <span className="text-muted-foreground"> of {totalRoles}</span>
           </span>
         </div>
-        {totalAssignedChairs > 0 && (
-          <span className="text-xs text-muted-foreground">
+        {totalAssignedChairs > 0 &&
+        <span className="text-xs text-muted-foreground">
             {totalAssignedChairs} chair{totalAssignedChairs !== 1 ? "s" : ""} total
           </span>
-        )}
+        }
       </div>
 
       <div className="flex gap-6 min-w-0">
@@ -768,31 +768,31 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
                   placeholder="Search members..."
                   value={memberSearch}
                   onChange={(e) => setMemberSearch(e.target.value)}
-                  className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                {memberSearch && (
-                  <button
-                    onClick={() => setMemberSearch("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary"
-                  >
+                  className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30" />
+
+                {memberSearch &&
+                <button
+                  onClick={() => setMemberSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary">
+
                     <X className="w-3.5 h-3.5" />
                   </button>
-                )}
+                }
               </div>
             </div>
 
             <div className="overflow-y-auto max-h-[560px] divide-y divide-[hsl(var(--wq-border))]">
-              {filteredMembers.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  isSelected={selectedMemberId === member.id}
-                  onSelect={() => handleSelectMember(member.id)}
-                />
-              ))}
-              {filteredMembers.length === 0 && (
-                <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
+              {filteredMembers.map((member) =>
+              <MemberCard
+                key={member.id}
+                member={member}
+                isSelected={selectedMemberId === member.id}
+                onSelect={() => handleSelectMember(member.id)} />
+
               )}
+              {filteredMembers.length === 0 &&
+              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
+              }
             </div>
           </div>
         </div>
@@ -809,8 +809,8 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
                 </p>
               </div>
               {/* Selected member capacity inline badge */}
-              {selectedMember && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
+              {selectedMember &&
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
                   <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                     <span className="text-[10px] font-bold text-primary-foreground">{getInitials(selectedMember.name)}</span>
                   </div>
@@ -822,150 +822,150 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
                     </span>
                   </div>
                 </div>
-              )}
+              }
             </div>
 
             {/* Minimum requirement note */}
-            {totalAssignedChairs === 0 && (
-              <div className="mx-4 mt-3 flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-[hsl(var(--wq-border))] rounded-md px-3 py-2">
+            {totalAssignedChairs === 0 &&
+            <div className="mx-4 mt-3 flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-[hsl(var(--wq-border))] rounded-md px-3 py-2">
                 <Info className="w-3.5 h-3.5 flex-shrink-0" />
                 Assign at least one role and chair to complete this work item.
               </div>
-            )}
+            }
 
             <div className={cn("p-4 flex flex-col gap-3", !selectedMember && "opacity-50 pointer-events-none")}>
-              {!selectedMember && (
-                <div className="flex items-center gap-2 py-6 justify-center text-sm text-muted-foreground">
+              {!selectedMember &&
+              <div className="flex items-center gap-2 py-6 justify-center text-sm text-muted-foreground">
                   <User className="w-4 h-4" />
                   Select a team member on the left to begin assigning roles
                 </div>
-              )}
+              }
 
-              {selectedMember && (
-                <>
+              {selectedMember &&
+              <>
                   {/* Applicable roles for selected member's team */}
-                  {memberTeamRoles.map((role) => (
-                    <RoleCard
-                      key={role.roleId}
-                      role={role}
-                      assignmentMap={assignmentMap}
-                      selectedMember={selectedMember}
-                      isLocked={false}
-                      pending={rolePendings[role.roleId] ?? null}
-                      onPendingChange={(p) =>
-                        setRolePendings((prev) => ({ ...prev, [role.roleId]: p }))
-                      }
-                      onDeleteAssignment={handleDeleteAssignment}
-                      selectedMemberId={selectedMemberId}
-                    />
-                  ))}
+                  {memberTeamRoles.map((role) =>
+                <RoleCard
+                  key={role.roleId}
+                  role={role}
+                  assignmentMap={assignmentMap}
+                  selectedMember={selectedMember}
+                  isLocked={false}
+                  pending={rolePendings[role.roleId] ?? null}
+                  onPendingChange={(p) =>
+                  setRolePendings((prev) => ({ ...prev, [role.roleId]: p }))
+                  }
+                  onDeleteAssignment={handleDeleteAssignment}
+                  selectedMemberId={selectedMemberId} />
+
+                )}
 
                   {/* Greyed-out roles not applicable to member's team */}
-                  {otherRoles.length > 0 && (
-                    <div className="mt-1">
-                      {useAccordion ? (
-                        <button
-                          type="button"
-                          onClick={() => setGreyedAccordionOpen((v) => !v)}
-                          className="flex items-center gap-2 text-xs text-muted-foreground mb-2 hover:text-foreground transition-colors"
-                        >
+                  {otherRoles.length > 0 &&
+                <div className="mt-1">
+                      {useAccordion ?
+                  <button
+                    type="button"
+                    onClick={() => setGreyedAccordionOpen((v) => !v)}
+                    className="flex items-center gap-2 text-xs text-muted-foreground mb-2 hover:text-foreground transition-colors">
+
                           {greyedAccordionOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                           <span className="font-medium">{otherRoles.length} role{otherRoles.length !== 1 ? "s" : ""} not available for this member</span>
                           <Info className="w-3 h-3" />
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+                        </button> :
+
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                           <Info className="w-3 h-3 flex-shrink-0" />
                           <span>The following roles are not associated with this member's team and cannot be assigned.</span>
                         </div>
-                      )}
+                  }
 
-                      {(!useAccordion || greyedAccordionOpen) && (
-                        <div className="flex flex-col gap-3">
-                          {otherRoles.map((role) => (
-                            <div
-                              key={role.roleId}
-                              className="border border-[hsl(var(--wq-border))] rounded-lg bg-muted/30 opacity-50 pointer-events-none"
-                            >
+                      {(!useAccordion || greyedAccordionOpen) &&
+                  <div className="flex flex-col gap-3">
+                          {otherRoles.map((role) =>
+                    <div
+                      key={role.roleId}
+                      className="border border-[hsl(var(--wq-border))] rounded-lg bg-muted/30 opacity-50 pointer-events-none">
+
                               <div className="px-4 py-3">
                                 <p className="text-sm font-semibold text-muted-foreground leading-tight">{role.roleName}</p>
                               </div>
                             </div>
-                          ))}
+                    )}
                         </div>
-                      )}
+                  }
                     </div>
-                  )}
+                }
                 </>
-              )}
+              }
 
-              {localRoles.length === 0 && (
-                <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
+              {localRoles.length === 0 &&
+              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
                   No roles configured for this work item.
                 </p>
-              )}
+              }
             </div>
 
             {/* ── Single Assign button at the bottom ── */}
             <div className="px-4 pb-4 pt-1 border-t border-[hsl(var(--wq-border))] flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs">
-                {saveState === "saving" && (
-                  <span className="text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
+                {saveState === "saving" &&
+                <span className="text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…
                   </span>
-                )}
-                {saveState === "success" && (
-                  <span className="text-[hsl(142,71%,45%)] flex items-center gap-1">
+                }
+                {saveState === "success" &&
+                <span className="text-[hsl(142,71%,45%)] flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Saved
                   </span>
-                )}
-                {saveState === "error" && (
-                  <button
-                    onClick={handleAssignAll}
-                    className="text-destructive flex items-center gap-1 hover:underline"
-                  >
+                }
+                {saveState === "error" &&
+                <button
+                  onClick={handleAssignAll}
+                  className="text-destructive flex items-center gap-1 hover:underline">
+
                     <XCircle className="w-3.5 h-3.5" /> Failed —{" "}
                     <RefreshCw className="w-3.5 h-3.5" /> Retry
                   </button>
-                )}
-                {pendingRoles.length > 0 && saveState === null && (
-                  <span className="text-[hsl(var(--wq-text-secondary))]">
+                }
+                {pendingRoles.length > 0 && saveState === null &&
+                <span className="text-[hsl(var(--wq-text-secondary))]">
                     {pendingRoles.length} role{pendingRoles.length > 1 ? "s" : ""} ready to assign
                   </span>
-                )}
+                }
               </div>
 
               <Button
                 disabled={!canAssignAll || isReadOnly}
                 onClick={handleAssignAll}
-                className="h-9 px-6"
-              >
-                {saveState === "saving" ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  "Assign"
-                )}
+                className="h-9 px-6">
+
+                {saveState === "saving" ?
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
+
+                "Assign"
+                }
               </Button>
             </div>
           </div>
 
           {/* Complete Work Item section */}
           <div className="mt-4 flex flex-col gap-2">
-            {!canCompleteWorkItem && (
-              <p className="text-xs text-muted-foreground text-right">
-                Assign at least one role and chair before completing the work item.
+            {!canCompleteWorkItem &&
+            <p className="text-xs text-muted-foreground text-right">
+                ​
               </p>
-            )}
-            <div className="flex justify-end">
-              <Button
-                disabled={!canCompleteWorkItem || isReadOnly}
-                onClick={handleCompleteWorkItemClick}
-                className="h-10 px-8 bg-[hsl(142,71%,38%)] hover:bg-[hsl(142,71%,32%)] text-white disabled:opacity-40"
-              >
-                <Check className="w-4 h-4" />
-                Complete Work Item
-              </Button>
-            </div>
+            }
+            
+
+
+
+
+
+
+
+
+
           </div>
         </div>
       </div>
@@ -989,8 +989,8 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
               <Button
                 size="sm"
                 className="bg-[hsl(142,71%,38%)] hover:bg-[hsl(142,71%,32%)] text-white"
-                onClick={handleConfirmComplete}
-              >
+                onClick={handleConfirmComplete}>
+
                 <Check className="w-3.5 h-3.5" />
                 Confirm & Complete
               </Button>
@@ -999,6 +999,6 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
         </>,
         document.body
       )}
-    </div>
-  );
+    </div>);
+
 };
