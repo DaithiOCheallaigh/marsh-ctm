@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { TeamSetupBreadcrumb } from '@/components/team-setup/TeamSetupBreadcrumb';
 import { TeamTimestamp } from '@/components/team-setup/TeamTimestamp';
 import { useTeams } from '@/context/TeamsContext';
+import { cn } from '@/lib/utils';
 
 export default function EditTeamAccesses() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +19,9 @@ export default function EditTeamAccesses() {
   
   const [primaryManager, setPrimaryManager] = useState('');
   const [oversiteManager, setOversiteManager] = useState('');
+  const [workdaySynced, setWorkdaySynced] = useState(false);
+  const [workdaySyncing, setWorkdaySyncing] = useState(false);
+  const [workdaySyncSuccess, setWorkdaySyncSuccess] = useState(false);
 
   useEffect(() => {
     if (team) {
@@ -24,6 +29,20 @@ export default function EditTeamAccesses() {
       setOversiteManager(team.oversiteManager);
     }
   }, [team]);
+
+  const isWorkdayTeam = team?.teamBase === 'Workday';
+
+  const handleWorkdaySync = async () => {
+    setWorkdaySyncing(true);
+    // Simulate sync
+    await new Promise((res) => setTimeout(res, 1500));
+    setWorkdaySyncing(false);
+    setWorkdaySyncSuccess(true);
+    setTimeout(() => {
+      setWorkdaySynced(true);
+      setWorkdaySyncSuccess(false);
+    }, 2000);
+  };
 
   if (!team) {
     return (
@@ -77,20 +96,44 @@ export default function EditTeamAccesses() {
             {/* Form */}
             <div className="max-w-2xl mx-auto space-y-6">
               {/* Primary Manager */}
-              <div className="grid grid-cols-[160px_1fr] items-center gap-4">
-                <label className="text-sm text-[hsl(var(--wq-text-secondary))] text-right">
+              <div className="grid grid-cols-[160px_1fr] items-start gap-4">
+                <label className="text-sm text-[hsl(var(--wq-text-secondary))] text-right pt-2">
                   Primary Manager
                 </label>
-                <Input
-                  value={primaryManager}
-                  onChange={(e) => setPrimaryManager(e.target.value)}
-                  placeholder="[Primary Manager]"
-                  className="
-                    border-[hsl(var(--wq-accent))]
-                    focus:border-[hsl(var(--wq-accent))]
-                    focus:ring-[hsl(var(--wq-accent))]
-                  "
-                />
+                <div className="flex flex-col gap-2">
+                  <Input
+                    value={primaryManager}
+                    onChange={(e) => setPrimaryManager(e.target.value)}
+                    placeholder="[Primary Manager]"
+                    className="
+                      border-[hsl(var(--wq-accent))]
+                      focus:border-[hsl(var(--wq-accent))]
+                      focus:ring-[hsl(var(--wq-accent))]
+                    "
+                  />
+                  {/* Workday Sync — only when team base is Workday and not yet synced */}
+                  {isWorkdayTeam && !workdaySynced && (
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={workdaySyncing}
+                        onClick={handleWorkdaySync}
+                        className="flex items-center gap-2 border-[hsl(var(--wq-accent))] text-[hsl(var(--wq-accent))] hover:bg-[hsl(var(--wq-accent))]/10"
+                      >
+                        <RefreshCw className={cn("w-3.5 h-3.5", workdaySyncing && "animate-spin")} />
+                        {workdaySyncing ? "Syncing from Workday…" : "Sync from Workday"}
+                      </Button>
+                      {workdaySyncSuccess && (
+                        <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Sync successful
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Oversite Manager */}
