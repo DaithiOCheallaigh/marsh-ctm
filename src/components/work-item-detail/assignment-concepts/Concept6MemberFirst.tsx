@@ -794,23 +794,22 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
         {/* ── RIGHT: Role Assignments (60%) ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-0">
           <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden flex flex-col">
-            {/* Right panel header — member context moved here, not as section title */}
+            {/* Right panel header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
               <div className="min-w-0">
                 <h3 className="text-primary font-bold text-sm">Role Assignments</h3>
-                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
-                  All roles across this work item
-                </p>
+                {totalAssignedChairs === 0 ? (
+                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                    <Info className="w-3 h-3 flex-shrink-0" />
+                    Assign at least one role and chair to complete this work item.
+                  </p>
+                ) : (
+                  <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
+                    All roles across this work item
+                  </p>
+                )}
               </div>
             </div>
-
-            {/* Minimum requirement note */}
-            {totalAssignedChairs === 0 &&
-            <div className="mx-4 mt-3 flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-[hsl(var(--wq-border))] rounded-md px-3 py-2">
-                <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                Assign at least one role and chair to complete this work item.
-              </div>
-            }
 
             <div className={cn("p-4 flex flex-col gap-3", !selectedMember && "opacity-50 pointer-events-none")}>
               {!selectedMember &&
