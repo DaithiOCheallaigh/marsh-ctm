@@ -722,24 +722,8 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ── Progress Indicator ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-card border border-[hsl(var(--wq-border))] rounded-lg">
-        <div className="flex items-center gap-2 flex-1">
-          <CheckCircle2 className={cn("w-4 h-4", assignedRolesCount > 0 ? "text-green-600" : "text-muted-foreground/40")} />
-          <span className="text-sm font-medium text-foreground">
-            Roles assigned:{" "}
-            <span className={cn("font-bold", assignedRolesCount > 0 ? "text-green-600" : "text-muted-foreground")}>
-              {assignedRolesCount}
-            </span>
-            <span className="text-muted-foreground"> of {totalRoles}</span>
-          </span>
-        </div>
-        {totalAssignedChairs > 0 &&
-        <span className="text-xs text-muted-foreground">
-            {totalAssignedChairs} chair{totalAssignedChairs !== 1 ? "s" : ""} total
-          </span>
-        }
-      </div>
+      {/* ── Instruction callout ── */}
+      <p className="text-xs text-muted-foreground">Assign at least one role and chair to complete this work item</p>
 
       <div className="flex gap-6 min-w-0">
         {/* ── LEFT: Team Members (40%) ── */}
@@ -930,21 +914,6 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
           {/* Complete Work Item section */}
           <div className="mt-4 flex flex-col gap-2">
-            {!canCompleteWorkItem &&
-            <p className="text-xs text-muted-foreground text-right">
-                ​
-              </p>
-            }
-            
-
-
-
-
-
-
-
-
-
           </div>
         </div>
       </div>
