@@ -1,9 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
-import {
-  Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle,
-  RefreshCw, ChevronDown, ChevronRight, MessageSquare, Trash2, Info, Lock,
-} from "lucide-react";
+import { Search, X, Check, User, AlertTriangle, Loader2, CheckCircle2, XCircle, RefreshCw, ChevronDown, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -18,7 +15,6 @@ interface LocalMember {
   name: string;
   title: string;
   availableCapacity: number;
-  teamId: string;
 }
 
 interface LocalChair {
@@ -30,14 +26,15 @@ interface LocalRole {
   roleId: string;
   roleName: string;
   teamName?: string;
-  teamId?: string;
   chairs: LocalChair[];
 }
 
 /** roleId+chairId → assignment */
-type AssignmentMap = Record<string, { memberId: string; memberName: string; workload: number; notes?: string }>;
+type AssignmentMap = Record<string, { memberId: string; memberName: string; workload: number }>;
 
 type SaveState = null | "saving" | "success" | "error";
+
+// ─── Pending assignment per role (for the single Assign button) ────────────────
 
 interface RolePending {
   chairId: string;
@@ -81,10 +78,11 @@ const assignmentKey = (roleId: string, chairId: string) => `${roleId}::${chairId
 interface MemberCardProps {
   member: LocalMember;
   isSelected: boolean;
+  assignmentCount: number;
   onSelect: () => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect }) => (
+const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, assignmentCount, onSelect }) => (
   <div
     role="radio"
     aria-checked={isSelected}
@@ -121,15 +119,18 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, isSelected, onSelect })
       <p className="text-xs text-muted-foreground truncate leading-tight">{member.title}</p>
     </div>
 
-    <div className="flex-shrink-0">
+    <div className="flex-shrink-0 flex flex-col items-end gap-0.5">
       <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border", getCapacityBadgeCls(member.availableCapacity))}>
-        {member.availableCapacity}%
+        {member.availableCapacity}% Availability
       </span>
+      {assignmentCount > 0 && (
+        <span className="text-[10px] text-muted-foreground">{assignmentCount} assigned</span>
+      )}
     </div>
   </div>
 );
 
-// ─── RoleCard ─────────────────────────────────────────────────────────────────
+// ─── RoleCard (no per-role Assign button; exposes pending state upward) ────────
 
 interface RoleCardProps {
   role: LocalRole;
@@ -138,8 +139,6 @@ interface RoleCardProps {
   isLocked: boolean;
   pending: RolePending | null;
   onPendingChange: (p: RolePending | null) => void;
-  onDeleteAssignment: (roleId: string, chairId: string) => void;
-  selectedMemberId: string | null;
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({
@@ -149,13 +148,10 @@ const RoleCard: React.FC<RoleCardProps> = ({
   isLocked,
   pending,
   onPendingChange,
-  onDeleteAssignment,
-  selectedMemberId,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
-  const [deleteConfirm, setDeleteConfirm] = useState<{ chairId: string; chairName: string; memberName: string } | null>(null);
 
   const openDropdown = () => {
     if (isLocked) return;
@@ -216,13 +212,27 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const exceedsCapacity = workload > remaining;
 
   return (
-    <div className={cn(
-      "border rounded-lg transition-all duration-200 relative",
-      "border-[hsl(var(--wq-border))] bg-card"
-    )}>
-      {/* Role header — no team name, no chair count */}
+    <div
+      className={cn(
+        "border rounded-lg transition-all duration-200 relative",
+        allFilled
+          ? "border-[hsl(var(--wq-border))] bg-[hsl(var(--wq-bg-muted))] opacity-60"
+          : "border-[hsl(var(--wq-border))] bg-card"
+      )}
+    >
+      {/* Role header */}
       <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
-        <p className="text-sm font-semibold text-primary leading-tight">{role.roleName}</p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-primary leading-tight">{role.roleName}</p>
+            {role.teamName && (
+              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">{role.teamName}</p>
+            )}
+          </div>
+          <span className="text-xs text-[hsl(var(--wq-text-secondary))] whitespace-nowrap flex-shrink-0">
+            {assignedInRole.length} of {role.chairs.length} chairs assigned
+          </span>
+        </div>
       </div>
 
       {/* Assigned chairs summary */}
@@ -230,85 +240,23 @@ const RoleCard: React.FC<RoleCardProps> = ({
         <div className="divide-y divide-[hsl(var(--wq-border))]">
           {assignedInRole.map((chair) => {
             const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
-            const isCurrentMember = existing?.memberId === selectedMemberId;
-            const isTrashActive = isCurrentMember;
-
+            const isCurrentMember = existing?.memberId === selectedMember?.id;
             return (
-              <div
-                key={chair.id}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-2.5",
-                  isCurrentMember
-                    ? "bg-primary/5"
-                    : "bg-[hsl(var(--wq-bg-muted))]"
-                )}
-              >
-                <div className={cn(
-                  "w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0",
-                  isCurrentMember ? "bg-primary" : "[background-color:hsl(var(--wq-text-muted))]"
-                )}>
-                  {isCurrentMember ? (
-                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
-                  ) : (
-                    <Lock className="w-2.5 h-2.5 text-white" />
-                  )}
+              <div key={chair.id} className="flex items-center gap-3 px-4 py-2 bg-[hsl(var(--wq-bg-muted))]">
+                <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 [background-color:hsl(142,71%,45%)]">
+                  <Check className="w-2.5 h-2.5 text-primary-foreground" />
                 </div>
-                <span className="text-sm flex-1 text-foreground">{chair.name}</span>
-                <span className={cn(
-                  "text-xs font-medium",
-                  isCurrentMember ? "text-primary" : "text-[hsl(var(--wq-text-secondary))]"
-                )}>
-                  {existing?.memberName}
-                  <span className="ml-1 opacity-70">({existing?.workload}%)</span>
-                  {!isCurrentMember && (
-                    <span className="ml-1.5 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Locked</span>
-                  )}
+                <span className="text-sm text-[hsl(var(--wq-text-secondary))] flex-1">
+                  {chair.name}
                 </span>
-                <button
-                  type="button"
-                  disabled={!isTrashActive}
-                  onClick={() => isTrashActive && setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
-                  className={cn(
-                    "flex-shrink-0 transition-colors p-1 rounded",
-                    isTrashActive
-                      ? "text-destructive hover:bg-destructive/10 cursor-pointer"
-                      : "text-muted-foreground/30 cursor-not-allowed"
-                  )}
-                  title={isTrashActive ? "Remove assignment" : "Select this member to manage their assignments"}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <span className={cn("text-xs", isCurrentMember ? "text-primary font-semibold" : "text-[hsl(var(--wq-text-secondary))]")}>
+                  → {existing?.memberName}
+                  <span className="ml-1 opacity-70">({existing?.workload}%)</span>
+                </span>
               </div>
             );
           })}
         </div>
-      )}
-
-      {/* Delete confirmation overlay */}
-      {deleteConfirm && ReactDOM.createPortal(
-        <>
-          <div className="fixed inset-0 z-[9997] bg-black/40" onClick={() => setDeleteConfirm(null)} />
-          <div className="fixed left-1/2 top-1/2 z-[9998] -translate-x-1/2 -translate-y-1/2 bg-card border border-[hsl(var(--wq-border))] rounded-xl shadow-xl p-6 w-80">
-            <h4 className="font-semibold text-foreground mb-2">Remove assignment?</h4>
-            <p className="text-sm text-muted-foreground mb-4">
-              Remove <span className="font-medium text-foreground">{deleteConfirm.memberName}</span> from <span className="font-medium text-foreground">{deleteConfirm.chairName}</span> in <span className="font-medium text-foreground">{role.roleName}</span>? This cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  onDeleteAssignment(role.roleId, deleteConfirm.chairId);
-                  setDeleteConfirm(null);
-                }}
-              >
-                Remove
-              </Button>
-            </div>
-          </div>
-        </>,
-        document.body
       )}
 
       {/* "Member already in this role" notice */}
@@ -322,145 +270,140 @@ const RoleCard: React.FC<RoleCardProps> = ({
         </div>
       )}
 
-      {/* Chair selection row — shown when there are available chairs and selected member not already in role */}
+      {/* Chair dropdown + workload — no Assign button here */}
       {!allFilled && !selectedMemberAlreadyInRole && (
-        <div className="px-4 py-3">
-          {/* Label clarifying this is additional chair selection */}
-          {assignedInRole.length > 0 && (
-            <p className="text-[10px] text-muted-foreground mb-2 italic">
-              Additional chair selection available
-            </p>
-          )}
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Chair dropdown */}
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
-                Chair
-              </label>
-              <div className="relative flex-1">
-                <button
-                  ref={triggerRef}
-                  type="button"
-                  onClick={() => dropdownOpen ? setDropdownOpen(false) : openDropdown()}
-                  disabled={isLocked}
-                  className={cn(
-                    "w-full h-9 px-3 pr-8 border border-[hsl(var(--wq-border))] rounded-md text-sm text-left bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center",
-                    selectedChairId ? "text-foreground" : "text-muted-foreground"
-                  )}
-                >
-                  <span className="flex-1 truncate">{selectedChairId ? selectedChairName : "Select Chair"}</span>
-                </button>
+        <div className="px-4 py-3 flex items-center gap-3 flex-wrap">
+          {/* Custom clearable chair dropdown */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
+              Chair
+            </label>
+            <div className="relative flex-1">
+              {/* Trigger */}
+              <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => dropdownOpen ? setDropdownOpen(false) : openDropdown()}
+                disabled={isLocked}
+                className={cn(
+                  "w-full h-9 px-3 pr-8 border border-[hsl(var(--wq-border))] rounded-md text-sm text-left bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center",
+                  selectedChairId ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                <span className="flex-1 truncate">{selectedChairId ? selectedChairName : "Select Chair"}</span>
+              </button>
 
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-                  {selectedChairId ? (
-                    <button
-                      type="button"
-                      onClick={handleClearChair}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Clear chair selection"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  ) : (
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-                  )}
-                </div>
-
-                {dropdownOpen && ReactDOM.createPortal(
-                  <>
-                    <div className="fixed inset-0 z-[9998]" onClick={() => setDropdownOpen(false)} />
-                    <div style={dropdownStyle} className="bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
-                      {availableChairs.length === 0 ? (
-                        <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p>
-                      ) : (
-                        availableChairs.map((chair) => (
-                          <button
-                            key={chair.id}
-                            type="button"
-                            onClick={() => handleChairSelect(chair.id)}
-                            className={cn(
-                              "w-full text-left px-3 py-2 text-sm hover:bg-accent/30 transition-colors",
-                              chair.id === selectedChairId ? "text-primary font-medium bg-primary/5" : "text-foreground"
-                            )}
-                          >
-                            {chair.name}
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </>,
-                  document.body
+              {/* Right icon: X to clear if selected, chevron otherwise */}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+                {selectedChairId ? (
+                  <button
+                    type="button"
+                    onClick={handleClearChair}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Clear chair selection"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                 )}
               </div>
-            </div>
 
-            {/* Workload input */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
-                Workload
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                step={0.5}
-                value={workloadStr}
-                onChange={(e) => handleWorkloadChange(e.target.value)}
-                onFocus={(e) => e.target.select()}
-                disabled={isLocked}
-                className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
-              />
-              <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
-            </div>
-
-            {/* Notes toggle button */}
-            <button
-              type="button"
-              disabled={isLocked || !pending}
-              onClick={() => setNoteExpanded((v) => !v)}
-              className={cn(
-                "flex items-center gap-1.5 px-2 py-1 h-9 rounded-md border text-xs transition-colors flex-shrink-0",
-                pending?.notes
-                  ? "text-primary bg-primary/5 border-primary/20 hover:bg-primary/10"
-                  : "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground",
-                (!pending || isLocked) && "opacity-40 cursor-not-allowed"
+              {/* Dropdown list — portalled to body to escape overflow constraints */}
+              {dropdownOpen && ReactDOM.createPortal(
+                <>
+                  <div className="fixed inset-0 z-[9998]" onClick={() => setDropdownOpen(false)} />
+                  <div style={dropdownStyle} className="bg-card border border-[hsl(var(--wq-border))] rounded-md shadow-lg overflow-hidden">
+                    {availableChairs.length === 0 ? (
+                      <p className="px-3 py-2 text-xs text-muted-foreground">No chairs available</p>
+                    ) : (
+                      availableChairs.map((chair) => (
+                        <button
+                          key={chair.id}
+                          type="button"
+                          onClick={() => handleChairSelect(chair.id)}
+                          className={cn(
+                            "w-full text-left px-3 py-2 text-sm hover:bg-accent/30 transition-colors",
+                            chair.id === selectedChairId ? "text-primary font-medium bg-primary/5" : "text-foreground"
+                          )}
+                        >
+                          {chair.name}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </>,
+                document.body
               )}
-              title={!pending ? "Select a chair first" : pending.notes ? "View/edit notes" : "Add notes"}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span className={pending?.notes ? "" : "italic opacity-60"}>Notes</span>
-            </button>
-
-            {/* Capacity warning */}
-            {exceedsCapacity && !isLocked && (
-              <span className="text-xs text-[hsl(38,92%,50%)] flex items-center gap-1 w-full">
-                <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                Exceeds {selectedMember?.name.split(" ")[0]}'s remaining capacity ({remaining}%)
-              </span>
-            )}
-
-            {/* Inline notes input */}
-            {noteExpanded && (
-              <div className="flex items-start gap-2 w-full">
-                <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-2 flex-shrink-0" />
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Add assignment notes..."
-                  value={pending?.notes ?? ""}
-                  onChange={(e) => handleNotesChange(e.target.value)}
-                  disabled={isLocked}
-                  className="flex-1 h-8 px-2 border border-[hsl(var(--wq-border))] rounded-md text-xs bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      setNoteExpanded(false);
-                    }
-                  }}
-                />
-              </div>
-            )}
+            </div>
           </div>
+
+          {/* Workload input */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <label className="text-xs font-medium text-[hsl(var(--wq-text-secondary))] whitespace-nowrap">
+              Workload
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              step={0.5}
+              value={workloadStr}
+              onChange={(e) => handleWorkloadChange(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              disabled={isLocked}
+              className="w-16 h-9 px-2 border border-[hsl(var(--wq-border))] rounded-md text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30 bg-card disabled:opacity-50"
+            />
+          <span className="text-sm text-[hsl(var(--wq-text-secondary))]">%</span>
+          </div>
+
+          {/* Notes toggle button */}
+          <button
+            type="button"
+            disabled={isLocked || !pending}
+            onClick={() => setNoteExpanded((v) => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 h-9 rounded-md border text-xs transition-colors flex-shrink-0",
+              pending?.notes
+                ? "text-primary bg-primary/5 border-primary/20 hover:bg-primary/10"
+                : "text-muted-foreground border-[hsl(var(--wq-border))] hover:bg-muted hover:text-foreground",
+              (!pending || isLocked) && "opacity-40 cursor-not-allowed"
+            )}
+            title={!pending ? "Select a chair first" : pending.notes ? "View/edit notes" : "Add notes"}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className={pending?.notes ? "" : "italic opacity-60"}>Notes</span>
+          </button>
+
+          {/* Capacity warning */}
+          {exceedsCapacity && !isLocked && (
+            <span className="text-xs text-[hsl(38,92%,50%)] flex items-center gap-1 w-full">
+              <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+              Exceeds {selectedMember?.name.split(" ")[0]}'s remaining capacity ({remaining}%)
+            </span>
+          )}
+
+          {/* Inline notes input */}
+          {noteExpanded && (
+            <div className="flex items-start gap-2 w-full">
+              <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-2 flex-shrink-0" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Add assignment notes..."
+                value={pending?.notes ?? ""}
+                onChange={(e) => handleNotesChange(e.target.value)}
+                disabled={isLocked}
+                className="flex-1 h-8 px-2 border border-[hsl(var(--wq-border))] rounded-md text-xs bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    setNoteExpanded(false);
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -481,22 +424,16 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
   roles,
   existingAssignments = [],
   onComplete,
-  onCompleteWorkItem,
   isReadOnly = false,
 }) => {
   const localRoles: LocalRole[] = useMemo(
     () =>
-      roles.map((r) => {
-        // Try to find matching teamId from rolesData by teamName
-        const roleData = rolesData.find((rd) => rd.name.toLowerCase() === r.roleName.toLowerCase());
-        return {
-          roleId: r.roleId,
-          roleName: r.roleName,
-          teamName: r.teamName,
-          teamId: roleData?.teamId ?? "",
-          chairs: buildChairsForRole(r.roleName),
-        };
-      }),
+      roles.map((r) => ({
+        roleId: r.roleId,
+        roleName: r.roleName,
+        teamName: r.teamName,
+        chairs: buildChairsForRole(r.roleName),
+      })),
     [roles]
   );
 
@@ -509,7 +446,6 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
           name: m.name,
           title: m.title,
           availableCapacity: Math.max(0, 100 - baseWorkload),
-          teamId: m.teamId,
         };
       })
       .sort((a, b) => b.availableCapacity - a.availableCapacity);
@@ -518,15 +454,15 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
   const [members, setMembers] = useState<LocalMember[]>(initialMembers);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [assignmentMap, setAssignmentMap] = useState<AssignmentMap>({});
+
+  // Per-role pending selections (chair + workload chosen but not yet submitted)
   const [rolePendings, setRolePendings] = useState<Record<string, RolePending | null>>({});
+
+  // Global save state for the single Assign button
   const [saveState, setSaveState] = useState<SaveState>(null);
+
   const [memberSearch, setMemberSearch] = useState("");
   const debouncedSearch = useDebounce(memberSearch, 300);
-  // For the "Complete Work Item" confirmation modal
-  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
-
-  // Accordion state for greyed-out roles section (collapsed by default when > 5 roles)
-  const [greyedAccordionOpen, setGreyedAccordionOpen] = useState(false);
 
   // Keep refs up-to-date so the unmount effect always reads the latest values
   const assignmentMapRef = useRef(assignmentMap);
@@ -539,7 +475,7 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
   useEffect(() => { existingAssignmentsRef.current = existingAssignments; }, [existingAssignments]);
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
-  // Auto-save on unmount
+  // Auto-save all assignments when the user navigates away
   useEffect(() => {
     return () => {
       const map = assignmentMapRef.current;
@@ -571,25 +507,12 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
     [members, selectedMemberId]
   );
 
-  // Sort roles: member's team roles first (enabled), others after (greyed)
-  const { memberTeamRoles, otherRoles } = useMemo(() => {
-    if (!selectedMember) {
-      return { memberTeamRoles: localRoles, otherRoles: [] };
-    }
-    const memberTeam = selectedMember.teamId;
-    const applicable = localRoles.filter((r) => !r.teamId || r.teamId === memberTeam || r.teamId === "");
-    const inapplicable = localRoles.filter((r) => r.teamId && r.teamId !== memberTeam && r.teamId !== "");
-    return { memberTeamRoles: applicable, otherRoles: inapplicable };
-  }, [localRoles, selectedMember]);
-
-  const useAccordion = localRoles.length > 5;
-
   const filteredMembers = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
     const filtered = q
       ? members.filter((m) => m.name.toLowerCase().includes(q) || m.title.toLowerCase().includes(q))
       : [...members];
-    // Pin selected member to top
+    // Pin the selected member to the top
     if (selectedMemberId) {
       const selectedIdx = filtered.findIndex((m) => m.id === selectedMemberId);
       if (selectedIdx > 0) {
@@ -600,13 +523,22 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
     return filtered;
   }, [members, debouncedSearch, selectedMemberId]);
 
+  const memberAssignmentCount = useCallback(
+    (memberId: string) => Object.values(assignmentMap).filter((a) => a.memberId === memberId).length,
+    [assignmentMap]
+  );
+
   const handleSelectMember = (memberId: string) => {
     if (isReadOnly) return;
+    // Re-sort whenever selection changes (including deselect)
+    setMembers((prev) => [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity));
     setSaveState(null);
     setRolePendings({});
+    // Clicking the selected member again deselects (unpins) it
     setSelectedMemberId(memberId === selectedMemberId ? null : memberId);
   };
 
+  // Collect all roles that have a pending chair selected
   const pendingRoles = useMemo(() => {
     return localRoles.filter((r) => {
       const p = rolePendings[r.roleId];
@@ -615,16 +547,6 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
   }, [localRoles, rolePendings]);
 
   const canAssignAll = selectedMember !== null && pendingRoles.length > 0 && saveState !== "saving";
-
-  // Total assigned chairs across all roles (for progress + complete button gate)
-  const totalAssignedChairs = useMemo(() => Object.keys(assignmentMap).length, [assignmentMap]);
-  const totalRoles = localRoles.length;
-  const assignedRolesCount = useMemo(() => {
-    const roleIds = new Set(Object.keys(assignmentMap).map((k) => k.split("::")[0]));
-    return roleIds.size;
-  }, [assignmentMap]);
-
-  const canCompleteWorkItem = totalAssignedChairs >= 1;
 
   const handleAssignAll = useCallback(async () => {
     if (!selectedMember || pendingRoles.length === 0) return;
@@ -640,7 +562,7 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
       const key = assignmentKey(role.roleId, p.chairId);
       if (newMap[key]?.memberId === selectedMember.id) continue;
 
-      newMap[key] = { memberId: selectedMember.id, memberName: selectedMember.name, workload: p.workload, notes: p.notes };
+      newMap[key] = { memberId: selectedMember.id, memberName: selectedMember.name, workload: p.workload };
 
       newAssignments.push({
         roleId: role.roleId,
@@ -660,27 +582,21 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
 
     setAssignmentMap(newMap);
 
-    // Deduct workload from member capacity, then re-sort (assigned member moves toward bottom)
+    // Deduct total workload from member capacity
     const totalDeducted = pendingRoles.reduce((sum, r) => sum + (rolePendings[r.roleId]?.workload ?? 0), 0);
-    setMembers((prev) => {
-      const updated = prev.map((m) =>
+    setMembers((prev) =>
+      prev.map((m) =>
         m.id === selectedMember.id
           ? { ...m, availableCapacity: Math.max(0, m.availableCapacity - totalDeducted) }
           : m
-      );
-      // Re-sort by capacity: most available first; member who just got assigned naturally moves down
-      return [...updated].sort((a, b) => {
-        // Keep selected pinned at top for now; resort will happen on next selection
-        if (a.id === selectedMember.id) return -1;
-        if (b.id === selectedMember.id) return 1;
-        return b.availableCapacity - a.availableCapacity;
-      });
-    });
+      )
+    );
 
     if (newAssignments.length > 0) {
       onComplete([...existingAssignments, ...newAssignments]);
     }
 
+    // Clear pending selections for assigned roles
     setRolePendings((prev) => {
       const updated = { ...prev };
       pendingRoles.forEach((r) => { updated[r.roleId] = null; });
@@ -688,317 +604,149 @@ export const Concept5MemberFirst: React.FC<Concept5MemberFirstProps> = ({
     });
 
     setSaveState("success");
-    // After success, deselect member so list re-sorts properly
-    setTimeout(() => {
-      setSaveState(null);
-      setSelectedMemberId(null);
-      setMembers((prev) =>
-        [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity)
-      );
-    }, 1500);
+    setTimeout(() => setSaveState(null), 1500);
   }, [selectedMember, pendingRoles, rolePendings, assignmentMap, existingAssignments, onComplete]);
 
-  const handleDeleteAssignment = useCallback((roleId: string, chairId: string) => {
-    const key = assignmentKey(roleId, chairId);
-    const existing = assignmentMap[key];
-    if (!existing) return;
-    // Restore capacity to the member
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === existing.memberId
-          ? { ...m, availableCapacity: Math.min(100, m.availableCapacity + existing.workload) }
-          : m
-      )
-    );
-    setAssignmentMap((prev) => {
-      const updated = { ...prev };
-      delete updated[key];
-      return updated;
-    });
-  }, [assignmentMap]);
-
-  const handleCompleteWorkItemClick = () => {
-    setShowCompleteConfirm(true);
-  };
-
-  const handleConfirmComplete = () => {
-    setShowCompleteConfirm(false);
-    onCompleteWorkItem?.();
-  };
-
   return (
-    <div className="flex flex-col gap-4">
-      {/* ── Progress Indicator ── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-card border border-[hsl(var(--wq-border))] rounded-lg">
-        <div className="flex items-center gap-2 flex-1">
-          <CheckCircle2 className={cn("w-4 h-4", assignedRolesCount > 0 ? "text-green-600" : "text-muted-foreground/40")} />
-          <span className="text-sm font-medium text-foreground">
-            Roles assigned:{" "}
-            <span className={cn("font-bold", assignedRolesCount > 0 ? "text-green-600" : "text-muted-foreground")}>
-              {assignedRolesCount}
-            </span>
-            <span className="text-muted-foreground"> of {totalRoles}</span>
-          </span>
+    <div className="flex gap-6 min-w-0">
+      {/* ── LEFT: Team Members (40%) ── */}
+      <div className="w-[40%] flex-shrink-0">
+        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
+            <div>
+              <h3 className="text-primary font-bold text-sm">Team Members</h3>
+              <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
+                {members.length} members · sorted by capacity
+              </p>
+            </div>
+          </div>
+
+          <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--wq-text-secondary))] pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search members..."
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              {memberSearch && (
+                <button
+                  onClick={() => setMemberSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="overflow-y-auto max-h-[560px] divide-y divide-[hsl(var(--wq-border))]">
+            {filteredMembers.map((member) => (
+              <MemberCard
+                key={member.id}
+                member={member}
+                isSelected={selectedMemberId === member.id}
+                assignmentCount={memberAssignmentCount(member.id)}
+                onSelect={() => handleSelectMember(member.id)}
+              />
+            ))}
+            {filteredMembers.length === 0 && (
+              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
+            )}
+          </div>
         </div>
-        {totalAssignedChairs > 0 && (
-          <span className="text-xs text-muted-foreground">
-            {totalAssignedChairs} chair{totalAssignedChairs !== 1 ? "s" : ""} total
-          </span>
-        )}
       </div>
 
-      <div className="flex gap-6 min-w-0">
-        {/* ── LEFT: Team Members (40%) ── */}
-        <div className="w-[40%] flex-shrink-0">
-          <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
-              <div>
-                <h3 className="text-primary font-bold text-sm">Team Members</h3>
+      {/* ── RIGHT: Role Assignments (60%) ── */}
+      <div className="flex-1 min-w-0 flex flex-col gap-0">
+        <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
+            <div className="min-w-0">
+              <h3 className="text-primary font-bold text-sm">Role Assignments</h3>
+              {selectedMember ? (
                 <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
-                  {members.length} members · sorted by availability
+                  Assigning to:{" "}
+                  <span className="font-semibold text-primary">{selectedMember.name}</span>
+                  {" — "}
+                  <span className={cn("font-medium", getCapacityTextCls(selectedMember.availableCapacity))}>
+                    {selectedMember.availableCapacity}% available capacity
+                  </span>
                 </p>
-              </div>
-            </div>
-
-            <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--wq-text-secondary))] pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search members..."
-                  value={memberSearch}
-                  onChange={(e) => setMemberSearch(e.target.value)}
-                  className="w-full h-9 pl-8 pr-8 text-sm border border-[hsl(var(--wq-border))] rounded-md bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                {memberSearch && (
-                  <button
-                    onClick={() => setMemberSearch("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[hsl(var(--wq-text-secondary))] hover:text-primary"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="overflow-y-auto max-h-[560px] divide-y divide-[hsl(var(--wq-border))]">
-              {filteredMembers.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  isSelected={selectedMemberId === member.id}
-                  onSelect={() => handleSelectMember(member.id)}
-                />
-              ))}
-              {filteredMembers.length === 0 && (
-                <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">No members found</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── RIGHT: Role Assignments (60%) ── */}
-        <div className="flex-1 min-w-0 flex flex-col gap-0">
-          <div className="bg-card rounded-lg border border-[hsl(var(--wq-border))] overflow-hidden flex flex-col">
-            {/* Right panel header — member context moved here, not as section title */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--wq-border))]">
-              <div className="min-w-0">
-                <h3 className="text-primary font-bold text-sm">Role Assignments</h3>
-                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5">
-                  All roles across this work item
-                </p>
-              </div>
-              {/* Selected member capacity inline badge */}
-              {selectedMember && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
-                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-bold text-primary-foreground">{getInitials(selectedMember.name)}</span>
-                  </div>
-                  <div className="text-xs">
-                    <span className="font-semibold text-primary">{selectedMember.name.split(" ")[0]}</span>
-                    <span className="text-muted-foreground"> · </span>
-                    <span className={cn("font-medium", getCapacityTextCls(selectedMember.availableCapacity))}>
-                      {selectedMember.availableCapacity}% available
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Minimum requirement note */}
-            {totalAssignedChairs === 0 && (
-              <div className="mx-4 mt-3 flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border border-[hsl(var(--wq-border))] rounded-md px-3 py-2">
-                <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                Assign at least one role and chair to complete this work item.
-              </div>
-            )}
-
-            <div className={cn("p-4 flex flex-col gap-3", !selectedMember && "opacity-50 pointer-events-none")}>
-              {!selectedMember && (
-                <div className="flex items-center gap-2 py-6 justify-center text-sm text-muted-foreground">
-                  <User className="w-4 h-4" />
+              ) : (
+                <p className="text-xs text-[hsl(var(--wq-text-secondary))] mt-0.5 flex items-center gap-1.5">
+                  <User className="w-3 h-3" />
                   Select a team member on the left to begin assigning roles
-                </div>
-              )}
-
-              {selectedMember && (
-                <>
-                  {/* Applicable roles for selected member's team */}
-                  {memberTeamRoles.map((role) => (
-                    <RoleCard
-                      key={role.roleId}
-                      role={role}
-                      assignmentMap={assignmentMap}
-                      selectedMember={selectedMember}
-                      isLocked={false}
-                      pending={rolePendings[role.roleId] ?? null}
-                      onPendingChange={(p) =>
-                        setRolePendings((prev) => ({ ...prev, [role.roleId]: p }))
-                      }
-                      onDeleteAssignment={handleDeleteAssignment}
-                      selectedMemberId={selectedMemberId}
-                    />
-                  ))}
-
-                  {/* Greyed-out roles not applicable to member's team */}
-                  {otherRoles.length > 0 && (
-                    <div className="mt-1">
-                      {useAccordion ? (
-                        <button
-                          type="button"
-                          onClick={() => setGreyedAccordionOpen((v) => !v)}
-                          className="flex items-center gap-2 text-xs text-muted-foreground mb-2 hover:text-foreground transition-colors"
-                        >
-                          {greyedAccordionOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                          <span className="font-medium">{otherRoles.length} role{otherRoles.length !== 1 ? "s" : ""} not available for this member</span>
-                          <Info className="w-3 h-3" />
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
-                          <Info className="w-3 h-3 flex-shrink-0" />
-                          <span>The following roles are not associated with this member's team and cannot be assigned.</span>
-                        </div>
-                      )}
-
-                      {(!useAccordion || greyedAccordionOpen) && (
-                        <div className="flex flex-col gap-3">
-                          {otherRoles.map((role) => (
-                            <div
-                              key={role.roleId}
-                              className="border border-[hsl(var(--wq-border))] rounded-lg bg-muted/30 opacity-50 pointer-events-none"
-                            >
-                              <div className="px-4 py-3">
-                                <p className="text-sm font-semibold text-muted-foreground leading-tight">{role.roleName}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {localRoles.length === 0 && (
-                <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
-                  No roles configured for this work item.
                 </p>
               )}
             </div>
-
-            {/* ── Single Assign button at the bottom ── */}
-            <div className="px-4 pb-4 pt-1 border-t border-[hsl(var(--wq-border))] flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs">
-                {saveState === "saving" && (
-                  <span className="text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…
-                  </span>
-                )}
-                {saveState === "success" && (
-                  <span className="text-[hsl(142,71%,45%)] flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Saved
-                  </span>
-                )}
-                {saveState === "error" && (
-                  <button
-                    onClick={handleAssignAll}
-                    className="text-destructive flex items-center gap-1 hover:underline"
-                  >
-                    <XCircle className="w-3.5 h-3.5" /> Failed —{" "}
-                    <RefreshCw className="w-3.5 h-3.5" /> Retry
-                  </button>
-                )}
-                {pendingRoles.length > 0 && saveState === null && (
-                  <span className="text-[hsl(var(--wq-text-secondary))]">
-                    {pendingRoles.length} role{pendingRoles.length > 1 ? "s" : ""} ready to assign
-                  </span>
-                )}
-              </div>
-
-              <Button
-                disabled={!canAssignAll || isReadOnly}
-                onClick={handleAssignAll}
-                className="h-9 px-6"
-              >
-                {saveState === "saving" ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  "Assign"
-                )}
-              </Button>
-            </div>
           </div>
 
-          {/* Complete Work Item section */}
-          <div className="mt-4 flex flex-col gap-2">
-            {!canCompleteWorkItem && (
-              <p className="text-xs text-muted-foreground text-right">
-                Assign at least one role and chair before completing the work item.
+          <div className={cn("p-4 flex flex-col gap-3", !selectedMember && "opacity-50 pointer-events-none")}>
+            {localRoles.map((role) => (
+              <RoleCard
+                key={role.roleId}
+                role={role}
+                assignmentMap={assignmentMap}
+                selectedMember={selectedMember}
+                isLocked={!selectedMember}
+                pending={rolePendings[role.roleId] ?? null}
+                onPendingChange={(p) =>
+                  setRolePendings((prev) => ({ ...prev, [role.roleId]: p }))
+                }
+              />
+            ))}
+            {localRoles.length === 0 && (
+              <p className="text-sm text-[hsl(var(--wq-text-secondary))] text-center py-8">
+                No roles configured for this work item.
               </p>
             )}
-            <div className="flex justify-end">
-              <Button
-                disabled={!canCompleteWorkItem || isReadOnly}
-                onClick={handleCompleteWorkItemClick}
-                className="h-10 px-8 bg-[hsl(142,71%,38%)] hover:bg-[hsl(142,71%,32%)] text-white disabled:opacity-40"
-              >
-                <Check className="w-4 h-4" />
-                Complete Work Item
-              </Button>
+          </div>
+
+          {/* ── Single Assign button at the bottom ── */}
+          <div className="px-4 pb-4 pt-1 border-t border-[hsl(var(--wq-border))] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs">
+              {saveState === "saving" && (
+                <span className="text-[hsl(var(--wq-text-secondary))] flex items-center gap-1">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…
+                </span>
+              )}
+              {saveState === "success" && (
+                <span className="text-[hsl(142,71%,45%)] flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Saved
+                </span>
+              )}
+              {saveState === "error" && (
+                <button
+                  onClick={handleAssignAll}
+                  className="text-destructive flex items-center gap-1 hover:underline"
+                >
+                  <XCircle className="w-3.5 h-3.5" /> Failed —{" "}
+                  <RefreshCw className="w-3.5 h-3.5" /> Retry
+                </button>
+              )}
+              {pendingRoles.length > 0 && saveState === null && (
+                <span className="text-[hsl(var(--wq-text-secondary))]">
+                  {pendingRoles.length} role{pendingRoles.length > 1 ? "s" : ""} ready to assign
+                </span>
+              )}
             </div>
+
+            <Button
+              disabled={!canAssignAll || isReadOnly}
+              onClick={handleAssignAll}
+              className="h-9 px-6"
+            >
+              {saveState === "saving" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                "Assign"
+              )}
+            </Button>
           </div>
         </div>
       </div>
-
-      {/* ── Confirmation modal for Complete Work Item ── */}
-      {showCompleteConfirm && ReactDOM.createPortal(
-        <>
-          <div className="fixed inset-0 z-[9997] bg-black/40" onClick={() => setShowCompleteConfirm(false)} />
-          <div className="fixed left-1/2 top-1/2 z-[9998] -translate-x-1/2 -translate-y-1/2 bg-card border border-[hsl(var(--wq-border))] rounded-xl shadow-xl p-6 w-96">
-            <h4 className="font-semibold text-foreground text-base mb-2">Complete work item?</h4>
-            <p className="text-sm text-muted-foreground mb-1">
-              Once completed, <span className="font-medium text-foreground">no further changes</span> can be made to this work item.
-            </p>
-            <p className="text-sm text-muted-foreground mb-5">
-              This will lock all assignments and mark the work item as complete.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setShowCompleteConfirm(false)}>
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="bg-[hsl(142,71%,38%)] hover:bg-[hsl(142,71%,32%)] text-white"
-                onClick={handleConfirmComplete}
-              >
-                <Check className="w-3.5 h-3.5" />
-                Confirm & Complete
-              </Button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
     </div>
   );
 };
