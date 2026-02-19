@@ -231,74 +231,45 @@ const RoleCard: React.FC<RoleCardProps> = ({
           {assignedInRole.map((chair) => {
           const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
           const isCurrentMember = existing?.memberId === selectedMemberId;
-          const isTrashActive = isCurrentMember;
 
           return (
             <div
               key={chair.id}
               className={cn(
-                "flex items-center gap-3 px-4 py-2.5",
+                "flex items-center gap-3 px-4 py-2.5 border-b border-[hsl(var(--wq-border))] last:border-b-0",
                 isCurrentMember ? "bg-primary/5" : "bg-[hsl(var(--wq-bg-muted))]"
               )}>
-
-                {/* Status icon */}
-                <div className={cn(
-                "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
-                isCurrentMember ? "bg-primary" : "bg-muted-foreground/30"
-              )}>
-                  {isCurrentMember
-                    ? <Check className="w-3 h-3 text-primary-foreground" />
-                    : <Lock className="w-3 h-3 text-white" />
-                  }
-                </div>
 
                 {/* Chair name */}
                 <span className="text-xs text-muted-foreground w-28 flex-shrink-0">{chair.name}</span>
 
-                {/* Assigned member avatar + name — always prominent */}
+                {/* Assigned member avatar + name */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className={cn(
                     "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0",
-                    isCurrentMember ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    isCurrentMember ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground"
                   )}>
                     {getInitials(existing?.memberName ?? "")}
                   </div>
-                  <div className="min-w-0">
-                    <span className={cn(
-                      "text-sm font-semibold truncate block",
-                      isCurrentMember ? "text-primary" : "text-foreground"
-                    )}>
-                      {existing?.memberName}
-                    </span>
-                  </div>
-                  {!isCurrentMember &&
-                    <span className="ml-1 text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full flex-shrink-0 flex items-center gap-0.5">
-                      <Lock className="w-2.5 h-2.5" /> Locked
-                    </span>
-                  }
+                  <span className={cn(
+                    "text-sm font-medium truncate",
+                    isCurrentMember ? "text-primary" : "text-foreground"
+                  )}>
+                    {existing?.memberName}
+                  </span>
                 </div>
 
                 {/* Workload */}
-                <span className={cn(
-                  "text-xs font-medium flex-shrink-0",
-                  isCurrentMember ? "text-primary" : "text-muted-foreground"
-                )}>
+                <span className="text-xs font-medium text-muted-foreground flex-shrink-0">
                   {existing?.workload}%
                 </span>
 
-                {/* Trash icon */}
+                {/* Trash icon — always active */}
                 <button
-                type="button"
-                disabled={!isTrashActive}
-                onClick={() => isTrashActive && setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
-                className={cn(
-                  "flex-shrink-0 transition-colors p-1 rounded",
-                  isTrashActive ?
-                  "text-destructive hover:bg-destructive/10 cursor-pointer" :
-                  "text-muted-foreground/20 cursor-not-allowed"
-                )}
-                title={isTrashActive ? "Remove assignment" : "Select this member to manage their assignments"}>
-
+                  type="button"
+                  onClick={() => setDeleteConfirm({ chairId: chair.id, chairName: chair.name, memberName: existing?.memberName ?? "" })}
+                  className="flex-shrink-0 transition-colors p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Remove assignment">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>);
