@@ -305,19 +305,16 @@ const RoleCard: React.FC<RoleCardProps> = ({
         document.body
       )}
 
-      {/* "Member already in this role" notice */}
-      {!allFilled && selectedMemberAlreadyInRole &&
-      <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] border-t border-[hsl(var(--wq-border))] bg-primary-foreground">
-          
-          
-
-
-
+      {/* "Member already in this role" notice — CHANGE 3 */}
+      {!allFilled && selectedMemberAlreadyInRole && selectedMember &&
+      <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] border-t border-[hsl(var(--wq-border))] bg-muted/20">
+          <Info className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+          <span>{selectedMember.name.split(" ")[0]} is already assigned to this role. Select another member to fill remaining chairs.</span>
         </div>
       }
 
       {/* Chair selection row — shown when there are available chairs and selected member not already in role */}
-      {!allFilled && !selectedMemberAlreadyInRole &&
+      {!allFilled && !selectedMemberAlreadyInRole && selectedMember &&
       <div className="px-4 py-3">
           {/* Label clarifying this is additional chair selection */}
           {assignedInRole.length > 0 &&
@@ -598,7 +595,19 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
     if (isReadOnly) return;
     setSaveState(null);
     setRolePendings({});
-    setSelectedMemberId(memberId === selectedMemberId ? null : memberId);
+    if (memberId === selectedMemberId) {
+      // Deselecting current member — re-sort list by capacity
+      setSelectedMemberId(null);
+      setMembers((prev) => [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity));
+    } else {
+      // CHANGE 2: Switching to new member — re-sort so previous selection moves by capacity
+      setSelectedMemberId(memberId);
+      setMembers((prev) => [...prev].sort((a, b) => {
+        if (a.id === memberId) return -1;
+        if (b.id === memberId) return 1;
+        return b.availableCapacity - a.availableCapacity;
+      }));
+    }
   };
 
   const pendingRoles = useMemo(() => {
@@ -682,13 +691,9 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
     });
 
     setSaveState("success");
-    // After success, deselect member so list re-sorts properly
+    // CHANGE 2: Keep selected member pinned — do NOT deselect after assign
     setTimeout(() => {
       setSaveState(null);
-      setSelectedMemberId(null);
-      setMembers((prev) =>
-      [...prev].sort((a, b) => b.availableCapacity - a.availableCapacity)
-      );
     }, 1500);
   }, [selectedMember, pendingRoles, rolePendings, assignmentMap, existingAssignments, onComplete]);
 
@@ -800,25 +805,35 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
             }
 
             <div className="p-4 flex flex-col gap-3">
-              {/* When no member selected: show existing assignments (read-only) + prompt */}
+              {/* CHANGE 1 & 5: When no member selected, show all roles (greyed if empty, with assignments if any) */}
               {!selectedMember &&
               <>
                   {localRoles.map((role) => {
                   const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
-                  if (assignedInRole.length === 0) return null;
+                  if (assignedInRole.length > 0) {
+                    return (
+                      <RoleCard
+                        key={role.roleId}
+                        role={role}
+                        assignmentMap={assignmentMap}
+                        selectedMember={null}
+                        isLocked={true}
+                        pending={null}
+                        onPendingChange={() => {}}
+                        onDeleteAssignment={handleDeleteAssignment}
+                        selectedMemberId={null} />);
+                  }
+                  // Greyed-out placeholder for roles with no assignments
                   return (
-                    <RoleCard
+                    <div
                       key={role.roleId}
-                      role={role}
-                      assignmentMap={assignmentMap}
-                      selectedMember={null}
-                      isLocked={false}
-                      pending={null}
-                      onPendingChange={() => {}}
-                      onDeleteAssignment={handleDeleteAssignment}
-                      selectedMemberId={null} />);
-
-
+                      className="border border-[hsl(var(--wq-border))] rounded-lg bg-muted/30 opacity-50 pointer-events-none">
+                      <div className="px-4 py-3">
+                        <p className="text-sm font-semibold text-muted-foreground leading-tight">{role.roleName}</p>
+                        {role.teamName && <p className="text-xs text-muted-foreground/70 mt-0.5">{role.teamName}</p>}
+                      </div>
+                    </div>
+                  );
                 })}
                   <div className="flex items-center gap-2 py-4 justify-center text-sm text-muted-foreground">
                     <User className="w-4 h-4" />
@@ -846,7 +861,7 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
                 )}
 
-                  {/* Greyed-out roles not applicable to member's team */}
+                  {/* CHANGE 4: Greyed-out roles not applicable — still show existing assignments */}
                   {otherRoles.length > 0 &&
                 <div className="mt-1">
                       {useAccordion ?
@@ -868,16 +883,38 @@ export const Concept6MemberFirst: React.FC<Concept6MemberFirstProps> = ({
 
                       {(!useAccordion || greyedAccordionOpen) &&
                   <div className="flex flex-col gap-3">
-                          {otherRoles.map((role) =>
-                    <div
-                      key={role.roleId}
-                      className="border border-[hsl(var(--wq-border))] rounded-lg bg-muted/30 opacity-50 pointer-events-none">
-
-                              <div className="px-4 py-3">
+                          {otherRoles.map((role) => {
+                      const assignedInRole = role.chairs.filter((c) => !!assignmentMap[assignmentKey(role.roleId, c.id)]);
+                      return (
+                        <div
+                          key={role.roleId}
+                          className="border border-[hsl(var(--wq-border))] rounded-lg bg-muted/30 opacity-50 pointer-events-none">
+                              <div className="px-4 py-3 border-b border-[hsl(var(--wq-border))]">
                                 <p className="text-sm font-semibold text-muted-foreground leading-tight">{role.roleName}</p>
+                                {role.teamName && <p className="text-xs text-muted-foreground/70 mt-0.5">{role.teamName}</p>}
                               </div>
+                              {assignedInRole.length > 0 &&
+                                <div className="divide-y divide-[hsl(var(--wq-border))]">
+                                  {assignedInRole.map((chair) => {
+                                    const existing = assignmentMap[assignmentKey(role.roleId, chair.id)];
+                                    return (
+                                      <div key={chair.id} className="flex items-center gap-3 px-4 py-2.5 bg-primary/5">
+                                        <span className="text-xs text-muted-foreground w-28 flex-shrink-0">{chair.name}</span>
+                                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-muted-foreground/20 text-muted-foreground">
+                                            {getInitials(existing?.memberName ?? "")}
+                                          </div>
+                                          <span className="text-sm font-medium truncate text-foreground">{existing?.memberName}</span>
+                                        </div>
+                                        <span className="text-xs font-medium text-muted-foreground flex-shrink-0">{existing?.workload}%</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              }
                             </div>
-                    )}
+                      );
+                    })}
                         </div>
                   }
                     </div>

@@ -845,7 +845,7 @@ const WorkItemDetail = () => {
                             disabled={!canDelete}
                             className="px-6 py-2 border-destructive text-destructive hover:bg-destructive/5 font-medium disabled:opacity-50 disabled:pointer-events-none"
                           >
-                            Delete Work Item
+                            Cancel Work Item
                           </Button>
                         </span>
                       </TooltipTrigger>
@@ -865,7 +865,7 @@ const WorkItemDetail = () => {
                       onClick={handleCancel}
                       className="px-6 py-2 border-primary text-primary hover:bg-primary/5 font-medium"
                     >
-                      Cancel
+                      Exit
                     </Button>
                     <Button
                       type="button"
