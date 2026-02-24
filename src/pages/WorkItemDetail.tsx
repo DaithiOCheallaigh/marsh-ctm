@@ -27,6 +27,7 @@ import {
   MemberFirstConcept,
   Concept5MemberFirst,
   Concept6MemberFirst,
+  Concept7RoleFirst,
 } from "@/components/work-item-detail/assignment-concepts";
 import type { ConceptView } from "@/components/work-item-detail/assignment-concepts";
 import {
@@ -806,9 +807,29 @@ const WorkItemDetail = () => {
                   onCompleteWorkItem={handleCompleteWorkItem}
                   isReadOnly={isReadOnly}
                 />
-              ) : (
+              ) : conceptView === "concept-6" ? (
                 // Concept 6 — Enhanced Member-First with all UX improvements
                 <Concept6MemberFirst
+                  roles={teams.flatMap(team =>
+                    team.roles.map(role => ({
+                      roleId: role.roleId,
+                      roleName: role.roleName,
+                      teamName: team.teamName,
+                      description: `${team.teamName} - ${role.roleName}`,
+                    }))
+                  )}
+                  existingAssignments={conceptAssignments}
+                  onComplete={(assignments) => {
+                    setConceptAssignments(assignments);
+                    if (workItem) updateWorkItem(workItem.id, { savedAssignments: assignments });
+                    setLastSavedAt(new Date());
+                  }}
+                  onCompleteWorkItem={handleCompleteWorkItem}
+                  isReadOnly={isReadOnly}
+                />
+              ) : (
+                // Concept 7 — Role-First Multi-Screen Flow
+                <Concept7RoleFirst
                   roles={teams.flatMap(team =>
                     team.roles.map(role => ({
                       roleId: role.roleId,
