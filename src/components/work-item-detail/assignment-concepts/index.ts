@@ -16,3 +16,4 @@ export { CommandCentreConcept } from './CommandCentreConcept';
 export { MemberFirstConcept } from './MemberFirstConcept';
 export { Concept5MemberFirst } from './Concept5MemberFirst';
 export { Concept6MemberFirst } from './Concept6MemberFirst';
+export { Concept7RoleFirst } from './Concept7RoleFirst';
