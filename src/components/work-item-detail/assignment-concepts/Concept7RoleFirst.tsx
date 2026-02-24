@@ -282,13 +282,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
         document.body
       )}
 
-      {/* "Member already in this role" notice */}
-      {!allFilled && selectedMemberAlreadyInRole && selectedMember &&
-      <div className="px-4 py-3 flex items-center gap-2 text-xs text-[hsl(var(--wq-text-secondary))] border-t border-[hsl(var(--wq-border))] bg-muted/20">
-          <Info className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
-          <span>{selectedMember.name.split(" ")[0]} is already assigned to this role. Select another member to fill remaining chairs.</span>
-        </div>
-      }
 
       {/* Chair selection row */}
       {!allFilled && !selectedMemberAlreadyInRole && selectedMember &&
