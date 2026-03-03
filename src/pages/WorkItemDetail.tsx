@@ -98,6 +98,7 @@ const WorkItemDetail = () => {
   const [assignmentView, setAssignmentView] = useState<"horizontal" | "vertical">("horizontal");
   const [assignmentOption, setAssignmentOption] = useState<"option1" | "option2">("option2");
   const [conceptView, setConceptView] = useState<ConceptView>("classic");
+  const [showConceptToggle, setShowConceptToggle] = useState(false);
 
   // Team-based assignment state
   const [teams, setTeams] = useState<TeamState[]>([]);
