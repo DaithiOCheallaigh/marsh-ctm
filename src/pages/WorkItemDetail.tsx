@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Clock, Lock, AlertTriangle, MessageSquareText } from "lucide-react";
+import { Clock, Lock, AlertTriangle, MessageSquareText, Eye, EyeOff } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
@@ -599,7 +599,19 @@ const WorkItemDetail = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-primary">Assignment Requirements</h3>
                 {!isReadOnly && (
-                  <ConceptToggle activeView={conceptView} onViewChange={setConceptView} />
+                  <div className="flex items-center gap-2">
+                    {showConceptToggle && (
+                      <ConceptToggle activeView={conceptView} onViewChange={setConceptView} />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowConceptToggle(prev => !prev)}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-muted/50 transition-colors"
+                      title={showConceptToggle ? "Hide concepts" : "Show concepts"}
+                    >
+                      {showConceptToggle ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    </button>
+                  </div>
                 )}
               </div>
 
